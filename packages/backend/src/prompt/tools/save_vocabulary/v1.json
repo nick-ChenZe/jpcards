@@ -1,0 +1,14 @@
+{
+    "name": "save_vocabulary",
+    "description": "Save a vocabulary to the database",
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "vocabulary": {
+                "type": "string",
+                "description": "The vocabulary to save"
+            }
+        },
+        "required": ["vocabulary"]
+    }
+}

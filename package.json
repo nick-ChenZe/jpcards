@@ -1,0 +1,19 @@
+{
+  "name": "japanese-cards",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nick-ChenZe/jpcards.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/nick-ChenZe/jpcards/issues"
+  },
+  "homepage": "https://github.com/nick-ChenZe/jpcards#readme"
+}
