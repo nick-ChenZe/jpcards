@@ -1,12 +1,10 @@
 import express, { Request, Response } from 'express'
 import cors from 'cors'
-import dotenv from 'dotenv'
-import { initializeDb } from './db'
-import cardsRouter from './src/routes/cards'
-import chatRouter from './src/routes/chat'
-import imageRouter from './src/routes/image'
-
-dotenv.config()
+import { initializeDb } from './src/database/index.js'
+import cardsRouter from './src/routes/cards.js'
+import chatRouter from './src/routes/chat.js'
+import imageRouter from './src/routes/image.js'
+import authRouter from './src/routes/auth.js'
 
 const app = express()
 const port = 8000
@@ -26,6 +24,8 @@ app.get('/', (req: Request, res: Response) => {
 app.use('/api/cards', cardsRouter)
 app.use('/api/chat', chatRouter)
 app.use('/api/image', imageRouter)
+app.use('/api/auth', authRouter)
+
 
 app.listen(port, () => {
   console.log(`Backend server is running on http://localhost:${port}`)

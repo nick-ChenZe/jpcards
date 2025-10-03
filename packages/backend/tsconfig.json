@@ -1,17 +1,18 @@
 {
   "compilerOptions": {
-    "target": "es6",
-    "module": "commonjs",
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "target": "ESNext", // 明确指定目标ES版本
     "outDir": "./dist",
     "rootDir": "./",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "typeRoots": ["./node_modules/@types", "../packages/types"],
     "baseUrl": ".",
-    "paths": {
-      "@jpcards/types": ["../packages/types"]
-    }
+    "lib": ["esnext"] // 确保 "lib" 在 "compilerOptions" 内
+  },
+  "ts-node": {
+    "esm": true
   }
 }

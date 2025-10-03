@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
-import { submitImageGenerationTask, getImageGenerationResult } from '../utils/volc';
-import { config } from '../config';
+import { submitImageGenerationTask, getImageGenerationResult } from '../utils/volc.js';
+import { config } from '../config/index.js';
 
 const router = Router();
 

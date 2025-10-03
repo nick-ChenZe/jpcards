@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express'
-import { openDb } from '../../db'
+import { openDb } from '../database/index.js'
 import type { Card, CardCreate, Difficulty } from '@jpcards/shared'
 
 const router = Router()
@@ -9,7 +9,7 @@ router.get('/', async (req: Request, res: Response) => {
   try {
     const db = await openDb()
     const cards = await db.all('SELECT * FROM cards')
-    res.json(cards as Card[])
+    res.json(cards as any as Card[])
   } catch (error) {
     console.error('Error fetching cards:', error)
     res.status(500).json({ error: 'Failed to fetch cards' })

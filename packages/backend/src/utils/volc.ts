@@ -1,5 +1,5 @@
 import { stringify } from 'querystring';
-import { sign, getDateTimeNow, getBodySha, SignParams } from './auth';
+import { sign, getDateTimeNow, getBodySha, SignParams } from './auth.js';
 
 interface VolcImageGenerationParams {
     req_key: string;

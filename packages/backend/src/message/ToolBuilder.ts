@@ -1,6 +1,6 @@
 import {readFile} from "node:fs/promises";
 import {join} from "node:path";
-import {ChatCompletionFunctionTool, FunctionDefinition} from "openai/resources/index"
+import {ChatCompletionFunctionTool, FunctionDefinition} from "openai/resources/index.js"
 
 export enum ToolVersion {
     V1 = 'v1',
