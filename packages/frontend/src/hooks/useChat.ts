@@ -1,12 +1,17 @@
+import {PromptInputSubmitProps} from '@/components/ui/shadcn-io/ai/prompt-input';
+import axios from 'axios';
+import constate from 'constate';
 import {useState} from 'react';
 
-export function useChat () {
+export const [ChatProvider, useChat] = constate(() => {
     const [messages, setMessages] = useState<{role: 'user' | 'assistant'; content: string;}[]>(
         []
     );
     const [input, setInput] = useState('');
+    const [status, setStatus] = useState<PromptInputSubmitProps['status']>('ready')
 
     const sendMessage = async () => {
+        setStatus('submitted');
         if (input.trim()) {
             const newMessages = [...messages, {role: 'user' as const, content: input}, {
                 role: 'assistant' as const,
@@ -15,39 +20,46 @@ export function useChat () {
             setMessages(newMessages);
             setInput('');
 
-            const eventSource = new EventSource(
-                `http://localhost:8000/api/chat/stream?message=${encodeURIComponent(input)}`
+            const stream = await axios.post(
+                '/api/chat/stream',
+                {message: input},
+                {
+                    responseType: 'stream',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'text/event-stream'
+                    },
+                    adapter: 'fetch'
+                }
             );
+            setStatus('streaming')
+            const reader = stream.data.getReader();
+            const decoder = new TextDecoder();
 
-            eventSource.onmessage = (event) => {
-                const data = JSON.parse(event.data);
-                if (data.error) {
-                    console.error('SSE Error:', data.error);
-                    eventSource.close();
-                    return;
+            while (true) {
+                const {done, value} = await reader.read();
+                if (done) {
+                    break;
                 }
-
-                if (data.content === '[DONE]') {
-                    eventSource.close();
-                    return;
+                const lines = decoder.decode(value).split('\n\n');
+                for (const line of lines) {
+                    if (line.startsWith('data: ')) {
+                        const chunk = line.replace(/^data: /, '');
+                        const data = JSON.parse(chunk);
+                        setMessages((prevMessages) => {
+                            const lastMessage = prevMessages[prevMessages.length - 1];
+                            const updatedLastMessage = {
+                                ...lastMessage,
+                                content: lastMessage.content + data.content
+                            };
+                            return [...prevMessages.slice(0, -1), updatedLastMessage];
+                        });
+                    }
                 }
-
-                setMessages((prevMessages) => {
-                    const lastMessage = prevMessages[prevMessages.length - 1];
-                    const updatedLastMessage = {
-                        ...lastMessage,
-                        content: lastMessage.content + data.content
-                    };
-                    return [...prevMessages.slice(0, -1), updatedLastMessage];
-                });
-            };
-
-            eventSource.onerror = (error) => {
-                console.error('EventSource failed:', error);
-                eventSource.close();
-            };
+            }
+            setStatus('ready');
         }
     };
 
-    return {messages, input, setInput, sendMessage};
-}
+    return {status, messages, input, setInput, sendMessage};
+});
