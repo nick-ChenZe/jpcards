@@ -1,5 +1,5 @@
-import dotenv from 'dotenv'
-dotenv.config()
+import dotenv from 'dotenv';
+dotenv.config();
 
 export const config = {
     env: {
@@ -10,6 +10,6 @@ export const config = {
         databasePath: process.env.DATABASE_PATH || './japanese-cards.db',
         mysqlDatabase: process.env.MYSQL_DATABASE,
         mysqlUser: process.env.MYSQL_USER,
-        mysqlPassword: process.env.MYSQL_PASSWORD,
+        mysqlPassword: process.env.MYSQL_PASSWORD
     }
-}
+};

@@ -1,5 +1,5 @@
-import { stringify } from 'querystring';
-import { sign, getDateTimeNow, getBodySha, SignParams } from './auth.js';
+import {stringify} from 'querystring';
+import {getBodySha, getDateTimeNow, sign, SignParams} from './auth.js';
 
 interface VolcImageGenerationParams {
     req_key: string;
@@ -29,18 +29,20 @@ interface VolcImageResultResponse {
     };
 }
 
-export async function submitImageGenerationTask(params: VolcImageGenerationParams): Promise<string> {
-    const { accessKeyId, secretAccessKey, ...requestData } = params;
+export async function submitImageGenerationTask (
+    params: VolcImageGenerationParams
+): Promise<string> {
+    const {accessKeyId, secretAccessKey, ...requestData} = params;
     const queryString = JSON.stringify(requestData);
 
     const signParams: SignParams = {
         headers: {
-            ["X-Date"]: getDateTimeNow(),
+            ['X-Date']: getDateTimeNow()
         },
         method: 'POST',
         query: {
             Version: '2022-08-31',
-            Action: 'CVSync2AsyncSubmitTask',
+            Action: 'CVSync2AsyncSubmitTask'
         },
         accessKeyId,
         secretAccessKey,
@@ -66,7 +68,7 @@ export async function submitImageGenerationTask(params: VolcImageGenerationParam
     }
 
     const response = await res.json() as VolcImageGenerationResponse;
-    
+
     if (response.code !== 10000) {
         throw new Error(`API Error: ${response.message}`);
     }
@@ -74,23 +76,23 @@ export async function submitImageGenerationTask(params: VolcImageGenerationParam
     return response.data.task_id;
 }
 
-export async function getImageGenerationResult(params: { 
+export async function getImageGenerationResult (params: {
     task_id: string;
     req_key: string;
     accessKeyId: string;
     secretAccessKey: string;
 }): Promise<Buffer> {
-    const { accessKeyId, secretAccessKey, ...requestData } = params;
+    const {accessKeyId, secretAccessKey, ...requestData} = params;
     const queryString = JSON.stringify(requestData);
 
     const signParams: SignParams = {
         headers: {
-            ["X-Date"]: getDateTimeNow(),
+            ['X-Date']: getDateTimeNow()
         },
         method: 'POST',
         query: {
             Version: '2022-08-31',
-            Action: 'CVSync2AsyncGetResult',
+            Action: 'CVSync2AsyncGetResult'
         },
         accessKeyId,
         secretAccessKey,
@@ -116,7 +118,7 @@ export async function getImageGenerationResult(params: {
     }
 
     const response = await res.json() as VolcImageResultResponse;
-    
+
     if (response.code !== 10000) {
         throw new Error(`API Error: ${response.message}`);
     }

@@ -1,6 +1,6 @@
 import sqlite3 from 'sqlite3';
-import { Database } from 'sqlite3';
-import { config } from '../config/index.js';
+import {Database} from 'sqlite3';
+import {config} from '../config/index.js';
 
 // 会话表结构
 const CREATE_CONVERSATIONS_TABLE = `
@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS messages (
 )`;
 
 // 打开数据库连接
-export function openDb(): Promise<Database> {
+export function openDb (): Promise<Database> {
     return new Promise((resolve, reject) => {
         const db = new sqlite3.Database(config.env.databasePath, (err) => {
             if (err) {
@@ -37,9 +37,9 @@ export function openDb(): Promise<Database> {
 }
 
 // 初始化数据库表
-export async function initializeDb(): Promise<void> {
+export async function initializeDb (): Promise<void> {
     const db = await openDb();
-    
+
     await new Promise<void>((resolve, reject) => {
         db.serialize(() => {
             // 创建会话表
@@ -49,7 +49,7 @@ export async function initializeDb(): Promise<void> {
                     return;
                 }
             });
-            
+
             // 创建消息表
             db.run(CREATE_MESSAGES_TABLE, (err) => {
                 if (err) {
@@ -60,7 +60,7 @@ export async function initializeDb(): Promise<void> {
             });
         });
     });
-    
+
     await new Promise<void>((resolve, reject) => {
         db.close((err) => {
             if (err) {
@@ -73,7 +73,7 @@ export async function initializeDb(): Promise<void> {
 }
 
 // 保存消息
-export async function saveMessage(message: {
+export async function saveMessage (message: {
     id: string;
     conversationId: string;
     role: string;
@@ -82,7 +82,7 @@ export async function saveMessage(message: {
     status?: string;
 }): Promise<void> {
     const db = await openDb();
-    
+
     try {
         await new Promise<void>((resolve, reject) => {
             // 确保会话存在
@@ -94,7 +94,7 @@ export async function saveMessage(message: {
                         reject(err);
                         return;
                     }
-                    
+
                     // 保存消息
                     db.run(
                         `INSERT INTO messages (id, conversation_id, role, content, token_count, status)
@@ -118,7 +118,7 @@ export async function saveMessage(message: {
                 }
             );
         });
-        
+
         // 更新会话的最后修改时间
         await new Promise<void>((resolve, reject) => {
             db.run(
@@ -147,16 +147,18 @@ export async function saveMessage(message: {
 }
 
 // 加载会话历史消息（按 token 预算返回最新的消息）
-export async function loadConversationHistory(
+export async function loadConversationHistory (
     conversationId: string,
     tokenBudget: number = 8000
-): Promise<Array<{
-    role: string;
-    content: string;
-    tokenCount: number;
-}>> {
+): Promise<
+    Array<{
+        role: string;
+        content: string;
+        tokenCount: number;
+    }>
+> {
     const db = await openDb();
-    
+
     try {
         return await new Promise((resolve, reject) => {
             db.all(

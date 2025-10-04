@@ -1,0 +1,39 @@
+{
+    "typescript": {
+        "indentWidth": 4,
+        "lineWidth": 100,
+        "semiColons": "always",
+        "quoteStyle": "alwaysSingle",
+        "trailingCommas": "never",
+        "jsx.quoteStyle": "preferDouble",
+        "bracePosition": "maintain",
+        "spaceAround": false,
+        "spaceSurroundingProperties": false,
+        "constructorType.spaceAfterNewKeyword": true,
+        "constructSignature.spaceAfterNewKeyword": true,
+        "importDeclaration.spaceSurroundingNamedImports": false,
+        "exportDeclaration.spaceSurroundingNamedExports": false,
+        "functionDeclaration.spaceBeforeParentheses": true
+    },
+    "json": {
+        "indentWidth": 4,
+        "lineWidth": 80
+    },
+    "markdown": {
+        "lineWidth": 100,
+        "textWrap": "always"
+    },
+    "includes": ["**/*.{ts,tsx,js,jsx,json,md}"],
+    "excludes": [
+        "**/node_modules",
+        "**/dist",
+        "**/build",
+        "**/.git",
+        "**/pnpm-lock.yaml"
+    ],
+    "plugins": [
+        "./.dprint/typescript-0.88.7.wasm",
+        "./.dprint/json-0.19.1.wasm",
+        "./.dprint/markdown-0.16.3.wasm"
+    ]
+}
