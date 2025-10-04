@@ -1,10 +1,10 @@
 import './App.css'
-import { Chatbot } from './components/Chatbot'
+import {Welcome} from './components/Welcome'
  
 function App() {
   return (
     <div className="h-screen">
-      <Chatbot />
+      <Welcome />
     </div>
   )
 }

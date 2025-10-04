@@ -11,7 +11,7 @@ importers:
         version: link:../shared
       better-auth:
         specifier: ^1.3.25
-        version: 1.3.25
+        version: 1.3.25(react-dom@19.1.1)(react@19.1.1)
       cors:
         specifier: ^2.8.5
         version: 2.8.5
@@ -73,6 +73,9 @@ importers:
       '@tailwindcss/vite':
         specifier: ^4.1.13
         version: 4.1.13(vite@7.1.7)
+      better-auth:
+        specifier: ^1.3.25
+        version: 1.3.25(react-dom@19.1.1)(react@19.1.1)
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -1599,7 +1602,7 @@ packages:
     hasBin: true
     dev: true
 
-  /better-auth@1.3.25:
+  /better-auth@1.3.25(react-dom@19.1.1)(react@19.1.1):
     resolution: {integrity: sha512-prTPitTvhIbYPeO/M1QrkveT5afbkyV1OAfnSxYe3WfgTdKgRiEO3tMIPzwmKA54zSWw6XBYKtSD9uIuAAfvuQ==}
     peerDependencies:
       '@lynx-js/react': '*'
@@ -1640,6 +1643,8 @@ packages:
       jose: 6.1.0
       kysely: 0.28.7
       nanostores: 1.0.1
+      react: 19.1.1
+      react-dom: 19.1.1(react@19.1.1)
       zod: 4.1.11
     dev: false
 
