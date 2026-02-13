@@ -1,17 +1,18 @@
 import {useSession} from '@/lib/auth';
-import {Nav} from './Nav';
-import {Button} from './ui/button';
-import {Card, CardContent, CardDescription, CardHeader, CardTitle} from './ui/card';
-import {useCallback, useEffect, useState} from 'react';
+import {Nav} from '../Nav';
+import {Button} from '../ui/button';
+import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '../ui/card';
+import {useCallback, useState} from 'react';
 
 interface CardDemoResponse {
+    id?: string;
     sentence: string;
     sentenceHtml: string;
     imageDataUrl: string;
     audioDataUrl: string;
 }
 
-export const Welcome = () => {
+export const ExplorePage = () => {
     const [card, setCard] = useState<CardDemoResponse | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -37,14 +38,14 @@ export const Welcome = () => {
     }, []);
 
     return (
-        <div className="px-4 py-3">
-            <Nav session={data!.user}/>
+        <div className="px-4 py-3 pb-20">
+            <Nav session={data!.user} />
             <div className="mx-auto mt-4 max-w-3xl">
                 <Card>
                     <CardHeader>
-                        <CardTitle>日语卡片 Demo</CardTitle>
+                        <CardTitle>日语卡片</CardTitle>
                         <CardDescription>
-                            点击按钮后调用 `/api/card`，自动生成一句日语、配图和语音。
+                            点击按钮生成一句日语、配图和语音
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">

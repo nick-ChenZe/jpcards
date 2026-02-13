@@ -5,10 +5,11 @@ import {config} from '../config/index.js';
 
 export const auth = betterAuth({
     database: createPool({
-        host: config.env.mysqlDatabase,
+        host: 'localhost',
+        port: 3306,
         user: config.env.mysqlUser,
         password: config.env.mysqlPassword,
-        database: 'registered_user',
+        database: 'db',
         timezone: 'Z'
     }),
     emailAndPassword: {

@@ -4,43 +4,43 @@ import { Field, FieldDescription, FieldGroup, FieldLabel } from '@/components/ui
 import { Input } from '@/components/ui/input';
 import { authClient } from '@/lib/auth';
 import { cn } from '@/lib/utils';
-import { useCallback, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useCallback } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
-export function LoginForm({
+export function SignUpForm({
     className,
     ...props
 }: React.ComponentProps<'div'>) {
     const navigate = useNavigate();
-    const location = useLocation();
-    const from = (location.state as { from?: { pathname: string } })?.from?.pathname ?? '/';
 
     const handleSubmit = useCallback(
         async (e: React.FormEvent<HTMLFormElement>) => {
             e.preventDefault();
             const target = e.target as HTMLFormElement;
-            const res = await authClient.signIn.username({
-                username: target.username.value,
+            const res = await authClient.signUp.email({
+                email: target.email.value,
+                name: target.name.value,
                 password: target.password.value,
+                username: target.username.value || undefined,
             });
 
             if (res.error) {
-                toast.error('Login failed', { description: res.error.message });
+                toast.error('Sign up failed', { description: res.error.message });
             } else {
-                toast.success('  signed in');
-                navigate('/', { replace: true });
+                toast.success('Account created successfully');
+                navigate('/');
             }
         },
-        [navigate, from]
+        [navigate]
     );
 
     return (
         <div className={cn('flex flex-col gap-6 w-[400px]', className)} {...props}>
             <Card>
                 <CardHeader className="text-center">
-                    <CardTitle className="text-xl">Welcome back</CardTitle>
-                    <CardDescription>Login to your account</CardDescription>
+                    <CardTitle className="text-xl">Create an account</CardTitle>
+                    <CardDescription>Sign up to get started</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={handleSubmit}>
@@ -55,15 +55,26 @@ export function LoginForm({
                                 />
                             </Field>
                             <Field>
-                                <div className="flex items-center">
-                                    <FieldLabel htmlFor="password">Password</FieldLabel>
-                                    <a
-                                        href="#"
-                                        className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
-                                    >
-                                        Forgot your password?
-                                    </a>
-                                </div>
+                                <FieldLabel htmlFor="name">Name</FieldLabel>
+                                <Input
+                                    id="name"
+                                    name="name"
+                                    placeholder="Your name"
+                                    required
+                                />
+                            </Field>
+                            <Field>
+                                <FieldLabel htmlFor="email">Email</FieldLabel>
+                                <Input
+                                    id="email"
+                                    name="email"
+                                    type="email"
+                                    placeholder="email@example.com"
+                                    required
+                                />
+                            </Field>
+                            <Field>
+                                <FieldLabel htmlFor="password">Password</FieldLabel>
                                 <Input
                                     id="password"
                                     name="password"
@@ -73,11 +84,11 @@ export function LoginForm({
                                 />
                             </Field>
                             <Field>
-                                <Button type="submit">Login</Button>
+                                <Button type="submit">Sign up</Button>
                                 <FieldDescription className="text-center">
-                                    Don&apos;t have an account?{' '}
-                                    <Link to="/sign-up" className="underline underline-offset-4 hover:text-primary">
-                                        Sign up
+                                    Already have an account?{' '}
+                                    <Link to="/login" className="underline underline-offset-4 hover:text-primary">
+                                        Log in
                                     </Link>
                                 </FieldDescription>
                             </Field>

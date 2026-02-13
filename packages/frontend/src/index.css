@@ -184,3 +184,17 @@ button:focus-visible {
     @apply bg-background text-foreground;
   }
 }
+
+/* 日式字体：正文与 ruby 均使用 Noto Serif JP */
+.font-japanese {
+  font-family: "Noto Serif JP", "Yu Mincho", "Hiragino Mincho ProN", "Hiragino Mincho Pro", serif;
+}
+.font-japanese ruby {
+  font-family: inherit;
+}
+.font-japanese rt {
+  font-family: "Noto Sans", "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
+  font-size: 0.5em;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+}
