@@ -3,14 +3,14 @@ import {config} from '../../config/index.js';
 import {buildCardDemo} from '../card.js';
 
 const hasRealCardDemoConfig = Boolean(
-    config.env.chatApiKey &&
-    config.env.chatApiEndpoint &&
-    config.env.volcApiAk &&
-    config.env.volcApiSk &&
-    config.env.minimaxApiKey &&
-    config.env.minimaxEndpoint &&
-    config.env.minimaxModel &&
-    config.env.minimaxVoiceId
+    config.env.chatApiKey
+        && config.env.chatApiEndpoint
+        && config.env.volcApiAk
+        && config.env.volcApiSk
+        && config.env.minimaxApiKey
+        && config.env.minimaxEndpoint
+        && config.env.minimaxModel
+        && config.env.minimaxVoiceId
 );
 
 describe('Card demo real integration', () => {

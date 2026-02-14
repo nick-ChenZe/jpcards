@@ -1,6 +1,6 @@
+import axios from 'axios';
 import {createHash, randomUUID} from 'crypto';
 import {config} from '../config/index.js';
-import axios from 'axios';
 
 export interface TextToAudioInput {
     text: string;
@@ -43,7 +43,7 @@ async function downloadAudioAsBuffer (url: string, requestId: string): Promise<B
 async function resolveAudioBuffer (
     result: MinimaxT2aResponse,
     requestId: string
-): Promise<{buffer: Buffer; format?: string; sampleRate?: number; durationMs?: number}> {
+): Promise<{buffer: Buffer; format?: string; sampleRate?: number; durationMs?: number;}> {
     const data = result.data ?? {};
     const audioRaw = data.audio_hex ?? data.audio ?? data.audio_base64;
 
@@ -96,13 +96,13 @@ export async function synthesizeTextToAudioHex (input: TextToAudioInput): Promis
             speed: input.speed ?? 1.0
         },
         audio_setting: {
-            format: 'mp3',
+            format: 'mp3'
         }
     };
 
     const headers: Record<string, string> = {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${config.env.minimaxApiKey}`,
+        Authorization: `Bearer ${config.env.minimaxApiKey}`
     };
 
     const requestUrl = config.env.minimaxEndpoint!;

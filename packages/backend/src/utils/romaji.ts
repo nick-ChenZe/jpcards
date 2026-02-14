@@ -1,13 +1,20 @@
-import {createRequire} from 'module';
 import path from 'path';
 import {fileURLToPath} from 'url';
 import {toRomaji} from 'wanakana';
-
-const require = createRequire(import.meta.url);
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+import {installXHRPolyfill} from './xhrPolyfill.js';
 
 /** 汉字（CJK 统一表意文字）范围 */
 const KANJI_REGEX = /[\u4e00-\u9fff]/;
+
+/** Node 下用本地 dict；Workers 下用 assets baseUrl（从 public/kuromoji/dict 部署） */
+function getDicPath (assetsBaseUrl?: string): string {
+    if (typeof import.meta.url !== 'undefined' && import.meta.url.startsWith('file:')) {
+        const dir = path.dirname(fileURLToPath(import.meta.url));
+        return path.join(dir, '../../node_modules/kuromoji/dict');
+    }
+    const base = (assetsBaseUrl ?? '').replace(/\/+$/, '');
+    return base ? `${base}/kuromoji/dict/` : '';
+}
 
 interface KuromojiToken {
     surface_form: string;
@@ -15,35 +22,70 @@ interface KuromojiToken {
     pronunciation?: string;
 }
 
-let tokenizerPromise: Promise<{tokenize: (text: string) => KuromojiToken[]}> | null = null;
+type KuromojiTokenizer = {tokenize: (text: string) => KuromojiToken[];};
 
-function getTokenizer (): Promise<{tokenize: (text: string) => KuromojiToken[]}> {
+let tokenizerPromise: Promise<KuromojiTokenizer | null> | null = null;
+
+async function getTokenizer (assetsBaseUrl?: string): Promise<KuromojiTokenizer | null> {
     if (tokenizerPromise) {
         return tokenizerPromise;
     }
-    const kuromojiPath = path.dirname(require.resolve('kuromoji/package.json'));
-    const dicPath = path.join(kuromojiPath, 'dict');
 
-    tokenizerPromise = new Promise((resolve, reject) => {
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
-        const kuromoji = require('kuromoji');
-        kuromoji.builder({dicPath}).build((err: Error | null, tok: {tokenize: (text: string) => KuromojiToken[]}) => {
-            if (err) {
-                reject(err);
-                return;
+    tokenizerPromise = (async (): Promise<KuromojiTokenizer | null> => {
+        try {
+            installXHRPolyfill();
+
+            const kuromojiModule = await import('kuromoji');
+            const kuromoji = (kuromojiModule as {
+                builder?: (options: {dicPath: string;}) => {
+                    build: (
+                        callback: (err: Error | null, tok: KuromojiTokenizer) => void
+                    ) => void;
+                };
+            }).builder;
+
+            if (!kuromoji) {
+                return null;
             }
-            resolve(tok);
-        });
-    });
+
+            const dicPath = getDicPath(assetsBaseUrl);
+            if (!dicPath) {
+                console.warn('Kuromoji: no dicPath (pass assetsBaseUrl in Workers)');
+                return null;
+            }
+
+            return await new Promise<KuromojiTokenizer>((resolve, reject) => {
+                kuromoji({dicPath}).build((err, tok) => {
+                    if (err) {
+                        reject(err);
+                        return;
+                    }
+                    resolve(tok);
+                });
+            });
+        } catch (error) {
+            console.warn('Kuromoji tokenizer unavailable, fallback to plain sentence rendering:', error);
+            return null;
+        }
+    })();
+
     return tokenizerPromise;
 }
 
 /**
  * 将日语句子转为 HTML，仅对汉字（中文）添加罗马音标注，假名等不加。
  * 返回的 HTML 使用 <ruby> 标签，可直接用于前端渲染。
+ * @param sentence 日语句子
+ * @param assetsBaseUrl Workers 下需传入请求 origin（如 new URL(req.url).origin），用于从 assets 加载 dict
  */
-export async function toSentenceWithKanjiRomaji (sentence: string): Promise<string> {
-    const tokenizer = await getTokenizer();
+export async function toSentenceWithKanjiRomaji (
+    sentence: string,
+    assetsBaseUrl?: string
+): Promise<string> {
+    const tokenizer = await getTokenizer(assetsBaseUrl);
+    if (!tokenizer) {
+        return escapeHtml(sentence);
+    }
     const tokens = tokenizer.tokenize(sentence);
 
     const parts: string[] = [];

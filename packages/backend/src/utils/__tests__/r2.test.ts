@@ -1,12 +1,12 @@
-import {describe, expect, it, beforeAll, afterAll} from 'vitest';
+import {afterAll, beforeAll, describe, expect, it} from 'vitest';
 import {config} from '../../config/index.js';
-import {uploadToR2, getR2ObjectInfo, deleteFromR2, downloadFromR2, buildR2Url} from '../r2.js';
+import {buildR2Url, deleteFromR2, downloadFromR2, getR2ObjectInfo, uploadToR2} from '../r2.js';
 
 const hasRealR2Config = Boolean(
-    config.env.s3AccessKeyId && 
-    config.env.s3SecretAccessKey && 
-    config.env.s3Endpoint &&
-    config.env.s3Bucket
+    config.env.s3AccessKeyId
+        && config.env.s3SecretAccessKey
+        && config.env.s3Endpoint
+        && config.env.s3Bucket
 );
 
 const TEST_BUCKET = config.env.s3Bucket;

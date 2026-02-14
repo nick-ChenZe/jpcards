@@ -1,14 +1,14 @@
+import {BrowserRouter, Navigate, Route, Routes} from 'react-router-dom';
+import {AuthLayout} from './components/AuthLayout';
 import {LoginForm} from './components/LoginForm';
+import {ExplorePage} from './components/pages/ExplorePage';
+import {FriendPage} from './components/pages/FriendPage';
+import {HistoryPage} from './components/pages/HistoryPage';
+import {SettingPage} from './components/pages/SettingPage';
 import {SignUpForm} from './components/SignUpForm';
 import {Toaster} from './components/ui/sonner';
-import {AuthLayout} from './components/AuthLayout';
-import {ExplorePage} from './components/pages/ExplorePage';
-import {HistoryPage} from './components/pages/HistoryPage';
-import {FriendPage} from './components/pages/FriendPage';
-import {SettingPage} from './components/pages/SettingPage';
-import {BrowserRouter, Navigate, Route, Routes} from 'react-router-dom';
 
-function App() {
+function App () {
     return (
         <BrowserRouter>
             <div className="h-screen w-screen">

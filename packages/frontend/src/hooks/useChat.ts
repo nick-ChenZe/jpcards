@@ -8,7 +8,7 @@ export const [ChatProvider, useChat] = constate(() => {
         []
     );
     const [input, setInput] = useState('');
-    const [status, setStatus] = useState<PromptInputSubmitProps['status']>('ready')
+    const [status, setStatus] = useState<PromptInputSubmitProps['status']>('ready');
 
     const sendMessage = async () => {
         setStatus('submitted');
@@ -32,7 +32,7 @@ export const [ChatProvider, useChat] = constate(() => {
                     adapter: 'fetch'
                 }
             );
-            setStatus('streaming')
+            setStatus('streaming');
             const reader = stream.data.getReader();
             const decoder = new TextDecoder();
 

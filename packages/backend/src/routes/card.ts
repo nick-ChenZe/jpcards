@@ -1,16 +1,11 @@
 import OpenAI from 'openai';
-import {Request, Response, Router} from 'express';
-import {fromNodeHeaders} from 'better-auth/node';
 import {config} from '../config/index.js';
-import {auth} from './auth.js';
-import {getRecentSentences, insertSentence} from '../database/sentenceMemory.js';
 import {insertCardHistory, updateCardAssets} from '../database/cardHistory.js';
+import {getRecentSentences, insertSentence} from '../database/sentenceMemory.js';
+import type {Env} from '../types.js';
+import {synthesizeTextToAudioHex} from '../utils/minimax.js';
 import {toSentenceWithKanjiRomaji} from '../utils/romaji.js';
 import {getImageGenerationResult, submitImageGenerationTask} from '../utils/volc.js';
-import {synthesizeTextToAudioHex} from '../utils/minimax.js';
-import {uploadToR2} from '../utils/r2.js';
-
-const router = Router();
 
 const openai = new OpenAI({
     apiKey: config.env.chatApiKey,
@@ -171,6 +166,10 @@ function resolveAudioMimeType (format: string): string {
     return 'audio/mpeg';
 }
 
+function joinPublicUrl (base: string, key: string): string {
+    return `${base.replace(/\/+$/, '')}/${key}`;
+}
+
 async function generateAudioBase64 (text: string): Promise<string> {
     const audio = await synthesizeTextToAudioHex({text});
     const audioBuffer = Buffer.from(audio.audioHex, 'hex');
@@ -193,11 +192,15 @@ export async function buildCardDemo (): Promise<CardDemoResult> {
     };
 }
 
-export async function buildCardWithMemory (userId: string): Promise<CardDemoResult> {
+export async function buildCardWithMemory (
+    userId: string,
+    env: Env,
+    assetsBaseUrl?: string
+): Promise<CardDemoResult> {
     const seenSentences = await getRecentSentences(userId);
     const sentence = await generateJapaneseSentenceWithMemory(seenSentences, DEFAULT_LEVEL);
     await insertSentence(userId, sentence, DEFAULT_LEVEL);
-    const sentenceHtml = await toSentenceWithKanjiRomaji(sentence);
+    const sentenceHtml = await toSentenceWithKanjiRomaji(sentence, assetsBaseUrl);
     const imagePrompt = `A clean and Noritake style illustration that matches this Japanese sentence: ${sentence}`;
 
     // 生成图片和音频（获取原始 Buffer 用于上传 R2）
@@ -215,20 +218,40 @@ export async function buildCardWithMemory (userId: string): Promise<CardDemoResu
         level: DEFAULT_LEVEL
     });
 
-    // 上传音频和插图到 R2
-    const audioKey = `audio/${cardId}.mp3`;
+    // 上传音频和插图到 R2（Cloudflare Worker 原生 R2 绑定）
+    const audioExtension = audioResult.audioFormat === 'wav'
+        ? 'wav'
+        : audioResult.audioFormat === 'opus'
+        ? 'ogg'
+        : 'mp3';
+    const audioKey = `audio/${cardId}.${audioExtension}`;
     const illustrationKey = `illustration/${cardId}.png`;
-    const bucket = config.env.s3Bucket;
-    const publicBase = config.env.s3PublicUrl;
+    const publicBase = env.S3_PUBLIC_URL;
 
     await Promise.all([
-        uploadToR2({bucket, key: audioKey, body: audioBuffer, contentType: resolveAudioMimeType(audioResult.audioFormat)}),
-        uploadToR2({bucket, key: illustrationKey, body: imageBuffer, contentType: 'image/png'})
+        env.R2.put(audioKey, audioBuffer, {
+            httpMetadata: {
+                contentType: resolveAudioMimeType(audioResult.audioFormat)
+            }
+        }),
+        env.R2.put(illustrationKey, imageBuffer, {
+            httpMetadata: {
+                contentType: 'image/png'
+            }
+        })
     ]);
 
+    const [audioMeta, illustrationMeta] = await Promise.all([
+        env.R2.head(audioKey),
+        env.R2.head(illustrationKey)
+    ]);
+    if (!audioMeta || !illustrationMeta) {
+        throw new Error(`R2 upload verification failed: audio=${audioKey}, illustration=${illustrationKey}`);
+    }
+
     // 构建公开访问 URL 并更新记录
-    const audioUrl = `${publicBase}/${audioKey}`;
-    const illustrationUrl = `${publicBase}/${illustrationKey}`;
+    const audioUrl = joinPublicUrl(publicBase, audioKey);
+    const illustrationUrl = joinPublicUrl(publicBase, illustrationKey);
     await updateCardAssets(cardId, audioUrl, illustrationUrl);
 
     // 同时返回 data URL 给前端直接渲染（避免客户端额外请求）
@@ -243,23 +266,3 @@ export async function buildCardWithMemory (userId: string): Promise<CardDemoResu
         audioDataUrl
     };
 }
-
-router.get('/', async (req: Request, res: Response) => {
-    try {
-        const session = await auth.api.getSession({
-            headers: fromNodeHeaders(req.headers)
-        });
-        const card = session
-            ? await buildCardWithMemory(session.user.id)
-            : await buildCardDemo();
-        res.json(card);
-    } catch (error) {
-        console.error('Failed to build card demo:', error);
-        res.status(500).json({
-            error: 'Failed to build card demo',
-            message: error instanceof Error ? error.message : 'Unknown error'
-        });
-    }
-});
-
-export default router;

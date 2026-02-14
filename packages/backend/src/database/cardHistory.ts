@@ -1,5 +1,7 @@
 import {randomUUID} from 'crypto';
-import {getPool} from './index.js';
+import {count, desc, eq, sql} from 'drizzle-orm';
+import {db} from './d1Client.js';
+import {cardHistory} from './schema.js';
 
 export interface CardHistoryRecord {
     id: string;
@@ -26,20 +28,15 @@ export interface InsertCardHistoryInput {
  */
 export async function insertCardHistory (input: InsertCardHistoryInput): Promise<string> {
     const id = randomUUID();
-    const pool = getPool();
-    await pool.query(
-        `INSERT INTO card_history (id, user_id, sentence, sentence_html, audio_url, illustration_url, level)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [
-            id,
-            input.userId,
-            input.sentence,
-            input.sentenceHtml,
-            input.audioUrl ?? null,
-            input.illustrationUrl ?? null,
-            input.level ?? 'N5'
-        ]
-    );
+    await db.insert(cardHistory).values({
+        id,
+        userId: input.userId,
+        sentence: input.sentence,
+        sentenceHtml: input.sentenceHtml,
+        audioUrl: input.audioUrl ?? null,
+        illustrationUrl: input.illustrationUrl ?? null,
+        level: input.level ?? 'N5'
+    });
     return id;
 }
 
@@ -51,11 +48,9 @@ export async function updateCardAssets (
     audioUrl: string,
     illustrationUrl: string
 ): Promise<void> {
-    const pool = getPool();
-    await pool.query(
-        `UPDATE card_history SET audio_url = ?, illustration_url = ? WHERE id = ?`,
-        [audioUrl, illustrationUrl, cardId]
-    );
+    await db.update(cardHistory)
+        .set({audioUrl, illustrationUrl})
+        .where(eq(cardHistory.id, cardId));
 }
 
 /**
@@ -66,25 +61,22 @@ export async function getCardHistory (
     limit: number = 20,
     offset: number = 0
 ): Promise<CardHistoryRecord[]> {
-    const pool = getPool();
-    const [rows] = await pool.query(
-        `SELECT id, user_id, sentence, sentence_html, audio_url, illustration_url, level, created_at
-         FROM card_history
-         WHERE user_id = ?
-         ORDER BY created_at DESC
-         LIMIT ? OFFSET ?`,
-        [userId, limit, offset]
-    );
-    const list = (Array.isArray(rows) ? rows : []) as Array<Record<string, unknown>>;
-    return list.map((row) => ({
-        id: row.id as string,
-        userId: row.user_id as string,
-        sentence: row.sentence as string,
-        sentenceHtml: row.sentence_html as string,
-        audioUrl: (row.audio_url as string) || null,
-        illustrationUrl: (row.illustration_url as string) || null,
-        level: row.level as string,
-        createdAt: String(row.created_at)
+    const rows = await db.select()
+        .from(cardHistory)
+        .where(eq(cardHistory.userId, userId))
+        .orderBy(desc(cardHistory.createdAt))
+        .limit(limit)
+        .offset(offset);
+
+    return rows.map((row) => ({
+        id: row.id,
+        userId: row.userId,
+        sentence: row.sentence,
+        sentenceHtml: row.sentenceHtml,
+        audioUrl: row.audioUrl,
+        illustrationUrl: row.illustrationUrl,
+        level: row.level ?? 'N5',
+        createdAt: row.createdAt ?? ''
     }));
 }
 
@@ -92,11 +84,9 @@ export async function getCardHistory (
  * 获取用户的卡片总数
  */
 export async function getCardHistoryCount (userId: string): Promise<number> {
-    const pool = getPool();
-    const [rows] = await pool.query(
-        `SELECT COUNT(*) AS total FROM card_history WHERE user_id = ?`,
-        [userId]
-    );
-    const list = (Array.isArray(rows) ? rows : []) as Array<{total: number}>;
-    return list[0]?.total ?? 0;
+    const result = await db.select({total: count()})
+        .from(cardHistory)
+        .where(eq(cardHistory.userId, userId));
+
+    return result[0]?.total ?? 0;
 }

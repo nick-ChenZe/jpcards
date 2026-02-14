@@ -1,7 +1,4 @@
-import {Request, Response, Router} from 'express';
 import {synthesizeTextToAudioHex} from '../utils/minimax.js';
-
-const router = Router();
 
 interface TextToAudioHexRequest {
     text: string;
@@ -25,8 +22,8 @@ function validateRequestBody (body: TextToAudioHexRequest): string | null {
         return 'format must be one of mp3, wav, opus';
     }
     if (
-        body.sampleRate !== undefined &&
-        ![16000, 22050, 24000, 44100].includes(body.sampleRate)
+        body.sampleRate !== undefined
+        && ![16000, 22050, 24000, 44100].includes(body.sampleRate)
     ) {
         return 'sampleRate must be one of 16000, 22050, 24000, 44100';
     }
@@ -36,31 +33,31 @@ function validateRequestBody (body: TextToAudioHexRequest): string | null {
     return null;
 }
 
-router.post('/text-to-hex', async (req: Request<{}, {}, TextToAudioHexRequest>, res: Response) => {
-    const validationError = validateRequestBody(req.body);
-    if (validationError) {
-        res.status(400).json({
-            error: {
-                code: 'INVALID_REQUEST',
-                message: validationError
-            }
-        });
-        return;
-    }
+// router.post('/text-to-hex', async (req: Request<{}, {}, TextToAudioHexRequest>, res: Response) => {
+//     const validationError = validateRequestBody(req.body);
+//     if (validationError) {
+//         res.status(400).json({
+//             error: {
+//                 code: 'INVALID_REQUEST',
+//                 message: validationError
+//             }
+//         });
+//         return;
+//     }
 
-    try {
-        const result = await synthesizeTextToAudioHex(req.body);
-        res.status(200).json(result);
-    } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        console.error('Failed to synthesize text to audio hex:', error);
-        res.status(500).json({
-            error: {
-                code: 'UPSTREAM_TTS_FAILED',
-                message
-            }
-        });
-    }
-});
+//     try {
+//         const result = await synthesizeTextToAudioHex(req.body);
+//         res.status(200).json(result);
+//     } catch (error) {
+//         const message = error instanceof Error ? error.message : 'Unknown error';
+//         console.error('Failed to synthesize text to audio hex:', error);
+//         res.status(500).json({
+//             error: {
+//                 code: 'UPSTREAM_TTS_FAILED',
+//                 message
+//             }
+//         });
+//     }
+// });
 
-export default router;
+// export default router;

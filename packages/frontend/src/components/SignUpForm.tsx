@@ -1,14 +1,14 @@
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Field, FieldDescription, FieldGroup, FieldLabel } from '@/components/ui/field';
-import { Input } from '@/components/ui/input';
-import { authClient } from '@/lib/auth';
-import { cn } from '@/lib/utils';
-import { useCallback } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
+import {Button} from '@/components/ui/button';
+import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
+import {Field, FieldDescription, FieldGroup, FieldLabel} from '@/components/ui/field';
+import {Input} from '@/components/ui/input';
+import {authClient} from '@/lib/auth';
+import {cn} from '@/lib/utils';
+import {useCallback} from 'react';
+import {Link, useNavigate} from 'react-router-dom';
+import {toast} from 'sonner';
 
-export function SignUpForm({
+export function SignUpForm ({
     className,
     ...props
 }: React.ComponentProps<'div'>) {
@@ -22,11 +22,11 @@ export function SignUpForm({
                 email: target.email.value,
                 name: target.name.value,
                 password: target.password.value,
-                username: target.username.value || undefined,
+                username: target.username.value || undefined
             });
 
             if (res.error) {
-                toast.error('Sign up failed', { description: res.error.message });
+                toast.error('Sign up failed', {description: res.error.message});
             } else {
                 toast.success('Account created successfully');
                 navigate('/');

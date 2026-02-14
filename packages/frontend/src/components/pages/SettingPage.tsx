@@ -1,7 +1,7 @@
-import {Settings} from 'lucide-react';
 import {signOut} from '@/lib/auth';
-import {Button} from '../ui/button';
+import {Settings} from 'lucide-react';
 import {useNavigate} from 'react-router-dom';
+import {Button} from '../ui/button';
 
 export const SettingPage = () => {
     const navigate = useNavigate();

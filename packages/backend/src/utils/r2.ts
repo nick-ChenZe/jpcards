@@ -1,4 +1,4 @@
-import {S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand, HeadObjectCommand} from '@aws-sdk/client-s3';
+import {DeleteObjectCommand, GetObjectCommand, HeadObjectCommand, PutObjectCommand, S3Client} from '@aws-sdk/client-s3';
 import {config} from '../config/index.js';
 
 export interface R2UploadInput {
@@ -36,8 +36,8 @@ class R2Client {
             endpoint: config.env.s3Endpoint,
             credentials: {
                 accessKeyId: config.env.s3AccessKeyId,
-                secretAccessKey: config.env.s3SecretAccessKey,
-            },
+                secretAccessKey: config.env.s3SecretAccessKey
+            }
         });
     }
 
@@ -47,18 +47,18 @@ class R2Client {
             Key: input.key,
             Body: input.body,
             ContentType: input.contentType || 'application/octet-stream',
-            Metadata: input.metadata || {},
+            Metadata: input.metadata || {}
         });
 
         try {
             const response = await this.client.send(command);
-            
+
             return {
                 key: input.key,
                 bucket: input.bucket,
                 etag: response.ETag?.replace(/"/g, '') || '',
                 location: `https://${input.bucket}.${config.env.s3Endpoint}/${input.key}`,
-                size: Buffer.isBuffer(input.body) ? input.body.length : Buffer.byteLength(input.body),
+                size: Buffer.isBuffer(input.body) ? input.body.length : Buffer.byteLength(input.body)
             };
         } catch (error) {
             throw new Error(`Failed to upload file to R2: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -68,12 +68,12 @@ class R2Client {
     async getObjectInfo(bucket: string, key: string): Promise<R2ObjectInfo | null> {
         const command = new HeadObjectCommand({
             Bucket: bucket,
-            Key: key,
+            Key: key
         });
 
         try {
             const response = await this.client.send(command);
-            
+
             return {
                 key,
                 bucket,
@@ -81,7 +81,7 @@ class R2Client {
                 lastModified: response.LastModified || new Date(),
                 etag: response.ETag?.replace(/"/g, '') || '',
                 contentType: response.ContentType,
-                metadata: response.Metadata as Record<string, string> | undefined,
+                metadata: response.Metadata as Record<string, string> | undefined
             };
         } catch (error) {
             if (error && typeof error === 'object' && 'name' in error && error.name === 'NotFound') {
@@ -94,7 +94,7 @@ class R2Client {
     async deleteObject(bucket: string, key: string): Promise<void> {
         const command = new DeleteObjectCommand({
             Bucket: bucket,
-            Key: key,
+            Key: key
         });
 
         try {
@@ -107,12 +107,12 @@ class R2Client {
     async downloadObject(bucket: string, key: string): Promise<Buffer> {
         const command = new GetObjectCommand({
             Bucket: bucket,
-            Key: key,
+            Key: key
         });
 
         try {
             const response = await this.client.send(command);
-            
+
             if (!response.Body) {
                 throw new Error('No content returned from R2');
             }
@@ -121,7 +121,7 @@ class R2Client {
             for await (const chunk of response.Body as any) {
                 chunks.push(Buffer.from(chunk));
             }
-            
+
             return Buffer.concat(chunks);
         } catch (error) {
             throw new Error(`Failed to download object: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -131,33 +131,33 @@ class R2Client {
 
 let r2ClientInstance: R2Client | null = null;
 
-function getR2Client(): R2Client {
+function getR2Client (): R2Client {
     if (!r2ClientInstance) {
         r2ClientInstance = new R2Client();
     }
     return r2ClientInstance;
 }
 
-export async function uploadToR2(input: R2UploadInput): Promise<R2UploadResult> {
+export async function uploadToR2 (input: R2UploadInput): Promise<R2UploadResult> {
     const client = getR2Client();
     return client.uploadFile(input);
 }
 
-export async function getR2ObjectInfo(bucket: string, key: string): Promise<R2ObjectInfo | null> {
+export async function getR2ObjectInfo (bucket: string, key: string): Promise<R2ObjectInfo | null> {
     const client = getR2Client();
     return client.getObjectInfo(bucket, key);
 }
 
-export async function deleteFromR2(bucket: string, key: string): Promise<void> {
+export async function deleteFromR2 (bucket: string, key: string): Promise<void> {
     const client = getR2Client();
     return client.deleteObject(bucket, key);
 }
 
-export async function downloadFromR2(bucket: string, key: string): Promise<Buffer> {
+export async function downloadFromR2 (bucket: string, key: string): Promise<Buffer> {
     const client = getR2Client();
     return client.downloadObject(bucket, key);
 }
 
-export function buildR2Url(bucket: string, key: string): string {
+export function buildR2Url (bucket: string, key: string): string {
     return `https://${bucket}.${config.env.s3Endpoint}/${key}`;
 }

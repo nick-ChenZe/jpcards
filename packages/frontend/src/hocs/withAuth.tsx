@@ -1,13 +1,13 @@
-import { useSession } from '@/lib/auth';
-import { ComponentType, useEffect, useState } from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import {useSession} from '@/lib/auth';
+import {ComponentType, useEffect, useState} from 'react';
+import {Navigate, useLocation} from 'react-router-dom';
 
 /**
  * HOC：当用户未登录时重定向到 /login
  */
-export function withAuth<P extends object>(WrappedComponent: ComponentType<P>) {
+export function withAuth<P extends object> (WrappedComponent: ComponentType<P>) {
     return function AuthGuard(props: P) {
-        const { data: session, isPending } = useSession();
+        const {data: session, isPending} = useSession();
         const location = useLocation();
 
         if (isPending) {
@@ -19,7 +19,7 @@ export function withAuth<P extends object>(WrappedComponent: ComponentType<P>) {
         }
 
         if (!session) {
-            return <Navigate to="/login" state={{ from: location }} replace />;
+            return <Navigate to="/login" state={{from: location}} replace />;
         }
 
         return <WrappedComponent {...props} />;

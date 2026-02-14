@@ -1,11 +1,11 @@
-import {Compass, Clock, Users, Settings} from 'lucide-react';
-import {useLocation, useNavigate} from 'react-router-dom';
 import {cn} from '@/lib/utils';
+import {Clock, Compass, Settings, Users} from 'lucide-react';
+import {useLocation, useNavigate} from 'react-router-dom';
 
 interface NavItem {
     label: string;
     path: string;
-    icon: React.ComponentType<{className?: string}>;
+    icon: React.ComponentType<{className?: string;}>;
 }
 
 const navItems: NavItem[] = [

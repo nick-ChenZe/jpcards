@@ -1,8 +1,8 @@
 import {useSession} from '@/lib/auth';
+import {useCallback, useEffect, useState} from 'react';
 import {Nav} from './Nav';
 import {Button} from './ui/button';
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from './ui/card';
-import {useCallback, useEffect, useState} from 'react';
 
 interface CardDemoResponse {
     sentence: string;
@@ -38,7 +38,7 @@ export const Welcome = () => {
 
     return (
         <div className="px-4 py-3">
-            <Nav session={data!.user}/>
+            <Nav session={data!.user} />
             <div className="mx-auto mt-4 max-w-3xl">
                 <Card>
                     <CardHeader>
@@ -52,26 +52,26 @@ export const Welcome = () => {
                             {loading ? '生成中...' : '生成一张卡片'}
                         </Button>
 
-                        {error ? (
-                            <p className="text-sm text-red-500">生成失败：{error}</p>
-                        ) : null}
+                        {error ? <p className="text-sm text-red-500">生成失败：{error}</p> : null}
 
-                        {card ? (
-                            <div className="space-y-4">
-                                <div
-                                    className="font-japanese text-lg font-medium leading-relaxed [&_ruby]:font-normal"
-                                    dangerouslySetInnerHTML={{__html: card.sentenceHtml}}
-                                />
-                                <img
-                                    src={card.imageDataUrl}
-                                    alt="日语句子配图"
-                                    className="w-full max-w-xl rounded-lg border"
-                                />
-                                <audio controls src={card.audioDataUrl} className="w-full max-w-xl">
-                                    您的浏览器不支持音频播放。
-                                </audio>
-                            </div>
-                        ) : null}
+                        {card
+                            ? (
+                                <div className="space-y-4">
+                                    <div
+                                        className="font-japanese text-lg font-medium leading-relaxed [&_ruby]:font-normal"
+                                        dangerouslySetInnerHTML={{__html: card.sentenceHtml}}
+                                    />
+                                    <img
+                                        src={card.imageDataUrl}
+                                        alt="日语句子配图"
+                                        className="w-full max-w-xl rounded-lg border"
+                                    />
+                                    <audio controls src={card.audioDataUrl} className="w-full max-w-xl">
+                                        您的浏览器不支持音频播放。
+                                    </audio>
+                                </div>
+                            )
+                            : null}
                     </CardContent>
                 </Card>
             </div>

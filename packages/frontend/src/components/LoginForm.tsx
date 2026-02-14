@@ -1,20 +1,20 @@
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Field, FieldDescription, FieldGroup, FieldLabel } from '@/components/ui/field';
-import { Input } from '@/components/ui/input';
-import { authClient } from '@/lib/auth';
-import { cn } from '@/lib/utils';
-import { useCallback, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
+import {Button} from '@/components/ui/button';
+import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
+import {Field, FieldDescription, FieldGroup, FieldLabel} from '@/components/ui/field';
+import {Input} from '@/components/ui/input';
+import {authClient} from '@/lib/auth';
+import {cn} from '@/lib/utils';
+import {useCallback, useEffect} from 'react';
+import {Link, useLocation, useNavigate} from 'react-router-dom';
+import {toast} from 'sonner';
 
-export function LoginForm({
+export function LoginForm ({
     className,
     ...props
 }: React.ComponentProps<'div'>) {
     const navigate = useNavigate();
     const location = useLocation();
-    const from = (location.state as { from?: { pathname: string } })?.from?.pathname ?? '/';
+    const from = (location.state as {from?: {pathname: string;};})?.from?.pathname ?? '/';
 
     const handleSubmit = useCallback(
         async (e: React.FormEvent<HTMLFormElement>) => {
@@ -22,14 +22,14 @@ export function LoginForm({
             const target = e.target as HTMLFormElement;
             const res = await authClient.signIn.username({
                 username: target.username.value,
-                password: target.password.value,
+                password: target.password.value
             });
 
             if (res.error) {
-                toast.error('Login failed', { description: res.error.message });
+                toast.error('Login failed', {description: res.error.message});
             } else {
                 toast.success('  signed in');
-                navigate('/', { replace: true });
+                navigate('/', {replace: true});
             }
         },
         [navigate, from]

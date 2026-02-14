@@ -1,5 +1,7 @@
 import {createHash, randomUUID} from 'crypto';
-import {getPool} from './index.js';
+import {desc, eq} from 'drizzle-orm';
+import {db} from './d1Client.js';
+import {sentenceMemory} from './schema.js';
 
 const RECENT_LIMIT = 80;
 const DEFAULT_LEVEL = 'N5';
@@ -16,16 +18,13 @@ export function sentenceHash (sentence: string): string {
 }
 
 export async function getRecentSentences (userId: string): Promise<string[]> {
-    const pool = getPool();
-    const [rows] = await pool.query(
-        `SELECT sentence FROM sentence_memory
-         WHERE user_id = ?
-         ORDER BY created_at DESC
-         LIMIT ?`,
-        [userId, RECENT_LIMIT]
-    );
-    const list = (Array.isArray(rows) ? rows : []) as Array<{sentence: string}>;
-    return list.map((r) => r.sentence);
+    const rows = await db.select({sentence: sentenceMemory.sentence})
+        .from(sentenceMemory)
+        .where(eq(sentenceMemory.userId, userId))
+        .orderBy(desc(sentenceMemory.createdAt))
+        .limit(RECENT_LIMIT);
+
+    return rows.map((r) => r.sentence);
 }
 
 export async function insertSentence (
@@ -35,10 +34,13 @@ export async function insertSentence (
 ): Promise<void> {
     const hash = sentenceHash(sentence);
     const id = randomUUID();
-    const pool = getPool();
-    await pool.query(
-        `INSERT IGNORE INTO sentence_memory (id, user_id, sentence, sentence_hash, level)
-         VALUES (?, ?, ?, ?, ?)`,
-        [id, userId, sentence, hash, level]
-    );
+    await db.insert(sentenceMemory)
+        .values({
+            id,
+            userId,
+            sentence,
+            sentenceHash: hash,
+            level
+        })
+        .onConflictDoNothing();
 }
