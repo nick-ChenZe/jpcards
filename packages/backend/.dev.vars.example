@@ -1,0 +1,21 @@
+# 复制为 packages/backend/.dev.vars。不要提交真实密钥。
+# 本地：wrangler dev 会读取 .dev.vars。
+# 生产：用 `wrangler secret put` 写入，不要写进 wrangler.jsonc。
+
+BETTER_AUTH_SECRET=replace-with-a-long-random-string
+BETTER_AUTH_URL=http://localhost:8787
+
+# 文本模型。留空则生卡关闭，不会请求 DeepSeek。
+# CHAT_API_KEY=
+# CHAT_API_ENDPOINT=
+# CHAT_MODEL=
+
+# 配图。不填 IMAGE_PROVIDER 时，没有百炼密钥就是 noop。
+# 有 DASHSCOPE_API_KEY 或 BAILIAN_API_KEY 才会选通义，正式模型是 qwen-image-3.0。
+# QWEN_IMAGE_TIER=turbo 只用于预览 qwen-image-2.1-turbo，评测通过前不要当默认。
+# Seedream / OpenAI 必须显式选择。不要填真实密钥，也不要填 Codex / ChatGPT OAuth。
+# IMAGE_PROVIDER=noop
+# DASHSCOPE_API_KEY=
+# BAILIAN_API_KEY=
+# SEEDREAM_API_KEY=
+# OPENAI_API_KEY=

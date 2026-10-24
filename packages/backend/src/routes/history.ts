@@ -1,4 +1,5 @@
 import {getCardHistory, getCardHistoryCount} from '../database/cardHistory.js';
+import type {AppDatabase} from '../database/db.js';
 
 export interface HistoryQuery {
     page?: string;
@@ -15,11 +16,11 @@ function normalizePagination (query: HistoryQuery): {page: number; pageSize: num
     };
 }
 
-export async function getHistoryResponse (userId: string, query: HistoryQuery) {
+export async function getHistoryResponse (db: AppDatabase, userId: string, query: HistoryQuery) {
     const {page, pageSize, offset} = normalizePagination(query);
     const [items, total] = await Promise.all([
-        getCardHistory(userId, pageSize, offset),
-        getCardHistoryCount(userId)
+        getCardHistory(db, userId, pageSize, offset),
+        getCardHistoryCount(db, userId)
     ]);
 
     return {

@@ -1,8 +1,8 @@
 import {describe, expect, it} from 'vitest';
-import {config} from '../../config/index.js';
+import {readNodeEnv} from '../../config/nodeEnv.js';
 import {synthesizeTextToAudioHex} from '../minimax.js';
 
-const hasRealMinimaxConfig = Boolean(config.env.minimaxApiKey);
+const hasRealMinimaxConfig = Boolean(readNodeEnv().minimaxApiKey);
 
 describe('Minimax real integration', () => {
     it.runIf(hasRealMinimaxConfig)(

@@ -1,6 +1,6 @@
 import {createHash, randomUUID} from 'crypto';
 import {desc, eq} from 'drizzle-orm';
-import {db} from './d1Client.js';
+import type {AppDatabase} from './db.js';
 import {sentenceMemory} from './schema.js';
 
 const RECENT_LIMIT = 80;
@@ -17,7 +17,7 @@ export function sentenceHash (sentence: string): string {
     return createHash('sha256').update(normalizeForHash(sentence), 'utf8').digest('hex');
 }
 
-export async function getRecentSentences (userId: string): Promise<string[]> {
+export async function getRecentSentences (db: AppDatabase, userId: string): Promise<string[]> {
     const rows = await db.select({sentence: sentenceMemory.sentence})
         .from(sentenceMemory)
         .where(eq(sentenceMemory.userId, userId))
@@ -28,6 +28,7 @@ export async function getRecentSentences (userId: string): Promise<string[]> {
 }
 
 export async function insertSentence (
+    db: AppDatabase,
     userId: string,
     sentence: string,
     level: string = DEFAULT_LEVEL

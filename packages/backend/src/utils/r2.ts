@@ -1,5 +1,5 @@
 import {DeleteObjectCommand, GetObjectCommand, HeadObjectCommand, PutObjectCommand, S3Client} from '@aws-sdk/client-s3';
-import {config} from '../config/index.js';
+import {readNodeEnv} from '../config/nodeEnv.js';
 
 export interface R2UploadInput {
     bucket: string;
@@ -33,10 +33,10 @@ class R2Client {
     constructor() {
         this.client = new S3Client({
             region: 'auto',
-            endpoint: config.env.s3Endpoint,
+            endpoint: readNodeEnv().s3Endpoint,
             credentials: {
-                accessKeyId: config.env.s3AccessKeyId,
-                secretAccessKey: config.env.s3SecretAccessKey
+                accessKeyId: readNodeEnv().s3AccessKeyId,
+                secretAccessKey: readNodeEnv().s3SecretAccessKey
             }
         });
     }
@@ -57,7 +57,7 @@ class R2Client {
                 key: input.key,
                 bucket: input.bucket,
                 etag: response.ETag?.replace(/"/g, '') || '',
-                location: `https://${input.bucket}.${config.env.s3Endpoint}/${input.key}`,
+                location: `https://${input.bucket}.${readNodeEnv().s3Endpoint}/${input.key}`,
                 size: Buffer.isBuffer(input.body) ? input.body.length : Buffer.byteLength(input.body)
             };
         } catch (error) {
@@ -159,5 +159,5 @@ export async function downloadFromR2 (bucket: string, key: string): Promise<Buff
 }
 
 export function buildR2Url (bucket: string, key: string): string {
-    return `https://${bucket}.${config.env.s3Endpoint}/${key}`;
+    return `https://${bucket}.${readNodeEnv().s3Endpoint}/${key}`;
 }

@@ -1,0 +1,74 @@
+[
+    {
+        "id": "cjk-latin-zhang-alex",
+        "group": "cjk-latin",
+        "displayName": "张伟 Alex Zhang",
+        "reading": "Zhāng Wěi",
+        "finePrint": "学习卡 N5 · JP-0042",
+        "prompt": "A clean white name card. Large text: 张伟 Alex Zhang. Smaller reading: Zhāng Wěi. Fine print at the bottom: 学习卡 N5 · JP-0042. High legibility, no extra decoration."
+    },
+    {
+        "id": "cjk-latin-sato-mary",
+        "group": "cjk-latin",
+        "displayName": "佐藤メリ Mary Satō",
+        "reading": "さとう メリ",
+        "finePrint": "席次 12 · Room B",
+        "prompt": "A clean white name card. Large text: 佐藤メリ Mary Satō. Ruby-sized reading: さとう メリ. Fine print: 席次 12 · Room B. Keep every character sharp."
+    },
+    {
+        "id": "cjk-latin-kim-hanna",
+        "group": "cjk-latin",
+        "displayName": "김하늘 Hanna Kim",
+        "reading": "Kim Haneul",
+        "finePrint": "교환학생 · 2026",
+        "prompt": "A clean white name card. Large text: 김하늘 Hanna Kim. Small Latin reading: Kim Haneul. Fine print: 교환학생 · 2026. Do not invent extra letters."
+    },
+    {
+        "id": "fine-ouyang-nana",
+        "group": "fine-text",
+        "displayName": "欧阳·娜娜",
+        "reading": "Ōuyáng Nàna",
+        "finePrint": "工号 A-17 / 日语部 / 勿折行",
+        "prompt": "A name card with very small but readable print. Name: 欧阳·娜娜. Reading: Ōuyáng Nàna. Bottom fine print on one line: 工号 A-17 / 日语部 / 勿折行."
+    },
+    {
+        "id": "fine-moriyama-mirai",
+        "group": "fine-text",
+        "displayName": "森山みらい",
+        "reading": "もりやま みらい",
+        "finePrint": "ふりがなは名前より一号小",
+        "prompt": "A name card. Main name 森山みらい. Directly beneath, smaller kana: もりやま みらい. Tiny note: ふりがなは名前より一号小. White background."
+    },
+    {
+        "id": "fine-address-line",
+        "group": "fine-text",
+        "displayName": "林可 Lin Ke",
+        "reading": "Lín Kě",
+        "finePrint": "東京都千代田区1-2-3 学習棟 408",
+        "prompt": "A name card. Large name: 林可 Lin Ke. Reading: Lín Kě. One unbroken fine-print address: 東京都千代田区1-2-3 学習棟 408. The digits and kanji must stay distinct."
+    },
+    {
+        "id": "unusual-oneill-chen",
+        "group": "unusual-name",
+        "displayName": "O'Neill-陳",
+        "reading": "オニール チン",
+        "finePrint": "apostrophe and hyphen",
+        "prompt": "A name card. Exact name: O'Neill-陳. Reading: オニール チン. Keep the apostrophe and the hyphen. Do not respell the name."
+    },
+    {
+        "id": "unusual-single-kanji",
+        "group": "unusual-name",
+        "displayName": "栞 Sr.",
+        "reading": "しおり",
+        "finePrint": "一字名",
+        "prompt": "A name card with a one-character given name. Large text: 栞 Sr. Small reading: しおり. Tiny label: 一字名. Do not add a surname."
+    },
+    {
+        "id": "unusual-jean-luc",
+        "group": "unusual-name",
+        "displayName": "让-吕克·陈",
+        "reading": "Jean-Luc Chen",
+        "finePrint": "连字符与间隔号都要保留",
+        "prompt": "A name card. Exact name: 让-吕克·陈. Latin line: Jean-Luc Chen. Fine print: 连字符与间隔号都要保留. Keep the hyphen and the middle dot."
+    }
+]

@@ -1,6 +1,3 @@
-import {config} from '../config/index.js';
-import {getImageGenerationResult, submitImageGenerationTask} from '../utils/volc.js';
-
 interface GenerateImageRequest {
     prompt: string;
     width?: number;

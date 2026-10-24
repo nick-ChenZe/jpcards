@@ -1,4 +1,3 @@
-
 {
     "name": "japanese-cards",
     "version": "1.0.0",
@@ -7,7 +6,9 @@
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
         "format": "dprint fmt",
-        "format:check": "dprint check"
+        "format:check": "dprint check",
+        "dev": "pnpm --filter @jpcards/frontend build && pnpm --filter @jpcards/backend db:migrate:local && pnpm --filter @jpcards/backend dev",
+        "deploy": "pnpm --filter @jpcards/frontend build && pnpm --filter @jpcards/backend deploy"
     },
     "repository": {
         "type": "git",

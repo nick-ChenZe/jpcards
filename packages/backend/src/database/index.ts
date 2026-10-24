@@ -1,11 +1,7 @@
 /**
- * 数据库模块入口
- * 已从 MySQL 迁移到 Cloudflare D1（通过 Drizzle ORM + sqlite-proxy）
- *
- * 数据库迁移现在由 Drizzle Kit 管理：
- *   pnpm db:push    — 将 schema 推送到 D1
- *   pnpm db:generate — 生成迁移 SQL 文件
+ * Worker 里的学习数据走 D1 绑定（createDb）。
+ * 本机 drizzle-kit 仍用开发者自己的 CLOUDFLARE_API_TOKEN，不进 Worker。
  */
 
-export {db} from './d1Client.js';
-export type {Database} from './d1Client.js';
+export {createDb} from './db.js';
+export type {AppDatabase} from './db.js';

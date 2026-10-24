@@ -1,6 +1,6 @@
 import {randomUUID} from 'crypto';
-import {count, desc, eq, sql} from 'drizzle-orm';
-import {db} from './d1Client.js';
+import {count, desc, eq} from 'drizzle-orm';
+import type {AppDatabase} from './db.js';
 import {cardHistory} from './schema.js';
 
 export interface CardHistoryRecord {
@@ -18,15 +18,12 @@ export interface InsertCardHistoryInput {
     userId: string;
     sentence: string;
     sentenceHtml: string;
-    audioUrl?: string;
-    illustrationUrl?: string;
+    audioUrl?: string | null;
+    illustrationUrl?: string | null;
     level?: string;
 }
 
-/**
- * 插入一条卡片浏览记录，返回生成的 UUID
- */
-export async function insertCardHistory (input: InsertCardHistoryInput): Promise<string> {
+export async function insertCardHistory (db: AppDatabase, input: InsertCardHistoryInput): Promise<string> {
     const id = randomUUID();
     await db.insert(cardHistory).values({
         id,
@@ -40,10 +37,8 @@ export async function insertCardHistory (input: InsertCardHistoryInput): Promise
     return id;
 }
 
-/**
- * 更新卡片的音频和插图 URL
- */
 export async function updateCardAssets (
+    db: AppDatabase,
     cardId: string,
     audioUrl: string,
     illustrationUrl: string
@@ -53,10 +48,8 @@ export async function updateCardAssets (
         .where(eq(cardHistory.id, cardId));
 }
 
-/**
- * 获取用户的卡片浏览历史（分页）
- */
 export async function getCardHistory (
+    db: AppDatabase,
     userId: string,
     limit: number = 20,
     offset: number = 0
@@ -80,10 +73,7 @@ export async function getCardHistory (
     }));
 }
 
-/**
- * 获取用户的卡片总数
- */
-export async function getCardHistoryCount (userId: string): Promise<number> {
+export async function getCardHistoryCount (db: AppDatabase, userId: string): Promise<number> {
     const result = await db.select({total: count()})
         .from(cardHistory)
         .where(eq(cardHistory.userId, userId));

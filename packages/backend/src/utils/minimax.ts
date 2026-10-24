@@ -1,6 +1,6 @@
 import axios from 'axios';
 import {createHash, randomUUID} from 'crypto';
-import {config} from '../config/index.js';
+import {readNodeEnv} from '../config/nodeEnv.js';
 
 export interface TextToAudioInput {
     text: string;
@@ -86,9 +86,9 @@ export async function synthesizeTextToAudioHex (input: TextToAudioInput): Promis
     sha256: string;
 }> {
     const requestId = randomUUID();
-    const voiceId = config.env.minimaxVoiceId!;
+    const voiceId = readNodeEnv().minimaxVoiceId!;
     const requestPayload = {
-        model: config.env.minimaxModel,
+        model: readNodeEnv().minimaxModel,
         text: input.text,
         stream: false,
         voice_setting: {
@@ -102,10 +102,10 @@ export async function synthesizeTextToAudioHex (input: TextToAudioInput): Promis
 
     const headers: Record<string, string> = {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${config.env.minimaxApiKey}`
+        Authorization: `Bearer ${readNodeEnv().minimaxApiKey}`
     };
 
-    const requestUrl = config.env.minimaxEndpoint!;
+    const requestUrl = readNodeEnv().minimaxEndpoint!;
     const response = await axios.post<MinimaxT2aResponse>(requestUrl, requestPayload, {headers});
 
     const data = response.data;

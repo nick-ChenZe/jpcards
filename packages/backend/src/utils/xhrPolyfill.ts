@@ -14,28 +14,28 @@ function createXHRPolyfill (): typeof XMLHttpRequest {
         onload: (() => void) | null = null;
         onerror: ((err: unknown) => void) | null = null;
 
-        open (method: string, url: string, _async = true): void {
+        open(method: string, url: string, _async = true): void {
             this._method = method;
             this._url = url;
         }
 
-        set responseType (value: XMLHttpRequestResponseType) {
+        set responseType(value: XMLHttpRequestResponseType) {
             this._responseType = value;
         }
 
-        get response (): ArrayBuffer | null {
+        get response(): ArrayBuffer | null {
             return this._response;
         }
 
-        get status (): number {
+        get status(): number {
             return this._status;
         }
 
-        get statusText (): string {
+        get statusText(): string {
             return this._statusText;
         }
 
-        send (): void {
+        send(): void {
             fetch(this._url, {method: this._method})
                 .then((res) => {
                     this._status = res.status;
@@ -62,7 +62,6 @@ function createXHRPolyfill (): typeof XMLHttpRequest {
 
 export function installXHRPolyfill (): void {
     if (typeof globalThis.XMLHttpRequest === 'undefined') {
-        (globalThis as {XMLHttpRequest?: typeof XMLHttpRequest}).XMLHttpRequest =
-            createXHRPolyfill();
+        (globalThis as {XMLHttpRequest?: typeof XMLHttpRequest;}).XMLHttpRequest = createXHRPolyfill();
     }
 }
