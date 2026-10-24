@@ -1,5 +1,5 @@
 import {randomUUID} from 'crypto';
-import {count, desc, eq} from 'drizzle-orm';
+import {and, count, desc, eq} from 'drizzle-orm';
 import type {AppDatabase} from './db.js';
 import {cardHistory} from './schema.js';
 
@@ -8,6 +8,7 @@ export interface CardHistoryRecord {
     userId: string;
     sentence: string;
     sentenceHtml: string;
+    gloss: string;
     audioUrl: string | null;
     illustrationUrl: string | null;
     level: string;
@@ -18,6 +19,7 @@ export interface InsertCardHistoryInput {
     userId: string;
     sentence: string;
     sentenceHtml: string;
+    gloss?: string;
     audioUrl?: string | null;
     illustrationUrl?: string | null;
     level?: string;
@@ -30,6 +32,7 @@ export async function insertCardHistory (db: AppDatabase, input: InsertCardHisto
         userId: input.userId,
         sentence: input.sentence,
         sentenceHtml: input.sentenceHtml,
+        gloss: input.gloss ?? '',
         audioUrl: input.audioUrl ?? null,
         illustrationUrl: input.illustrationUrl ?? null,
         level: input.level ?? 'N5'
@@ -66,6 +69,7 @@ export async function getCardHistory (
         userId: row.userId,
         sentence: row.sentence,
         sentenceHtml: row.sentenceHtml,
+        gloss: row.gloss ?? '',
         audioUrl: row.audioUrl,
         illustrationUrl: row.illustrationUrl,
         level: row.level ?? 'N5',
@@ -79,4 +83,30 @@ export async function getCardHistoryCount (db: AppDatabase, userId: string): Pro
         .where(eq(cardHistory.userId, userId));
 
     return result[0]?.total ?? 0;
+}
+
+export async function getCardHistoryById (
+    db: AppDatabase,
+    userId: string,
+    cardId: string
+): Promise<CardHistoryRecord | null> {
+    const rows = await db.select()
+        .from(cardHistory)
+        .where(and(eq(cardHistory.id, cardId), eq(cardHistory.userId, userId)))
+        .limit(1);
+    const row = rows[0];
+    if (!row) {
+        return null;
+    }
+    return {
+        id: row.id,
+        userId: row.userId,
+        sentence: row.sentence,
+        sentenceHtml: row.sentenceHtml,
+        gloss: row.gloss ?? '',
+        audioUrl: row.audioUrl,
+        illustrationUrl: row.illustrationUrl,
+        level: row.level ?? 'N5',
+        createdAt: row.createdAt ?? ''
+    };
 }

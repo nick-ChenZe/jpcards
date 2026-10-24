@@ -1,9 +1,8 @@
 import {Hono} from 'hono';
-import {assessCardGeneration} from './config/index.js';
 import {createDb} from './database/db.js';
 import {auth, AuthConfigError} from './routes/auth.js';
 import {buildCardWithMemory} from './routes/card.js';
-import {getHistoryResponse} from './routes/history.js';
+import {getHistoryCardResponse, getHistoryResponse} from './routes/history.js';
 import type {Env} from './types.js';
 
 type AuthInstance = ReturnType<typeof auth>;
@@ -77,13 +76,6 @@ app.on(['GET', 'POST'], '/api/auth/*', (c) => {
 });
 
 app.get('/api/card', async (c) => {
-    if (!assessCardGeneration(c.env).enabled) {
-        return c.json({
-            error: 'CARD_GEN_DISABLED',
-            message: '文本模型尚未配置，暂时不能生成卡片。'
-        }, 503);
-    }
-
     try {
         const card = await buildCardWithMemory({
             db: createDb(c.env.DB),
@@ -91,13 +83,23 @@ app.get('/api/card', async (c) => {
             env: c.env,
             assetsBaseUrl: new URL(c.req.url).origin
         });
-        if (!card.ok) {
-            return c.json({error: card.error, message: card.message}, 503);
-        }
         return c.json(card.card);
     } catch (error) {
         console.error('Failed to build card', error);
         return c.json({error: 'CARD_GEN_FAILED', message: '生成失败，请稍后再试。'}, 500);
+    }
+});
+
+app.get('/api/history/:id', async (c) => {
+    try {
+        const card = await getHistoryCardResponse(createDb(c.env.DB), c.var.session!.user.id, c.req.param('id'));
+        if (!card) {
+            return c.json({error: 'CARD_NOT_FOUND', message: '找不到这张卡片。'}, 404);
+        }
+        return c.json(card);
+    } catch (error) {
+        console.error('Failed to fetch card', error);
+        return c.json({error: 'HISTORY_FAILED', message: '暂时无法读取这张卡片。'}, 500);
     }
 });
 

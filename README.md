@@ -5,9 +5,10 @@
 ## 现在能做什么
 
 - 注册、登录、退出。
-- 历史只返回当前登录用户的卡片。
-- 文本模型的 `CHAT_API_KEY` 和 `CHAT_API_ENDPOINT` 都填写之后，才可以生成一句日语并写入历史。缺任何一个都不会请求
+- 历史只返回当前登录用户的卡片。点开一条可以查看这一张。
+- 没有文本模型密钥时，已登录用户仍可以生成一张本地练习卡片：日语句子、读音和中文释义会写入自己的历史，不会请求
   DeepSeek。
+- 文本模型的 `CHAT_API_KEY` 和 `CHAT_API_ENDPOINT` 都填写之后，句子改由模型生成。缺任何一个都不会请求 DeepSeek。
 - 配图默认是 `noop`。Worker 绑定里有 `DASHSCOPE_API_KEY` 或 `BAILIAN_API_KEY` 时才会选中通义，正式模型是
   `qwen-image-3.0`。密钥只放在 Cloudflare secret 或本机
   `.dev.vars`，不要写进仓库。当前版本即使有密钥也不会发出生图请求。

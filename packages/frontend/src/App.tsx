@@ -3,6 +3,7 @@ import {AuthLayout} from './components/AuthLayout';
 import {LoginForm} from './components/LoginForm';
 import {ExplorePage} from './components/pages/ExplorePage';
 import {FriendPage} from './components/pages/FriendPage';
+import {HistoryDetailPage} from './components/pages/HistoryDetailPage';
 import {HistoryPage} from './components/pages/HistoryPage';
 import {SettingPage} from './components/pages/SettingPage';
 import {SignUpForm} from './components/SignUpForm';
@@ -17,6 +18,7 @@ function App () {
                     <Route element={<AuthLayout />}>
                         <Route path="/explore" element={<ExplorePage />} />
                         <Route path="/history" element={<HistoryPage />} />
+                        <Route path="/history/:id" element={<HistoryDetailPage />} />
                         <Route path="/friend" element={<FriendPage />} />
                         <Route path="/setting" element={<SettingPage />} />
                     </Route>

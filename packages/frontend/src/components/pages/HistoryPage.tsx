@@ -1,5 +1,6 @@
 import {Loader2} from 'lucide-react';
 import {useCallback, useEffect, useState} from 'react';
+import {useNavigate} from 'react-router-dom';
 import {Button} from '../ui/button';
 import {Card, CardContent} from '../ui/card';
 
@@ -8,6 +9,7 @@ interface CardHistoryItem {
     userId: string;
     sentence: string;
     sentenceHtml: string;
+    gloss: string;
     audioUrl: string | null;
     illustrationUrl: string | null;
     level: string;
@@ -31,6 +33,7 @@ export const HistoryPage = () => {
     const [totalPages, setTotalPages] = useState(1);
     const [total, setTotal] = useState(0);
     const [error, setError] = useState('');
+    const navigate = useNavigate();
 
     const fetchHistory = useCallback(async (p: number) => {
         setLoading(true);
@@ -105,14 +108,18 @@ export const HistoryPage = () => {
                         <div className="py-20 text-center">
                             <p className="text-muted-foreground">还没有学习记录</p>
                             <p className="mt-1 text-sm text-muted-foreground">
-                                生成过的句子会出现在这里。配图和语音未接入时，历史仍然只显示你自己的卡片。
+                                在探索页生成一张卡片后，句子和释义会出现在这里。没有配图和语音也可以查看。
                             </p>
                         </div>
                     )
                     : (
                         <div className="space-y-4">
                             {items.map((item) => (
-                                <Card key={item.id} className="overflow-hidden">
+                                <Card
+                                    key={item.id}
+                                    className="cursor-pointer overflow-hidden"
+                                    onClick={() => navigate(`/history/${item.id}`)}
+                                >
                                     <CardContent className="p-4">
                                         <div className="flex gap-4">
                                             {/* 插图缩略图 */}
@@ -129,6 +136,9 @@ export const HistoryPage = () => {
                                                     className="font-japanese text-base font-medium leading-relaxed [&_ruby]:font-normal"
                                                     dangerouslySetInnerHTML={{__html: item.sentenceHtml}}
                                                 />
+                                                {item.gloss
+                                                    ? <p className="mt-1 text-sm text-muted-foreground">{item.gloss}</p>
+                                                    : null}
                                                 {/* 元信息 */}
                                                 <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
                                                     <span>{item.level}</span>

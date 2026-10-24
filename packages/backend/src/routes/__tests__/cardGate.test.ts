@@ -42,7 +42,7 @@ describe('buildCardWithMemory vendor gate', () => {
         history.insertCardHistory.mockClear();
     });
 
-    it('does not call the text model, image vendors, or the database when keys are missing', async () => {
+    it('saves a local practice card and does not call vendors when the text model is missing', async () => {
         const fetchImpl = vi.fn();
         const result = await buildCardWithMemory({
             db: {} as never,
@@ -56,12 +56,33 @@ describe('buildCardWithMemory vendor gate', () => {
             fetchImpl
         });
 
-        expect(result.ok).toBe(false);
+        expect(result.ok).toBe(true);
+        if (result.ok) {
+            expect(result.card.sentence).toBe('こんにちは。');
+            expect(result.card.gloss).toBe('你好。');
+            expect(result.card.text.source).toBe('local');
+            expect(result.card.text.configured).toBe(false);
+            expect(result.card.imageDataUrl).toBe('');
+            expect(result.card.audioDataUrl).toBe('');
+            expect(result.card.image.ok).toBe(false);
+            if (!result.card.image.ok) {
+                expect(result.card.image.code).toBe('IMAGE_DISABLED');
+                expect(result.card.image.provider).toBe('qwen');
+            }
+            expect(result.card.audio.code).toBe('TTS_NOT_CONFIGURED');
+        }
         expect(hoisted.constructed).toHaveLength(0);
         expect(hoisted.create).not.toHaveBeenCalled();
         expect(fetchImpl).not.toHaveBeenCalled();
-        expect(memory.getRecentSentences).not.toHaveBeenCalled();
-        expect(history.insertCardHistory).not.toHaveBeenCalled();
+        expect(memory.insertSentence).toHaveBeenCalledOnce();
+        expect(history.insertCardHistory).toHaveBeenCalledWith(
+            expect.anything(),
+            expect.objectContaining({
+                userId: 'user-1',
+                sentence: 'こんにちは。',
+                gloss: '你好。'
+            })
+        );
     });
 
     it('keeps the text card when image and TTS are not live', async () => {
@@ -82,6 +103,8 @@ describe('buildCardWithMemory vendor gate', () => {
         expect(result.ok).toBe(true);
         if (result.ok) {
             expect(result.card.sentence).toBe('こんにちは。');
+            expect(result.card.gloss).toBe('');
+            expect(result.card.text.source).toBe('model');
             expect(result.card.id).toBe('card-1');
             expect(result.card.imageDataUrl).toBe('');
             expect(result.card.audioDataUrl).toBe('');

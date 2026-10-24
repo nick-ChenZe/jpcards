@@ -7,28 +7,30 @@ import {createImageProvider, type ImageGenerationResult} from '../image/provider
 import {type SpeechPlaceholder, synthesizePlaceholder} from '../tts/placeholder.js';
 import type {Env} from '../types.js';
 import {toSentenceWithKanjiRomaji} from '../utils/romaji.js';
+import {pickPracticeCard} from './practiceDeck.js';
 
 const DEFAULT_LEVEL = 'N5';
+const LOCAL_TEXT_MESSAGE = '文本模型尚未配置。这张是本地练习卡片，没有请求外部服务。';
+
+export interface TextNotice {
+    configured: boolean;
+    source: 'model' | 'local';
+    message: string;
+}
 
 export interface CardDemoResult {
     id?: string;
     sentence: string;
     sentenceHtml: string;
+    gloss: string;
     imageDataUrl: string;
     audioDataUrl: string;
+    text: TextNotice;
     image: ImageGenerationResult;
     audio: SpeechPlaceholder;
 }
 
-export type CardBuildResult =
-    | {ok: true; card: CardDemoResult;}
-    | {ok: false; error: 'CARD_GEN_DISABLED'; message: string;};
-
-const DISABLED_MESSAGE = '文本模型尚未配置，暂时不能生成卡片。';
-
-function disabledResult (): CardBuildResult {
-    return {ok: false, error: 'CARD_GEN_DISABLED', message: DISABLED_MESSAGE};
-}
+export type CardBuildResult = {ok: true; card: CardDemoResult;};
 
 async function generateJapaneseSentence (
     text: TextModelConfig,
@@ -117,8 +119,10 @@ export async function buildCardDemo (
     return {
         sentence,
         sentenceHtml,
+        gloss: '',
         imageDataUrl: media.image.ok ? media.image.imageDataUrl : '',
         audioDataUrl: '',
+        text: {configured: true, source: 'model', message: ''},
         image: media.image,
         audio: media.audio
     };
@@ -132,18 +136,27 @@ export async function buildCardWithMemory (input: {
     fetchImpl?: typeof fetch;
 }): Promise<CardBuildResult> {
     const gate = assessCardGeneration(input.env);
-    if (!gate.enabled) {
-        return disabledResult();
-    }
-
     const seenSentences = await getRecentSentences(input.db, input.userId);
-    const sentence = await generateJapaneseSentence(gate.text, seenSentences, input.fetchImpl);
+    let sentence: string;
+    let gloss: string;
+    let text: TextNotice;
+    if (gate.enabled) {
+        sentence = await generateJapaneseSentence(gate.text, seenSentences, input.fetchImpl);
+        gloss = '';
+        text = {configured: true, source: 'model', message: ''};
+    } else {
+        const practice = pickPracticeCard(seenSentences);
+        sentence = practice.sentence;
+        gloss = practice.gloss;
+        text = {configured: false, source: 'local', message: LOCAL_TEXT_MESSAGE};
+    }
     await insertSentence(input.db, input.userId, sentence, DEFAULT_LEVEL);
     const sentenceHtml = await toSentenceWithKanjiRomaji(sentence, input.assetsBaseUrl);
     const cardId = await insertCardHistory(input.db, {
         userId: input.userId,
         sentence,
         sentenceHtml,
+        gloss,
         level: DEFAULT_LEVEL
     });
     const media = await attachMedia(input.env, sentence);
@@ -154,6 +167,8 @@ export async function buildCardWithMemory (input: {
             id: cardId,
             sentence,
             sentenceHtml,
+            gloss,
+            text,
             imageDataUrl: media.image.ok ? media.image.imageDataUrl : '',
             audioDataUrl: '',
             image: media.image,

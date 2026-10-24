@@ -1,4 +1,4 @@
-import {getCardHistory, getCardHistoryCount} from '../database/cardHistory.js';
+import {getCardHistory, getCardHistoryById, getCardHistoryCount} from '../database/cardHistory.js';
 import type {AppDatabase} from '../database/db.js';
 
 export interface HistoryQuery {
@@ -32,4 +32,8 @@ export async function getHistoryResponse (db: AppDatabase, userId: string, query
             totalPages: Math.ceil(total / pageSize)
         }
     };
+}
+
+export async function getHistoryCardResponse (db: AppDatabase, userId: string, cardId: string) {
+    return getCardHistoryById(db, userId, cardId);
 }

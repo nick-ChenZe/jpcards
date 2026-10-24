@@ -70,6 +70,7 @@ export const cardHistory = sqliteTable('card_history', {
     userId: text('user_id').notNull(),
     sentence: text('sentence').notNull(),
     sentenceHtml: text('sentence_html').notNull(),
+    gloss: text('gloss').notNull().default(''),
     audioUrl: text('audio_url'),
     illustrationUrl: text('illustration_url'),
     level: text('level').default('N5'),

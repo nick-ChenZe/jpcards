@@ -24,7 +24,8 @@ export const BottomNav = () => {
             <div className="mx-auto flex h-16 max-w-lg items-center justify-around">
                 {navItems.map((item) => {
                     const isActive = location.pathname === item.path
-                        || (item.path === '/explore' && location.pathname === '/');
+                        || (item.path === '/explore' && location.pathname === '/')
+                        || (item.path === '/history' && location.pathname.startsWith('/history/'));
                     return (
                         <button
                             key={item.path}

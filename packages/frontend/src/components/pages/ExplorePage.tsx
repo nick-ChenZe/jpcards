@@ -9,12 +9,20 @@ interface MediaNotice {
     message?: string;
 }
 
+interface TextNotice {
+    configured: boolean;
+    source: 'model' | 'local';
+    message: string;
+}
+
 interface CardDemoResponse {
     id?: string;
     sentence: string;
     sentenceHtml: string;
+    gloss?: string;
     imageDataUrl: string;
     audioDataUrl: string;
+    text?: TextNotice;
     image?: MediaNotice;
     audio?: MediaNotice;
 }
@@ -61,7 +69,7 @@ export const ExplorePage = () => {
                     <CardHeader>
                         <CardTitle>日语卡片</CardTitle>
                         <CardDescription>
-                            生成一句日语。配图和语音未配置时不会请求外部服务，也不影响登录和历史。
+                            生成一句日语和中文释义。没有文本模型密钥时使用本地练习句。配图和语音未配置时不会请求外部服务。
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
@@ -79,6 +87,12 @@ export const ExplorePage = () => {
                                         className="font-japanese text-lg font-medium leading-relaxed [&_ruby]:font-normal"
                                         dangerouslySetInnerHTML={{__html: card.sentenceHtml}}
                                     />
+                                    {card.gloss
+                                        ? <p className="text-sm text-muted-foreground">{card.gloss}</p>
+                                        : null}
+                                    {card.text?.message
+                                        ? <p className="text-sm text-muted-foreground">{card.text.message}</p>
+                                        : null}
                                     {card.imageDataUrl
                                         ? (
                                             <img
