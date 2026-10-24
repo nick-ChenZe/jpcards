@@ -1,12 +1,11 @@
 # 日语卡片
 
-Cloudflare Worker 入口。静态页走 ASSETS，接口和页面在同一个 Worker 里。请求路径只读 Worker 绑定 `c.env`，不读
-`process.env`。
+用邮箱和用户名注册，登录后查看自己的学习历史。配图和语音没有密钥时保持关闭，不会挡住注册、登录和历史。
 
 ## 现在能做什么
 
-- `GET /api/health` 返回 `{ "ok": true }`。`GET /api/hello` 同样公开。
-- 数据库用 D1 绑定 `DB`。历史按当前会话里的用户 id 查询。
+- 注册、登录、退出。
+- 历史只返回当前登录用户的卡片。
 - 文本模型的 `CHAT_API_KEY` 和 `CHAT_API_ENDPOINT` 都填写之后，才可以生成一句日语并写入历史。缺任何一个都不会请求
   DeepSeek。
 - 配图默认是 `noop`。Worker 绑定里有 `DASHSCOPE_API_KEY` 或 `BAILIAN_API_KEY` 时才会选中通义，正式模型是
@@ -26,6 +25,11 @@ Cloudflare Worker 入口。静态页走 ASSETS，接口和页面在同一个 Wor
 ```bash
 pnpm install
 cp packages/backend/.dev.vars.example packages/backend/.dev.vars
+```
+
+把 `.dev.vars` 里的 `BETTER_AUTH_SECRET` 换成一段足够长的随机字符串，不要用 `better-auth-secret-123456789`。
+
+```bash
 pnpm dev
 ```
 
@@ -55,12 +59,15 @@ pnpm --filter @jpcards/backend eval:image
 2. `pnpm --filter @jpcards/backend exec wrangler d1 create jpcards`，把输出的 database id 写进 `wrangler.jsonc` 的
    `database_id`。现在的全 0 id 只能本地开发。
 3. `pnpm --filter @jpcards/backend db:migrate:remote`
-4. 需要登录时再放 `BETTER_AUTH_SECRET`：`pnpm --filter @jpcards/backend exec wrangler secret put BETTER_AUTH_SECRET`
+4. `pnpm --filter @jpcards/backend exec wrangler secret put BETTER_AUTH_SECRET`
 5. 文本生卡需要时再放 `CHAT_API_KEY` 和 `CHAT_API_ENDPOINT`。不要放火山或 MiniMax 的假密钥。
 6. 配图密钥只通过 `wrangler secret put DASHSCOPE_API_KEY` 或 `wrangler secret put BAILIAN_API_KEY`
    写入。不要把密钥贴进仓库、提交或文档。Seedream、OpenAI 可以先空着。
 7. `pnpm deploy`
 8. 自定义域名和 HTTPS 在 Cloudflare 控制台给这个 Worker 加域名。Workers 自带的 `*.workers.dev` 已经是
    HTTPS；自己的域名要在控制台完成委派。
+
+`BETTER_AUTH_URL` 可以不设。不设时，登录用当前请求的 origin。如果站点有固定域名，再用 secret 或 var 设成那个 `https://`
+地址。
 
 `CLOUDFLARE_API_TOKEN` 只留给你本机的 drizzle-kit，不要放进 Worker。

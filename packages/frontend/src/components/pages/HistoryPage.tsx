@@ -105,7 +105,7 @@ export const HistoryPage = () => {
                         <div className="py-20 text-center">
                             <p className="text-muted-foreground">还没有学习记录</p>
                             <p className="mt-1 text-sm text-muted-foreground">
-                                去「探索」页面生成你的第一张卡片吧！
+                                生成过的句子会出现在这里。配图和语音未接入时，历史仍然只显示你自己的卡片。
                             </p>
                         </div>
                     )

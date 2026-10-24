@@ -1,7 +1,7 @@
 import {Hono} from 'hono';
 import {assessCardGeneration} from './config/index.js';
 import {createDb} from './database/db.js';
-import {auth} from './routes/auth.js';
+import {auth, AuthConfigError} from './routes/auth.js';
 import {buildCardWithMemory} from './routes/card.js';
 import {getHistoryResponse} from './routes/history.js';
 import type {Env} from './types.js';
@@ -26,8 +26,23 @@ app.use('*', async (c, next) => {
         return;
     }
 
-    c.set('auth', auth(c.env));
-    c.set('session', null);
+    try {
+        c.set('auth', auth(c.env, c.req.url));
+        c.set('session', null);
+    } catch (error) {
+        if (error instanceof AuthConfigError) {
+            return c.json({
+                error: 'AUTH_NOT_CONFIGURED',
+                message: '登录服务还没配好，暂时不能注册或登录。'
+            }, 503);
+        }
+        console.error('Auth init failed', error);
+        return c.json({
+            error: 'AUTH_NOT_CONFIGURED',
+            message: '登录服务暂时不可用。'
+        }, 503);
+    }
+
     await next();
 });
 

@@ -52,7 +52,9 @@ export function SignUpForm ({
                                     name="username"
                                     placeholder="Username"
                                     required
+                                    minLength={3}
                                 />
+                                <FieldDescription>At least 3 letters, numbers, _ or .</FieldDescription>
                             </Field>
                             <Field>
                                 <FieldLabel htmlFor="name">Name</FieldLabel>
@@ -80,8 +82,10 @@ export function SignUpForm ({
                                     name="password"
                                     type="password"
                                     required
+                                    minLength={8}
                                     placeholder="********"
                                 />
+                                <FieldDescription>At least 8 characters</FieldDescription>
                             </Field>
                             <Field>
                                 <Button type="submit">Sign up</Button>
