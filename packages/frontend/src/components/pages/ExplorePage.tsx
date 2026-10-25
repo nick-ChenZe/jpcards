@@ -1,10 +1,9 @@
 import {useSession} from '@/lib/auth';
 import {userFacingMedia, userFacingTextNotice} from '@/lib/userCopy';
 import {useCallback, useEffect, useRef, useState} from 'react';
-import {CardReading} from '../CardReading';
+import {GenerateBar} from '../GenerateBar';
 import {Nav} from '../Nav';
-import {Button} from '../ui/button';
-import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '../ui/card';
+import {TodayCard} from '../TodayCard';
 
 interface MediaNotice {
     ok: boolean;
@@ -148,93 +147,38 @@ export const ExplorePage = () => {
         }
     }, [quota, refreshQuota]);
 
+    const textNote = userFacingTextNotice(card?.text?.message);
+
     return (
         <div className="px-4 py-3 pb-20">
-            <Nav session={data!.user} />
-            <div className="mx-auto mt-4 max-w-3xl">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>日语卡片</CardTitle>
-                        <CardDescription>
-                            生成一句日语、读音、中文意思和配图。
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-                            <Button
-                                type="button"
-                                size="lg"
-                                className={exhausted ? 'card-generate card-generate-exhausted' : 'card-generate'}
-                                onClick={generateCard}
-                                disabled={loading || exhausted}
-                            >
-                                {loading ? '生成中...' : '生成一张卡片'}
-                            </Button>
-                            <p className="text-sm text-muted-foreground" aria-live="polite">
-                                {exhausted
-                                    ? QUOTA_EXHAUSTED_MESSAGE
-                                    : (
-                                        <>
-                                            今日还可生成{' '}
-                                            <span className="font-semibold text-foreground">
-                                                {quota ? quota.remaining : '…'}/{limit}
-                                            </span>{' '}
-                                            张
-                                        </>
-                                    )}
-                            </p>
-                        </div>
+            <div className="mx-auto flex max-w-lg flex-col gap-4">
+                <Nav session={data!.user} />
+                <GenerateBar
+                    remaining={quota ? quota.remaining : null}
+                    limit={limit}
+                    loading={loading}
+                    exhausted={exhausted}
+                    onGenerate={generateCard}
+                />
 
-                        {notice ? <p className="text-sm text-muted-foreground">{notice}</p> : null}
-                        {error ? <p className="text-sm text-red-500">生成失败：{error}</p> : null}
+                {notice ? <p className="text-sm text-ink-muted">{notice}</p> : null}
+                {error ? <p className="text-sm text-red-500">生成失败：{error}</p> : null}
 
-                        {card
-                            ? (
-                                <div className="space-y-4">
-                                    <div
-                                        className="font-japanese text-lg font-medium leading-relaxed [&_ruby]:font-normal"
-                                        dangerouslySetInnerHTML={{__html: card.sentenceHtml}}
-                                    />
-                                    <CardReading reading={card.reading} />
-                                    {card.gloss
-                                        ? <p className="text-sm text-muted-foreground">{card.gloss}</p>
-                                        : null}
-                                    {userFacingTextNotice(card.text?.message)
-                                        ? (
-                                            <p className="text-sm text-muted-foreground">
-                                                {userFacingTextNotice(card.text?.message)}
-                                            </p>
-                                        )
-                                        : null}
-                                    {card.imageDataUrl
-                                        ? (
-                                            <img
-                                                src={card.imageDataUrl}
-                                                alt="日语句子配图"
-                                                className="w-full max-w-xl rounded-lg border"
-                                            />
-                                        )
-                                        : (
-                                            <p className="rounded-lg border border-dashed px-3 py-6 text-center text-sm text-muted-foreground">
-                                                {userFacingMedia('image', card.image?.message)}
-                                            </p>
-                                        )}
-                                    {card.audioDataUrl
-                                        ? (
-                                            <audio controls src={card.audioDataUrl} className="w-full max-w-xl">
-                                                您的浏览器不支持音频播放。
-                                            </audio>
-                                        )
-                                        : (
-                                            <p className="text-sm text-muted-foreground">
-                                                {userFacingMedia('audio', card.audio?.message)}
-                                            </p>
-                                        )}
-                                </div>
-                            )
-                            : null}
-                    </CardContent>
-                </Card>
+                {loading
+                    ? <TodayCard loading />
+                    : card
+                    ? (
+                        <TodayCard
+                            sentenceHtml={card.sentenceHtml}
+                            reading={card.reading}
+                            gloss={card.gloss}
+                            imageUrl={card.imageDataUrl}
+                            imageMessage={userFacingMedia('image', card.image?.message)}
+                            audioUrl={card.audioDataUrl}
+                            note={textNote}
+                        />
+                    )
+                    : null}
             </div>
         </div>
     );

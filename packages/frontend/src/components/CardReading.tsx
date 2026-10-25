@@ -3,7 +3,7 @@ export function CardReading ({reading}: {reading?: string;}) {
         return (
             <p className="text-sm leading-6 text-foreground">
                 <span className="mr-2 text-muted-foreground">读音</span>
-                <span className="font-medium">{reading}</span>
+                <span className="font-japanese font-medium">{reading}</span>
             </p>
         );
     }
