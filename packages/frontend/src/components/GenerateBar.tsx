@@ -1,7 +1,6 @@
+import {QUOTA_EXCEEDED_MESSAGE} from '@/lib/userCopy';
 import {cn} from '@/lib/utils';
 import {Button} from './ui/button';
-
-const QUOTA_EXHAUSTED_MESSAGE = '今日额度用完了';
 
 interface GenerateBarProps {
     remaining: number | null;
@@ -40,7 +39,7 @@ export function GenerateBar ({
                 aria-live="polite"
             >
                 {exhausted
-                    ? QUOTA_EXHAUSTED_MESSAGE
+                    ? QUOTA_EXCEEDED_MESSAGE
                     : (
                         <>
                             今日还可生成{' '}

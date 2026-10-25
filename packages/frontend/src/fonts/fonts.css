@@ -1,0 +1,29 @@
+/*
+ * 自托管子集。生产页面不再向外部字体 CDN 发请求。
+ * 文件在本目录，来源与切分见仓库 README「字体」。
+ * 族名与字重对齐纸感日签令牌：界面 Noto Sans SC 400/500，句子 Noto Serif JP 500。
+ */
+
+@font-face {
+  font-family: "Noto Sans SC";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("./noto-sans-sc-chinese-simplified-400-normal.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Noto Sans SC";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("./noto-sans-sc-chinese-simplified-500-normal.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Noto Serif JP";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("./noto-serif-jp-japanese-500-normal.woff2") format("woff2");
+}

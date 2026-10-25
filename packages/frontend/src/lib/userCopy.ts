@@ -1,3 +1,6 @@
+/** #8 定稿。与后端 QUOTA_EXCEEDED_MESSAGE 同一句。 */
+export const QUOTA_EXCEEDED_MESSAGE = '今日额度已用完，明天 0 点（北京时间）再来';
+
 const TECHNICAL = /密钥|外部服务|未配置/;
 
 export function userFacingMedia (kind: 'image' | 'audio', message?: string): string {
