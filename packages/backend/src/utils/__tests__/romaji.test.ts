@@ -21,8 +21,24 @@ describe('romaji utility', () => {
 
     it('builds a reading line without calling a speech service', async () => {
         const reading = await toDisplayReading('水を飲みます。');
-        expect(reading).toContain('みず');
+        expect(reading.startsWith('みず')).toBe(true);
+        expect(reading).toContain('（');
         expect(reading).toContain('o');
+        expect(reading).not.toMatch(/^[a-z]/);
         expect(reading).not.toMatch(/密钥|外部服务/);
+    });
+
+    it('keeps kana in front when the sentence is already kana', async () => {
+        const reading = await toDisplayReading('こんにちは。');
+        expect(reading).toBe('こんにちは。（konnichiha.）');
+    });
+
+    it('keeps katakana loanwords instead of folding them into hiragana', async () => {
+        const coffee = await toDisplayReading('コーヒーを飲みます。');
+        expect(coffee).toBe('コーヒーをのみます。（koohii o nomi masu.）');
+
+        const katakana = await toDisplayReading('カタカナです。');
+        expect(katakana.startsWith('カタカナ')).toBe(true);
+        expect(katakana).not.toContain('かたかな');
     });
 });

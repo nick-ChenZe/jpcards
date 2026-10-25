@@ -6,10 +6,13 @@ describe('pickPracticeCard', () => {
         const first = pickPracticeCard([]);
         const second = pickPracticeCard([first.sentence]);
         expect(first.gloss.length).toBeGreaterThan(0);
-        expect(first.reading.length).toBeGreaterThan(0);
+        expect(first.reading).toBe('こんにちは（konnichiwa）');
         expect(second.sentence).not.toBe(first.sentence);
+        expect(second.reading).toBe('ありがとうございます（arigatou gozaimasu）');
         expect(readingForSentence(first.sentence)).toBe(first.reading);
         expect(readingForSentence('未知的句子')).toBe('');
+        expect(first.reading).toMatch(/^[\u3040-\u30ff]/);
+        expect(second.reading).toMatch(/^[\u3040-\u30ff]/);
     });
 
     it('cycles after every local sentence has been seen', () => {

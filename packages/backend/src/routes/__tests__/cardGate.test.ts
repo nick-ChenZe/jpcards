@@ -62,7 +62,7 @@ describe('buildCardWithMemory vendor gate', () => {
         if (result.ok) {
             expect(result.card.sentence).toBe('こんにちは。');
             expect(result.card.gloss).toBe('你好。');
-            expect(result.card.reading).toBe('konnichiwa');
+            expect(result.card.reading).toBe('こんにちは（konnichiwa）');
             expect(result.card.text.source).toBe('local');
             expect(result.card.text.configured).toBe(false);
             expect(result.card.text.message).not.toMatch(/密钥|外部服务/);
@@ -91,7 +91,7 @@ describe('buildCardWithMemory vendor gate', () => {
                 userId: 'user-1',
                 sentence: 'こんにちは。',
                 gloss: '你好。',
-                reading: 'konnichiwa'
+                reading: 'こんにちは（konnichiwa）'
             })
         );
     });
