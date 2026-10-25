@@ -1,5 +1,6 @@
 import {shanghaiRitualDate} from '@/lib/datetime';
 import {generateCardInit} from '@/lib/generateCard';
+import {streakChipText} from '@/lib/streakNote';
 import {QUOTA_EXCEEDED_MESSAGE, userFacingMedia, userFacingTextNotice} from '@/lib/userCopy';
 import {cn} from '@/lib/utils';
 import {useCallback, useEffect, useRef, useState} from 'react';
@@ -58,14 +59,17 @@ function isQuotaSnapshot (value: unknown): value is QuotaSnapshot {
         && typeof quota.resetsAt === 'string';
 }
 
-function StreakChip ({days}: {days: number | null;}) {
-    const text = days !== null && days > 0
-        ? `已连签 ${days} 天 · 轻记一下就好`
-        : '轻记一下就好';
+function StreakChip ({days, pending}: {days: number | null; pending: boolean;}) {
+    const text = streakChipText(days, pending);
+    const waiting = text === null;
     return (
-        <p className="streak-chip" aria-label="连签">
-            <span className="dot" />
-            {text}
+        <p
+            className={cn('streak-chip', waiting ? 'is-pending' : 'is-settled')}
+            data-streak={waiting ? 'pending' : days !== null && days > 0 ? 'count' : 'empty'}
+            aria-busy={waiting}
+            aria-live="polite"
+        >
+            {waiting ? <span className="streak-hold" /> : text}
         </p>
     );
 }
@@ -92,8 +96,10 @@ export const ExplorePage = () => {
     const [notice, setNotice] = useState('');
     const [quota, setQuota] = useState<QuotaSnapshot | null>(null);
     const [streakDays, setStreakDays] = useState<number | null>(null);
+    const [streakPending, setStreakPending] = useState(true);
     const [stampKey, setStampKey] = useState(0);
     const quotaEpoch = useRef(0);
+    const streakEpoch = useRef(0);
     const generating = useRef(false);
     const heldCard = useRef<CardDemoResponse | null>(null);
 
@@ -120,17 +126,25 @@ export const ExplorePage = () => {
     }, []);
 
     const refreshStreak = useCallback(async () => {
+        const epoch = ++streakEpoch.current;
         try {
             const response = await fetch('/api/me', {credentials: 'include'});
-            if (!response.ok) {
+            if (epoch !== streakEpoch.current || !response.ok) {
                 return;
             }
             const body = await response.json() as {streakDays?: unknown;};
+            if (epoch !== streakEpoch.current) {
+                return;
+            }
             if (typeof body.streakDays === 'number' && Number.isFinite(body.streakDays)) {
                 setStreakDays(Math.max(0, Math.floor(body.streakDays)));
             }
         } catch {
             // 连签只是轻记，读失败不挡抽签。
+        } finally {
+            if (epoch === streakEpoch.current) {
+                setStreakPending(false);
+            }
         }
     }, []);
 
@@ -238,7 +252,7 @@ export const ExplorePage = () => {
                 ? (
                     <>
                         <div className="hero-chrome">
-                            <StreakChip days={streakDays} />
+                            <StreakChip days={streakDays} pending={streakPending} />
                             <GenerateBar
                                 compact
                                 remaining={quota ? quota.remaining : null}
@@ -268,7 +282,7 @@ export const ExplorePage = () => {
                 : (
                     <div className="screen-scroll">
                         <p className="section-label">今日日签</p>
-                        <StreakChip days={streakDays} />
+                        <StreakChip days={streakDays} pending={streakPending} />
                         <GenerateBar
                             remaining={quota ? quota.remaining : null}
                             limit={limit}

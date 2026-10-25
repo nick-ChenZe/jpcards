@@ -251,6 +251,7 @@ a:hover {
   .paper-breathe,
   .paper-fade-in,
   .quota-tick,
+  .streak-chip.is-settled,
   .paper-screen,
   .stamp.settle,
   .hero-stage,
@@ -381,26 +382,41 @@ a:hover {
   font-weight: 500;
 }
 
+/* 连签只是纸上旁注：淡墨、无徽章、不用朱红。 */
 .streak-chip {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  margin-bottom: 18px;
-  padding: 5px 11px;
-  border-radius: 999px;
-  background: var(--accent-soft);
-  color: var(--accent);
+  box-sizing: border-box;
+  min-height: 22px;
+  margin: 0 0 18px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--font-zh);
   font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  border: 1px solid var(--accent-mid);
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  line-height: 1.6;
+  font-variant-numeric: tabular-nums;
 }
-.streak-chip .dot {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: var(--accent);
-  opacity: 0.85;
+.streak-chip.is-pending,
+.streak-chip[data-streak="count"] {
+  min-width: min(16em, 100%);
+}
+.streak-chip.is-settled {
+  animation: streakNoteIn 280ms var(--ease-paper);
+}
+@keyframes streakNoteIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.streak-hold {
+  display: block;
+  width: 100%;
+  height: 1px;
+  background: color-mix(in srgb, var(--muted) 50%, transparent);
 }
 
 .screen-scroll {
@@ -562,12 +578,19 @@ a:hover {
 }
 .hero-chrome .streak-chip {
   margin: 0;
-  padding: 3px 8px;
-  font-size: 10px;
-  gap: 4px;
+  min-height: 18px;
+  padding: 0;
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.03em;
   order: 1;
+  color: var(--muted);
+  background: transparent;
+  border: 0;
 }
-.hero-chrome .streak-chip .dot { width: 4px; height: 4px; }
+.hero-chrome .streak-hold {
+  height: 1px;
+}
 .hero-chrome .generate-bar {
   display: contents;
 }
