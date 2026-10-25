@@ -1,6 +1,6 @@
 # 日语卡片
 
-用邮箱和用户名注册，登录后查看自己的学习历史。配图和语音没有密钥时保持关闭，不会挡住注册、登录和历史。
+用邮箱和用户名注册，登录后查看自己的学习历史。配图没有密钥时保持关闭。语音先不外呼。这些都不会挡住注册、登录和历史。
 
 ## 现在能做什么
 
@@ -8,16 +8,16 @@
 - 历史只返回当前登录用户的卡片。点开一条可以查看这一张。
 - 没有文本模型密钥时，已登录用户仍可以生成一张本地练习卡片：日语句子、读音和中文释义会写入自己的历史，不会请求
   DeepSeek。
-- 文本模型的 `CHAT_API_KEY` 和 `CHAT_API_ENDPOINT` 都填写之后，句子改由模型生成。缺任何一个都不会请求 DeepSeek。
+- 文本模型的 `CHAT_API_KEY` 和 `CHAT_API_ENDPOINT` 都填写之后，句子、假名读音和中文释义由这一次生成写入卡片。读音优先用
+  kuromoji 词典；词典加载失败时改用模型给出的假名，并在日志里记下 `[reading]`，不会静默存空串。缺任何一个密钥都不会请求
+  DeepSeek。`pnpm dev` / `pnpm deploy` 会把词典复制到前端静态资源 `kuromoji/dict/`，Worker 通过 ASSETS 读取。
 - 配图默认是 `noop`。Worker 绑定里有 `DASHSCOPE_API_KEY` 或 `BAILIAN_API_KEY` 时才会选中通义，正式模型是
   `qwen-image-3.0`。密钥只放在 Cloudflare secret 或本机 `.dev.vars`，不要写进仓库。有密钥时会请求 DashScope 同步接口
   `POST https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation`，成功后把图片地址交给卡片。没有密钥时仍是「配图暂未开通」，不会发请求。生图失败时卡片继续可用，页面显示「配图这次没有生成」。
 - `QWEN_IMAGE_TIER=turbo`（以及 `preview` / `draft`）才改用 `qwen-image-2.1-turbo`。评测通过之前，它不是默认。
 - Seedream（`5.0-flash`）和 OpenAI GPT Image 必须把 `IMAGE_PROVIDER` 写成 `seedream` 或 `openai` 才会选中。OpenAI
   只认官方 API key，不要把 Codex 或 ChatGPT 的 OAuth 放进 Worker。
-- 语音使用同一个百炼密钥。有 `DASHSCOPE_API_KEY` 或 `BAILIAN_API_KEY` 时，生成卡片会请求
-  `qwen3-tts-flash`（`language_type` 为
-  `Japanese`），并把可播放的音频地址写进这张卡片。没有密钥时仍是「语音暂未开通」，不会请求百炼。不会请求
+- 语音先关闭。即使 Worker 里已经有百炼密钥，生成卡片也不会请求 `qwen3-tts-flash`。页面仍显示「语音暂未开通」。不会请求
   MiniMax。火山生图也不在请求路径上。
 - 通义生图发请求前先走 `QwenImageLimiter`，大约每分钟 20 次。预览模型也走这个上限。
 
@@ -66,8 +66,9 @@ pnpm --filter @jpcards/backend eval:image
 4. `pnpm --filter @jpcards/backend exec wrangler secret put BETTER_AUTH_SECRET`
 5. 文本生卡需要时再放 `CHAT_API_KEY` 和 `CHAT_API_ENDPOINT`。不要放火山或 MiniMax 的假密钥。
 6. 百炼密钥只通过 `wrangler secret put DASHSCOPE_API_KEY` 或 `wrangler secret put BAILIAN_API_KEY`
-   写入。同一个密钥会打开日语语音 `qwen3-tts-flash`，并让配图请求
-   `qwen-image-3.0`。没有密钥时配图和语音都不会发请求。不要把密钥贴进仓库、提交或文档。Seedream、OpenAI 可以先空着。
+   写入。这个密钥只打开配图
+   `qwen-image-3.0`，不会打开语音。没有密钥时配图不会发请求。不要把密钥贴进仓库、提交或文档。Seedream、OpenAI
+   可以先空着。
 7. `pnpm deploy`
 8. 自定义域名和 HTTPS 在 Cloudflare 控制台给这个 Worker 加域名。Workers 自带的 `*.workers.dev` 已经是
    HTTPS；自己的域名要在控制台完成委派。

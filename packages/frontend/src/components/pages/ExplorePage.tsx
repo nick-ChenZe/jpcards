@@ -72,7 +72,7 @@ export const ExplorePage = () => {
                     <CardHeader>
                         <CardTitle>日语卡片</CardTitle>
                         <CardDescription>
-                            生成一句日语、读音和中文意思。配图或语音还没开通时，也可以先练习。
+                            生成一句日语、读音、中文意思和配图。
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">

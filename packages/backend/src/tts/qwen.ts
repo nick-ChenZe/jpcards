@@ -4,8 +4,7 @@ import {synthesizePlaceholder} from './placeholder.js';
 import type {SpeechResult} from './types.js';
 
 /** 非流式 Qwen-TTS。只打这个地址，避免密钥被带到别的主机。 */
-export const QWEN_TTS_ENDPOINT =
-    'https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation';
+export const QWEN_TTS_ENDPOINT = 'https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation';
 export const QWEN_TTS_MODEL = 'qwen3-tts-flash';
 const QWEN_TTS_VOICE = 'Cherry';
 const QWEN_TTS_LANGUAGE = 'Japanese';
@@ -49,14 +48,22 @@ export function playableAudioUrl (raw: string): string | null {
 }
 
 /**
+ * 语音先强制关闭。百炼密钥只留给生图，不能再因为同一个密钥请求 qwen3-tts-flash。
+ */
+export const TTS_OUTBOUND_ENABLED = false;
+
+/**
  * 日语练习句语音。密钥只读传入的 Worker 绑定。
- * 没有密钥时不发请求。
+ * 当前不外呼；没有密钥时同样不发请求。
  */
 export async function synthesizeSpeech (
     env: Env,
     text: string,
     fetchImpl: typeof fetch = fetch
 ): Promise<SpeechResult> {
+    if (!TTS_OUTBOUND_ENABLED) {
+        return synthesizePlaceholder();
+    }
     const apiKey = dashScopeApiKey(env);
     if (!apiKey) {
         return synthesizePlaceholder();

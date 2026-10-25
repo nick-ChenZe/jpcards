@@ -8,15 +8,15 @@
         "start": "nodemon -e ts --exec \"node --loader ts-node/esm index.ts\"",
         "test": "vitest run",
         "eval:image": "node scripts/eval-qwen-image.mjs",
-        "dev": "wrangler dev --port 8787",
-        "deploy": "wrangler deploy",
+        "dev": "node scripts/stage-kuromoji.mjs && wrangler dev --port 8787",
+        "deploy": "node scripts/stage-kuromoji.mjs && wrangler deploy",
         "db:migrate:local": "wrangler d1 migrations apply jpcards --local",
         "db:migrate:remote": "wrangler d1 migrations apply jpcards --remote",
         "build": "rm -rf dist/ && pnpm run prepare:assets && tsc",
         "db:push": "drizzle-kit push",
         "db:generate": "drizzle-kit generate",
         "db:studio": "drizzle-kit studio",
-        "prepare:assets": "mkdir -p public/kuromoji && cp -r node_modules/kuromoji/dict public/kuromoji/"
+        "prepare:assets": "node scripts/stage-kuromoji.mjs"
     },
     "keywords": [],
     "author": "",

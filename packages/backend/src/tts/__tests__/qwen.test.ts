@@ -1,7 +1,7 @@
 import {readFileSync} from 'node:fs';
 import {describe, expect, it, vi} from 'vitest';
 import type {Env} from '../../types.js';
-import {playableAudioUrl, synthesizeSpeech} from '../qwen.js';
+import {playableAudioUrl, synthesizeSpeech, TTS_OUTBOUND_ENABLED} from '../qwen.js';
 
 const audioResponse = (url: string, status = 200) =>
     new Response(JSON.stringify({output: {audio: {url}}}), {
@@ -34,7 +34,7 @@ describe('qwen3-tts-flash', () => {
         }
     });
 
-    it('posts Japanese qwen3-tts-flash when only the Bailian alias is set', async () => {
+    it('does not call DashScope when a Bailian key is set', async () => {
         const fetchImpl = vi.fn(async () =>
             audioResponse('http://dashscope-result-bj.oss-cn-beijing.aliyuncs.com/a.wav?Expires=9&Signature=sig')
         );
@@ -43,29 +43,22 @@ describe('qwen3-tts-flash', () => {
             'こんにちは。',
             fetchImpl
         );
-        expect(result.ok).toBe(true);
-        if (result.ok) {
-            expect(result.model).toBe('qwen3-tts-flash');
-            expect(result.audioUrl).toBe(
-                'https://dashscope-result-bj.oss-cn-beijing.aliyuncs.com/a.wav?Expires=9&Signature=sig'
-            );
-        }
-        const [url, init] = fetchImpl.mock.calls[0] as unknown as [string, RequestInit];
-        expect(url).toBe('https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation');
-        expect(new Headers(init.headers).get('Authorization')).toBe('Bearer worker-binding-only');
-        expect(JSON.parse(String(init.body)).input.language_type).toBe('Japanese');
+        expect(TTS_OUTBOUND_ENABLED).toBe(false);
+        expect(result).toMatchObject({
+            ok: false,
+            code: 'TTS_NOT_CONFIGURED',
+            audioDataUrl: '',
+            audioUrl: null,
+            message: '语音暂未开通'
+        });
+        expect(fetchImpl).not.toHaveBeenCalled();
     });
 
-    it('returns TTS_FAILED and does not throw when the vendor URL is not DashScope audio', async () => {
-        const fetchImpl = vi.fn(async () => audioResponse('https://evil.example/a.wav'));
-        const result = await synthesizeSpeech({DASHSCOPE_API_KEY: 'dashscope-key'} as Env, 'こんにちは。', fetchImpl);
-        expect(result).toMatchObject({ok: false, code: 'TTS_FAILED', audioUrl: null});
-    });
-
-    it('returns TTS_FAILED when the request fails', async () => {
+    it('does not call DashScope when DASHSCOPE_API_KEY is set', async () => {
         const fetchImpl = vi.fn(async () => new Response('no', {status: 500}));
         const result = await synthesizeSpeech({DASHSCOPE_API_KEY: 'dashscope-key'} as Env, 'こんにちは。', fetchImpl);
-        expect(result.code).toBe('TTS_FAILED');
+        expect(result.code).toBe('TTS_NOT_CONFIGURED');
+        expect(fetchImpl).not.toHaveBeenCalled();
     });
 
     it('rejects non-audio hosts', () => {

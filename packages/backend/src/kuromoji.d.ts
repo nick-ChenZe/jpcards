@@ -17,3 +17,23 @@ declare module 'kuromoji' {
 
     export {builder};
 }
+
+declare module 'kuromoji/src/loader/DictionaryLoader.js' {
+    class DictionaryLoader {
+        constructor(dicPath: string);
+        load(callback: (err: Error | null, dic: unknown) => void): void;
+    }
+    export = DictionaryLoader;
+}
+
+declare module 'kuromoji/src/Tokenizer.js' {
+    class Tokenizer {
+        constructor(dic: unknown);
+        tokenize(text: string): Array<{
+            surface_form: string;
+            reading?: string;
+            pronunciation?: string;
+        }>;
+    }
+    export = Tokenizer;
+}
