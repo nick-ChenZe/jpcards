@@ -1,7 +1,3 @@
-import {Button} from '@/components/ui/button';
-import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
-import {Field, FieldDescription, FieldGroup, FieldLabel} from '@/components/ui/field';
-import {Input} from '@/components/ui/input';
 import {authClient} from '@/lib/auth';
 import {chineseAuthError} from '@/lib/authErrors';
 import {cn} from '@/lib/utils';
@@ -74,91 +70,71 @@ export function SignUpForm ({
 
     if (done) {
         return (
-            <div className={cn('flex w-full flex-col gap-6', className)} {...props}>
-                <Card>
-                    <CardHeader className="text-center">
-                        <CardTitle className="text-xl">注册成功</CardTitle>
-                        <CardDescription>正在进入日语卡片…</CardDescription>
-                    </CardHeader>
-                </Card>
+            <div className={cn(className)} {...props}>
+                <p className="auth-status" role="status">正在进入日语卡片…</p>
             </div>
         );
     }
 
     return (
-        <div className={cn('flex w-full flex-col gap-6', className)} {...props}>
-            <Card>
-                <CardHeader className="text-center">
-                    <CardTitle className="text-xl">注册</CardTitle>
-                    <CardDescription>注册成功后会直接进入练习</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <form onSubmit={handleSubmit}>
-                        <FieldGroup>
-                            <Field>
-                                <FieldLabel htmlFor="username">用户名</FieldLabel>
-                                <Input
-                                    id="username"
-                                    name="username"
-                                    placeholder="字母、数字、下划线或点"
-                                    autoComplete="username"
-                                    required
-                                    minLength={3}
-                                />
-                                <FieldDescription>至少 3 位，只能使用字母、数字、下划线或点</FieldDescription>
-                            </Field>
-                            <Field>
-                                <FieldLabel htmlFor="name">名字</FieldLabel>
-                                <Input
-                                    id="name"
-                                    name="name"
-                                    placeholder="怎么称呼你"
-                                    autoComplete="name"
-                                    required
-                                />
-                            </Field>
-                            <Field>
-                                <FieldLabel htmlFor="email">邮箱</FieldLabel>
-                                <Input
-                                    id="email"
-                                    name="email"
-                                    type="email"
-                                    placeholder="请输入邮箱"
-                                    autoComplete="email"
-                                    required
-                                />
-                            </Field>
-                            <Field>
-                                <FieldLabel htmlFor="password">密码</FieldLabel>
-                                <Input
-                                    id="password"
-                                    name="password"
-                                    type="password"
-                                    required
-                                    minLength={8}
-                                    autoComplete="new-password"
-                                    placeholder="至少 8 位"
-                                />
-                                <FieldDescription>至少 8 位</FieldDescription>
-                            </Field>
-                            {formError
-                                ? <p className="text-sm text-red-500" role="alert">{formError}</p>
-                                : null}
-                            <Field>
-                                <Button type="submit" className="w-full" disabled={submitting}>
-                                    {submitting ? '注册中...' : '注册'}
-                                </Button>
-                                <FieldDescription className="text-center">
-                                    已经有账号？{' '}
-                                    <Link to="/login" className="text-seal underline underline-offset-4">
-                                        去登录
-                                    </Link>
-                                </FieldDescription>
-                            </Field>
-                        </FieldGroup>
-                    </form>
-                </CardContent>
-            </Card>
+        <div className={cn(className)} {...props}>
+            <form className="auth-form" onSubmit={handleSubmit}>
+                <div className="auth-field">
+                    <label className="auth-label" htmlFor="username">用户名</label>
+                    <input
+                        id="username"
+                        name="username"
+                        placeholder="字母、数字、下划线或点"
+                        autoComplete="username"
+                        required
+                        minLength={3}
+                    />
+                    <p className="auth-hint">至少 3 位，只能使用字母、数字、下划线或点</p>
+                </div>
+                <div className="auth-field">
+                    <label className="auth-label" htmlFor="name">名字</label>
+                    <input
+                        id="name"
+                        name="name"
+                        placeholder="怎么称呼你"
+                        autoComplete="name"
+                        required
+                    />
+                </div>
+                <div className="auth-field">
+                    <label className="auth-label" htmlFor="email">邮箱</label>
+                    <input
+                        id="email"
+                        name="email"
+                        type="email"
+                        placeholder="请输入邮箱"
+                        autoComplete="email"
+                        required
+                    />
+                </div>
+                <div className="auth-field">
+                    <label className="auth-label" htmlFor="password">密码</label>
+                    <input
+                        id="password"
+                        name="password"
+                        type="password"
+                        required
+                        minLength={8}
+                        autoComplete="new-password"
+                        placeholder="至少 8 位"
+                    />
+                    <p className="auth-hint">至少 8 位</p>
+                </div>
+                {formError
+                    ? <p className="auth-error" role="alert">{formError}</p>
+                    : null}
+                <button type="submit" className="auth-submit" disabled={submitting}>
+                    {submitting ? '注册中...' : '注册'}
+                </button>
+                <p className="auth-switch">
+                    已经有账号？ <Link to="/login">去登录</Link>
+                </p>
+            </form>
         </div>
     );
 }

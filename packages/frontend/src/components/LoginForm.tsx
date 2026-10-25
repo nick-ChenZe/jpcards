@@ -1,7 +1,3 @@
-import {Button} from '@/components/ui/button';
-import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
-import {Field, FieldDescription, FieldGroup, FieldLabel} from '@/components/ui/field';
-import {Input} from '@/components/ui/input';
 import {authClient} from '@/lib/auth';
 import {chineseAuthError} from '@/lib/authErrors';
 import {cn} from '@/lib/utils';
@@ -59,54 +55,39 @@ export function LoginForm ({
     );
 
     return (
-        <div className={cn('flex w-full flex-col gap-6', className)} {...props}>
-            <Card>
-                <CardHeader className="text-center">
-                    <CardTitle className="text-xl">登录</CardTitle>
-                    <CardDescription>使用用户名和密码进入日语卡片</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <form onSubmit={handleSubmit}>
-                        <FieldGroup>
-                            <Field>
-                                <FieldLabel htmlFor="username">用户名</FieldLabel>
-                                <Input
-                                    id="username"
-                                    name="username"
-                                    placeholder="请输入用户名"
-                                    autoComplete="username"
-                                    required
-                                />
-                            </Field>
-                            <Field>
-                                <FieldLabel htmlFor="password">密码</FieldLabel>
-                                <Input
-                                    id="password"
-                                    name="password"
-                                    type="password"
-                                    required
-                                    autoComplete="current-password"
-                                    placeholder="请输入密码"
-                                />
-                            </Field>
-                            {formError
-                                ? <p className="text-sm text-red-500" role="alert">{formError}</p>
-                                : null}
-                            <Field>
-                                <Button type="submit" className="w-full" disabled={submitting}>
-                                    {submitting ? '登录中...' : '登录'}
-                                </Button>
-                                <FieldDescription className="text-center">
-                                    还没有账号？{' '}
-                                    <Link to="/sign-up" className="text-seal underline underline-offset-4">
-                                        去注册
-                                    </Link>
-                                </FieldDescription>
-                            </Field>
-                        </FieldGroup>
-                    </form>
-                </CardContent>
-            </Card>
+        <div className={cn(className)} {...props}>
+            <form className="auth-form" onSubmit={handleSubmit}>
+                <div className="auth-field">
+                    <label className="auth-label" htmlFor="username">用户名</label>
+                    <input
+                        id="username"
+                        name="username"
+                        placeholder="请输入用户名"
+                        autoComplete="username"
+                        required
+                    />
+                </div>
+                <div className="auth-field">
+                    <label className="auth-label" htmlFor="password">密码</label>
+                    <input
+                        id="password"
+                        name="password"
+                        type="password"
+                        required
+                        autoComplete="current-password"
+                        placeholder="请输入密码"
+                    />
+                </div>
+                {formError
+                    ? <p className="auth-error" role="alert">{formError}</p>
+                    : null}
+                <button type="submit" className="auth-submit" disabled={submitting}>
+                    {submitting ? '登录中...' : '登录'}
+                </button>
+                <p className="auth-switch">
+                    还没有账号？ <Link to="/sign-up">去注册</Link>
+                </p>
+            </form>
         </div>
     );
 }
