@@ -4,108 +4,68 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
+  color-scheme: light;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+
+  /* 纸感日签设计令牌（#18） */
+  --bg-paper: #F7F3EB;
+  --ink: #2C2A26;
+  --ink-muted: #8A857C;
+  --accent: #C45C4A;
+  --accent-soft: #C45C4A22;
+  --card-surface: #FFFCF7;
+  --radius-card: 1rem;
+  --shadow-card: 0 1px 2px rgb(44 42 38 / 0.06);
+  --font-ja: "Noto Serif JP", "Yu Mincho", "Hiragino Mincho ProN", "Hiragino Mincho Pro", serif;
+  --font-zh: "Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --btn-generate-bg: #2C2A26;
+  --btn-generate-fg: #FFFCF7;
+  --btn-exhausted-bg: #D9D4CB;
+  /* shadcn 的 hover 面保持暖纸色，朱红只用于点睛，避免大块铺色 */
+  --paper-hover: #EFEAE2;
+  --paper-line: #E4DDD2;
+
+  --radius: 0.75rem;
+  --background: var(--bg-paper);
+  --foreground: var(--ink);
+  --card: var(--card-surface);
+  --card-foreground: var(--ink);
+  --popover: var(--card-surface);
+  --popover-foreground: var(--ink);
+  --primary: var(--btn-generate-bg);
+  --primary-foreground: var(--btn-generate-fg);
+  --secondary: var(--paper-hover);
+  --secondary-foreground: var(--ink);
+  --muted: var(--paper-hover);
+  --muted-foreground: var(--ink-muted);
+  --accent-foreground: var(--ink);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --border: var(--paper-line);
+  --input: var(--paper-line);
+  --ring: color-mix(in srgb, var(--accent) 55%, white);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
-}
-
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
-
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
-}
-
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
-
-button.card-generate {
-  background-color: #18181b !important;
-  color: #ffffff !important;
-  border: 1px solid #18181b !important;
-  box-shadow: 0 1px 2px rgb(0 0 0 / 0.24);
-}
-button.card-generate:hover:not(:disabled) {
-  background-color: #3f3f46 !important;
-  border-color: #3f3f46 !important;
-}
-button.card-generate.card-generate-exhausted:disabled {
-  opacity: 1;
-  background-color: #a1a1aa !important;
-  border-color: #a1a1aa !important;
-  color: #fafafa !important;
-  box-shadow: none;
-  cursor: not-allowed;
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
+  --sidebar: var(--card-surface);
+  --sidebar-foreground: var(--ink);
+  --sidebar-primary: var(--ink);
+  --sidebar-primary-foreground: var(--card-surface);
+  --sidebar-accent: var(--paper-hover);
+  --sidebar-accent-foreground: var(--ink);
+  --sidebar-border: var(--paper-line);
+  --sidebar-ring: var(--ring);
 }
 
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  --radius-xl: var(--radius-card);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -118,7 +78,7 @@ button.card-generate.card-generate-exhausted:disabled {
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
+  --color-accent: var(--paper-hover);
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
   --color-border: var(--border);
@@ -137,40 +97,44 @@ button.card-generate.card-generate-exhausted:disabled {
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-seal: var(--accent);
+  --color-seal-soft: var(--accent-soft);
+  --color-paper: var(--bg-paper);
+  --color-card-surface: var(--card-surface);
+  --font-sans: var(--font-zh);
+  --font-serif: var(--font-ja);
 }
 
+/* 本期只有纸感浅色。即便挂上 .dark，也不回到冷黑白。 */
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  color-scheme: light;
+  --background: var(--bg-paper);
+  --foreground: var(--ink);
+  --card: var(--card-surface);
+  --card-foreground: var(--ink);
+  --popover: var(--card-surface);
+  --popover-foreground: var(--ink);
+  --primary: var(--btn-generate-bg);
+  --primary-foreground: var(--btn-generate-fg);
+  --secondary: var(--paper-hover);
+  --secondary-foreground: var(--ink);
+  --muted: var(--paper-hover);
+  --muted-foreground: var(--ink-muted);
+  --accent-foreground: var(--ink);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: var(--paper-line);
+  --input: var(--paper-line);
+  --ring: color-mix(in srgb, var(--accent) 55%, white);
+  --sidebar: var(--card-surface);
+  --sidebar-foreground: var(--ink);
+  --sidebar-primary: var(--ink);
+  --sidebar-primary-foreground: var(--card-surface);
+  --sidebar-accent: var(--paper-hover);
+  --sidebar-accent-foreground: var(--ink);
+  --sidebar-border: var(--paper-line);
+  --sidebar-ring: var(--ring);
 }
 
 @layer base {
@@ -178,23 +142,121 @@ button.card-generate.card-generate-exhausted:disabled {
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
   }
   button {
     cursor: pointer;
   }
 }
 
-/* 日式字体：正文与 ruby 均使用 Noto Serif JP */
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background-color: var(--bg-paper);
+  color: var(--ink);
+  font-family: var(--font-zh);
+}
+
+#root {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+}
+
+/* 纸纹：SVG 噪点铺在底上，不盖住卡片 */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.07;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
+}
+
+button.card-generate {
+  background-color: var(--btn-generate-bg) !important;
+  color: var(--btn-generate-fg) !important;
+  border: 1px solid var(--btn-generate-bg) !important;
+  box-shadow: var(--shadow-card);
+  opacity: 1;
+}
+button.card-generate:hover:not(:disabled) {
+  background-color: color-mix(in srgb, var(--btn-generate-bg) 86%, white) !important;
+  border-color: color-mix(in srgb, var(--btn-generate-bg) 86%, white) !important;
+}
+button.card-generate:disabled {
+  opacity: 1;
+}
+button.card-generate.card-generate-exhausted:disabled {
+  background-color: var(--btn-exhausted-bg) !important;
+  border-color: var(--btn-exhausted-bg) !important;
+  color: var(--ink-muted) !important;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+/* 日文句用明朝；注音与界面用黑体 */
 .font-japanese {
-  font-family: "Noto Serif JP", "Yu Mincho", "Hiragino Mincho ProN", "Hiragino Mincho Pro", serif;
+  font-family: var(--font-ja);
 }
 .font-japanese ruby {
   font-family: inherit;
 }
 .font-japanese rt {
-  font-family: "Noto Sans", "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
+  font-family: var(--font-zh);
   font-size: 0.5em;
   font-weight: 400;
   letter-spacing: 0.02em;
+}
+
+@keyframes paper-breathe {
+  from { opacity: 0.45; }
+  to { opacity: 0.88; }
+}
+.paper-breathe {
+  background-color: #E6E0D6;
+  animation: paper-breathe 380ms ease-in-out infinite alternate;
+}
+.paper-breathe-delay-1 {
+  animation-delay: 80ms;
+}
+.paper-breathe-delay-2 {
+  animation-delay: 160ms;
+}
+
+@keyframes paper-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.paper-fade-in {
+  animation: paper-fade-in 320ms ease-out forwards;
+}
+
+@keyframes quota-tick {
+  from {
+    transform: translateY(4px);
+    opacity: 0.35;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+.quota-tick {
+  display: inline-block;
+  animation: quota-tick 320ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .paper-breathe,
+  .paper-fade-in,
+  .quota-tick {
+    animation: none;
+  }
+  .paper-fade-in {
+    opacity: 1;
+  }
 }
