@@ -36,6 +36,13 @@
   --btn-exhausted-bg: var(--exhausted);
   --paper-hover: #EFEAE2;
   --paper-line: var(--paper-edge);
+  /* 足迹墨阶。档位在 heatInk.ts；这里只放颜色。可欣打磨纸感时改这些变量。今天描边保持 1px。 */
+  --heat-wash: transparent;
+  --heat-ink-1: #E8E0D4;
+  --heat-ink-2: #C4B8A8;
+  --heat-ink-3: #8A7E72;
+  --heat-ink-4: #2C2420;
+  --heat-today: var(--accent);
 
   --background: var(--bg);
   --foreground: var(--ink);
@@ -1191,3 +1198,96 @@ body:has(.auth-gate) {
     height: 40px;
   }
 }
+
+.footprint {
+  margin: 18px 0 8px;
+}
+.footprint-invite,
+.footprint-note {
+  margin: 0 0 8px;
+  font-size: 12px;
+  line-height: 1.6;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  min-height: 1.2em;
+}
+.footprint-board {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+}
+.heat-dows,
+.heat-week {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.heat-week {
+  width: 11px;
+}
+.heat-dows {
+  color: var(--muted);
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  line-height: 11px;
+}
+.heat-weeks {
+  display: flex;
+  gap: 3px;
+}
+.heat-month {
+  height: 14px;
+  overflow: visible;
+  font-size: 10px;
+  line-height: 14px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+.heat-dows span:not(.heat-month) {
+  height: 11px;
+  line-height: 11px;
+}
+.heat-cell {
+  width: 11px;
+  height: 11px;
+  padding: 0;
+  border: 0;
+  border-radius: 2px;
+  display: block;
+  appearance: none;
+  background: var(--bg);
+  box-shadow: inset 0 0 0 1px var(--paper-edge);
+}
+button.heat-cell {
+  cursor: pointer;
+}
+button.heat-cell:disabled {
+  cursor: default;
+  opacity: 1;
+}
+.heat-cell[data-ink="1"] { background: var(--heat-ink-1); box-shadow: none; }
+.heat-cell[data-ink="2"] { background: var(--heat-ink-2); box-shadow: none; }
+.heat-cell[data-ink="3"] { background: var(--heat-ink-3); box-shadow: none; }
+.heat-cell[data-ink="4"] { background: var(--heat-ink-4); box-shadow: none; }
+.heat-cell[data-future="true"] { cursor: default; }
+.heat-cell[data-open="true"]:not([data-today="true"]) {
+  box-shadow: inset 0 0 0 1px var(--ink);
+}
+.heat-cell[data-today="true"] {
+  box-shadow: inset 0 0 0 1px var(--heat-today);
+}
+.heat-legend {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+}
+.heat-legend .heat-cell {
+  pointer-events: none;
+}
+.heat-legend-arrow {
+  margin: 0 2px;

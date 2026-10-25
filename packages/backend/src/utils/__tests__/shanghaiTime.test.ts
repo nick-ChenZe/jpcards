@@ -1,5 +1,11 @@
 import {describe, expect, it} from 'vitest';
-import {formatShanghaiTimestamp, shanghaiDayWindow, wallDateFromStored} from '../shanghaiTime.js';
+import {
+    formatShanghaiTimestamp,
+    inclusiveShanghaiDayCount,
+    parseShanghaiDayKey,
+    shanghaiDayWindow,
+    wallDateFromStored
+} from '../shanghaiTime.js';
 
 describe('formatShanghaiTimestamp', () => {
     it('shows a bare UTC timestamp in Asia/Shanghai instead of 凌晨 UTC', () => {
@@ -88,5 +94,14 @@ describe('wallDateFromStored', () => {
             day: 0,
             breath: ''
         });
+    });
+});
+
+describe('parseShanghaiDayKey', () => {
+    it('accepts a real calendar day and rejects impossible ones', () => {
+        expect(parseShanghaiDayKey(' 2026-10-25 ')).toBe('2026-10-25');
+        expect(parseShanghaiDayKey('2026-02-29')).toBeNull();
+        expect(parseShanghaiDayKey('2026-10-5')).toBeNull();
+        expect(inclusiveShanghaiDayCount('2026-10-24', '2026-10-26')).toBe(3);
     });
 });

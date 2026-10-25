@@ -6,6 +6,15 @@
 
 - 注册、登录、退出。
 - 历史只返回当前登录用户的卡片。点开一条可以查看这一张。看历史不扣生成次数。
+- 足迹热力不建新表。`GET /api/me/heatmap?from=&to=` 需要登录，把当前用户 `card_history.created_at`
+  按北京时间自然日聚合，和连签共用 `shanghaiDayKeyFromStored`。`from`、`to` 是
+  `YYYY-MM-DD`。都不传时，默认含今天在内往前 84 天（12 周）。只传一端时，另一端补到今天，或从结束日再往前 83
+  天。含首尾最多 400 天。响应是 `{day, count}[]`，只含抽过的日子，按日期升序。没有的日子前端当
+  0，断开的日子不补色。接口不算浓淡。
+- 前端墨阶只认五档：0 为纸洗；1 张 `#E8E0D4`；2 张 `#C4B8A8`；3 张和 4 张 `#8A7E72`；5 张及以上 `#2C2420`。今天只用 1px
+  朱红描边。点有墨的日子打开 `GET /api/history?day=YYYY-MM-DD`，这一天的墙卡；空日写「这天还没抽」。不带 `day`
+  时历史仍是原来的全部卡片。
+
 - 全量卡片只认 Worker secret `ADMIN_USER_IDS`（英文逗号分隔的 userId），默认关闭。secret 没设、为空，或当前登录的
   `user.id` 不在名单里时，`GET /api/admin/cards` 返回 403，并且不查库。邮箱不算管理员。`GET /api/me` 只多一个布尔字段
   `isAdmin`，不返回名单。历史页和设置页只在 `isAdmin` 为真时显示「全部卡片」。`/api/history`

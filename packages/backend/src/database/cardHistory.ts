@@ -1,5 +1,5 @@
 import {randomUUID} from 'crypto';
-import {and, count, desc, eq} from 'drizzle-orm';
+import {and, count, desc, eq, gte, lt} from 'drizzle-orm';
 import {parseStoredReadingTokens, type ReadingToken, serializeReadingTokens} from '../utils/readingHighlight.js';
 import type {AppDatabase} from './db.js';
 import {cardHistory, user} from './schema.js';
@@ -213,4 +213,51 @@ export async function listRecentCardCreatedAt (
         .orderBy(desc(cardHistory.createdAt))
         .limit(limit);
     return rows.map((row) => row.createdAt ?? '').filter((value) => value.length > 0);
+}
+
+/** 放宽后的 created_at 窗口里的入库时间。沪日切分在调用方用同一套日键完成。 */
+export async function listCardCreatedAtInWindow (
+    db: AppDatabase,
+    userId: string,
+    startInclusive: string,
+    endExclusive: string
+): Promise<string[]> {
+    const rows = await db.select({createdAt: cardHistory.createdAt})
+        .from(cardHistory)
+        .where(and(
+            eq(cardHistory.userId, userId),
+            gte(cardHistory.createdAt, startInclusive),
+            lt(cardHistory.createdAt, endExclusive)
+        ));
+    return rows.map((row) => row.createdAt ?? '').filter((value) => value.length > 0);
+}
+
+/** 同一窗口里的墙卡，新的在前。仍只含当前用户。 */
+export async function listCardHistoryInCreatedAtWindow (
+    db: AppDatabase,
+    userId: string,
+    startInclusive: string,
+    endExclusive: string
+): Promise<CardHistoryRecord[]> {
+    const rows = await db.select()
+        .from(cardHistory)
+        .where(and(
+            eq(cardHistory.userId, userId),
+            gte(cardHistory.createdAt, startInclusive),
+            lt(cardHistory.createdAt, endExclusive)
+        ))
+        .orderBy(desc(cardHistory.createdAt), desc(cardHistory.id));
+    return rows.map((row) => ({
+        id: row.id,
+        userId: row.userId,
+        sentence: row.sentence,
+        sentenceHtml: row.sentenceHtml,
+        gloss: row.gloss ?? '',
+        reading: row.reading ?? '',
+        readingTokens: parseStoredReadingTokens(row.readingTokens),
+        audioUrl: row.audioUrl,
+        illustrationUrl: row.illustrationUrl,
+        level: row.level ?? 'N5',
+        createdAt: row.createdAt ?? ''
+    }));
 }

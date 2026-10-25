@@ -12,6 +12,7 @@ import {readCardQuota} from './quota/cardQuota.js';
 import {getAdminCardsResponse, logAdminCardList} from './routes/adminCards.js';
 import {auth, AuthConfigError} from './routes/auth.js';
 import {generateCard} from './routes/generateCard.js';
+import {getHeatmapResponse} from './routes/heatmap.js';
 import {getHistoryCardResponse, getHistoryResponse} from './routes/history.js';
 import type {Env} from './types.js';
 import {ADMIN_FORBIDDEN_MESSAGE, CARD_METHOD_NOT_ALLOWED_MESSAGE, REGISTER_UNAVAILABLE_MESSAGE} from './userCopy.js';
@@ -145,6 +146,19 @@ app.get('/api/me', async (c) => {
     });
 });
 
+app.get('/api/me/heatmap', async (c) => {
+    try {
+        const result = await getHeatmapResponse(createDb(c.env.DB), c.var.session!.user.id, c.req.query(), new Date());
+        if (!result.ok) {
+            return c.json({error: 'INVALID_RANGE', message: result.message}, 400);
+        }
+        return c.json(result.days);
+    } catch (error) {
+        console.error('Failed to read heatmap', error);
+        return c.json({error: 'HEATMAP_FAILED', message: '暂时无法展开这些日子。'}, 500);
+    }
+});
+
 app.get('/api/me/quota', async (c) => {
     try {
         const quota = await readCardQuota(c.env.DB, c.var.session!.user.id, new Date());
@@ -208,6 +222,9 @@ app.get('/api/history', async (c) => {
         const data = await getHistoryResponse(createDb(c.env.DB), c.var.session!.user.id, c.req.query());
         return c.json(data);
     } catch (error) {
+        if (error instanceof Error && error.name === 'HistoryDayError') {
+            return c.json({error: 'INVALID_DAY', message: error.message}, 400);
+        }
         console.error('Failed to fetch card history', error);
         return c.json({error: 'HISTORY_FAILED', message: '暂时无法读取学习历史。'}, 500);
     }

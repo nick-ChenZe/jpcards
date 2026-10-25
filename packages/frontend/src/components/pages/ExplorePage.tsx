@@ -4,6 +4,7 @@ import {streakChipText} from '@/lib/streakNote';
 import {QUOTA_EXCEEDED_MESSAGE, userFacingMedia, userFacingTextNotice} from '@/lib/userCopy';
 import {cn} from '@/lib/utils';
 import {useCallback, useEffect, useRef, useState} from 'react';
+import {FootprintHeat} from '../FootprintHeat';
 import {GenerateBar} from '../GenerateBar';
 import {TodayCard} from '../TodayCard';
 
@@ -294,6 +295,7 @@ export const ExplorePage = () => {
                         {exploreState === 'drawing'
                             ? <TodayCard loading loadingLabel="抽签中…" />
                             : <EmptyRitual />}
+                        <FootprintHeat />
                     </div>
                 )}
         </div>

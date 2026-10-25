@@ -68,6 +68,41 @@ export function shanghaiDayKeyFromStored (value: string): string | null {
     return shanghaiDayWindow(instant).dayKey;
 }
 
+const SHANGHAI_DAY_KEY = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+/** 合法的北京时间日期。非法月日返回 null。 */
+export function parseShanghaiDayKey (value: string): string | null {
+    const match = SHANGHAI_DAY_KEY.exec(value.trim());
+    if (!match) {
+        return null;
+    }
+    const year = Number(match[1]);
+    const month = Number(match[2]);
+    const day = Number(match[3]);
+    const date = new Date(Date.UTC(year, month - 1, day));
+    if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) {
+        return null;
+    }
+    return `${match[1]}-${match[2]}-${match[3]}`;
+}
+
+/** 含首尾的自然日数。from、to 须已是合法北京时间日期。 */
+export function inclusiveShanghaiDayCount (fromKey: string, toKey: string): number {
+    const from = parseShanghaiDayKey(fromKey);
+    const to = parseShanghaiDayKey(toKey);
+    if (!from || !to) {
+        return 0;
+    }
+    const fromMatch = SHANGHAI_DAY_KEY.exec(from);
+    const toMatch = SHANGHAI_DAY_KEY.exec(to);
+    if (!fromMatch || !toMatch) {
+        return 0;
+    }
+    const start = Date.UTC(Number(fromMatch[1]), Number(fromMatch[2]) - 1, Number(fromMatch[3]));
+    const end = Date.UTC(Number(toMatch[1]), Number(toMatch[2]) - 1, Number(toMatch[3]));
+    return Math.round((end - start) / 86_400_000) + 1;
+}
+
 export interface WallDate {
     key: string;
     month: number;
@@ -98,7 +133,7 @@ export function wallDateFromStored (value: string): WallDate {
 
 /** 在 YYYY-MM-DD 上移动自然日。不处理时区，调用方应已是北京时间日期。 */
 export function shiftShanghaiDayKey (dayKey: string, deltaDays: number): string {
-    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dayKey);
+    const match = SHANGHAI_DAY_KEY.exec(dayKey);
     if (!match) {
         return dayKey;
     }

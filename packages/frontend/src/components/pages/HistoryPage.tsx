@@ -1,9 +1,10 @@
 import {type DaySignTile, DaySignTileButton} from '@/components/DaySignWall';
 import {useAdminAccess} from '@/hooks/useAdminAccess';
-import {wallDateFromStored} from '@/lib/datetime';
+import {parseShanghaiDayKey, wallDateFromStored} from '@/lib/datetime';
 import {Loader2} from 'lucide-react';
-import {useCallback, useEffect, useState} from 'react';
-import {useNavigate} from 'react-router-dom';
+import {useCallback, useEffect, useMemo, useState} from 'react';
+import {useNavigate, useSearchParams} from 'react-router-dom';
+import {FootprintHeat} from '../FootprintHeat';
 import {Button} from '../ui/button';
 
 interface CardHistoryItem {
@@ -58,6 +59,11 @@ function groupByShanghaiDay (items: CardHistoryItem[]): DayGroup[] {
     return groups;
 }
 
+function dayBreath (dayKey: string): string {
+    const parts = dayKey.split('-');
+    return `${Number(parts[1])}月${Number(parts[2])}日`;
+}
+
 export const HistoryPage = () => {
     const [items, setItems] = useState<CardHistoryItem[]>([]);
     const [loading, setLoading] = useState(false);
@@ -66,13 +72,22 @@ export const HistoryPage = () => {
     const [total, setTotal] = useState(0);
     const [error, setError] = useState('');
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const admin = useAdminAccess();
+    const dayKey = useMemo(() => parseShanghaiDayKey(searchParams.get('day') ?? '') ?? '', [searchParams]);
 
     const fetchHistory = useCallback(async (p: number, append: boolean) => {
         setLoading(true);
         setError('');
         try {
-            const response = await fetch(`/api/history?page=${p}&pageSize=20`, {
+            const params = new URLSearchParams({
+                page: String(p),
+                pageSize: dayKey ? '50' : '20'
+            });
+            if (dayKey) {
+                params.set('day', dayKey);
+            }
+            const response = await fetch(`/api/history?${params.toString()}`, {
                 credentials: 'include'
             });
             if (!response.ok) {
@@ -89,7 +104,7 @@ export const HistoryPage = () => {
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [dayKey]);
 
     useEffect(() => {
         void fetchHistory(1, false);
@@ -102,16 +117,33 @@ export const HistoryPage = () => {
             <header className="history-header">
                 <div className="flex items-end justify-between gap-3">
                     <h1>日签墙</h1>
-                    {admin
-                        ? (
-                            <Button variant="outline" size="sm" onClick={() => navigate('/admin/cards')}>
-                                全部卡片
-                            </Button>
-                        )
-                        : null}
+                    <div className="flex gap-2">
+                        {dayKey
+                            ? (
+                                <Button variant="outline" size="sm" onClick={() => navigate('/history')}>
+                                    整面墙
+                                </Button>
+                            )
+                            : null}
+                        {admin
+                            ? (
+                                <Button variant="outline" size="sm" onClick={() => navigate('/admin/cards')}>
+                                    全部卡片
+                                </Button>
+                            )
+                            : null}
+                    </div>
                 </div>
-                <p className="sub">{total > 0 ? `已轻记 ${total} 张` : '抽出的日签会出现在这里'}</p>
+                <p className="sub">
+                    {dayKey
+                        ? (!loading && !error && items.length === 0
+                            ? '这天还没抽'
+                            : dayBreath(dayKey))
+                        : (total > 0 ? `已轻记 ${total} 张` : '抽出的日签会出现在这里')}
+                </p>
             </header>
+
+            <FootprintHeat selectedDay={dayKey || undefined} />
 
             {loading && items.length === 0
                 ? (
@@ -129,7 +161,7 @@ export const HistoryPage = () => {
                     </div>
                 )
                 : items.length === 0
-                ? <p className="history-empty">抽出的日签会出现在这里</p>
+                ? <p className="history-empty">{dayKey ? '这天还没抽' : '抽出的日签会出现在这里'}</p>
                 : (
                     <div>
                         {groups.map((group) => (

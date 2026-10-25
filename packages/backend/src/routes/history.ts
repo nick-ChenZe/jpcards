@@ -2,15 +2,28 @@ import {
     type CardHistoryRecord,
     getCardHistory,
     getCardHistoryById,
-    getCardHistoryCount
+    getCardHistoryCount,
+    listCardHistoryInCreatedAtWindow
 } from '../database/cardHistory.js';
 import type {AppDatabase} from '../database/db.js';
-import {formatShanghaiTimestamp} from '../utils/shanghaiTime.js';
+import {createdAtWindowForShanghaiDays} from '../utils/heatmap.js';
+import {formatShanghaiTimestamp, parseShanghaiDayKey, shanghaiDayKeyFromStored} from '../utils/shanghaiTime.js';
 import {readingForSentence} from './practiceDeck.js';
 
 export interface HistoryQuery {
     page?: string;
     pageSize?: string;
+    /** 北京时间自然日 YYYY-MM-DD。缺省时保持原来的全部历史。 */
+    day?: string;
+}
+
+export class HistoryDayError extends Error {
+    readonly code = 'INVALID_DAY';
+
+    constructor() {
+        super('日期要用北京时间的 YYYY-MM-DD。');
+        this.name = 'HistoryDayError';
+    }
 }
 
 export function normalizePagination (query: HistoryQuery): {page: number; pageSize: number; offset: number;} {
@@ -56,6 +69,27 @@ export function presentHistoryCard (card: CardHistoryRecord) {
 
 export async function getHistoryResponse (db: AppDatabase, userId: string, query: HistoryQuery) {
     const {page, pageSize, offset} = normalizePagination(query);
+    const dayText = query.day?.trim() ?? '';
+    if (dayText) {
+        const day = parseShanghaiDayKey(dayText);
+        if (!day) {
+            throw new HistoryDayError();
+        }
+        const bounds = createdAtWindowForShanghaiDays(day, day);
+        const matched = (await listCardHistoryInCreatedAtWindow(db, userId, bounds.start, bounds.end))
+            .filter((card) => shanghaiDayKeyFromStored(card.createdAt) === day);
+        const total = matched.length;
+        return {
+            items: matched.slice(offset, offset + pageSize).map(presentHistoryCard),
+            pagination: {
+                page,
+                pageSize,
+                total,
+                totalPages: Math.ceil(total / pageSize)
+            }
+        };
+    }
+
     const [items, total] = await Promise.all([
         getCardHistory(db, userId, pageSize, offset),
         getCardHistoryCount(db, userId)

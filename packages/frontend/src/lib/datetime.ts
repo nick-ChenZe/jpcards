@@ -3,6 +3,8 @@ import {shanghaiDayWindow} from '../../../backend/src/utils/shanghaiTime';
 export {wallDateFromStored} from '../../../backend/src/utils/shanghaiTime';
 export type {WallDate} from '../../../backend/src/utils/shanghaiTime';
 
+export {parseShanghaiDayKey} from '../../../backend/src/utils/shanghaiTime';
+
 const WEEKDAYS = ['日曜日', '月曜日', '火曜日', '水曜日', '木曜日', '金曜日', '土曜日'];
 
 /** 探索页顶栏：北京时间的曜日和「M月D日」。 */
