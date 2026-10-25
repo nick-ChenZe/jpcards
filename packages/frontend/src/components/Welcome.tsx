@@ -1,4 +1,5 @@
 import {useSession} from '@/lib/auth';
+import {generateCardInit} from '@/lib/generateCard';
 import {useCallback, useEffect, useState} from 'react';
 import {Nav} from './Nav';
 import {Button} from './ui/button';
@@ -22,7 +23,7 @@ export const Welcome = () => {
         setLoading(true);
         setError('');
         try {
-            const response = await fetch('/api/card', {credentials: 'include'});
+            const response = await fetch('/api/card', generateCardInit());
             if (!response.ok) {
                 throw new Error(`Request failed with status ${response.status}`);
             }
@@ -44,7 +45,7 @@ export const Welcome = () => {
                     <CardHeader>
                         <CardTitle>日语卡片 Demo</CardTitle>
                         <CardDescription>
-                            点击按钮后调用 `/api/card`，自动生成一句日语、配图和语音。
+                            点击按钮后用 POST 调用 `/api/card`，自动生成一句日语、配图和语音。
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">

@@ -1,5 +1,5 @@
 import {sql} from 'drizzle-orm';
-import {index, integer, sqliteTable, text, uniqueIndex} from 'drizzle-orm/sqlite-core';
+import {index, integer, primaryKey, sqliteTable, text, uniqueIndex} from 'drizzle-orm/sqlite-core';
 
 // ─── better-auth 认证表 ────────────────────────────────────
 
@@ -72,6 +72,18 @@ export const dailyCardQuota = sqliteTable('daily_card_quota', {
     used: integer('used').notNull().default(0),
     lastGeneratedAt: integer('last_generated_at').notNull().default(0)
 });
+
+/** 一次抽签一把钥匙。同一把钥匙的重试不能再次预扣。 */
+export const cardGenerationIdempotency = sqliteTable('card_generation_idempotency', {
+    userId: text('user_id').notNull(),
+    idempotencyKey: text('idempotency_key').notNull(),
+    state: text('state').notNull(),
+    httpStatus: integer('http_status'),
+    responseJson: text('response_json'),
+    createdAt: integer('created_at').notNull()
+}, (table) => [
+    primaryKey({columns: [table.userId, table.idempotencyKey]})
+]);
 
 export const cardHistory = sqliteTable('card_history', {
     id: text('id').primaryKey(),

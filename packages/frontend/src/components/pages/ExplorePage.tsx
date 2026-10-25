@@ -1,4 +1,5 @@
 import {shanghaiRitualDate} from '@/lib/datetime';
+import {generateCardInit} from '@/lib/generateCard';
 import {QUOTA_EXCEEDED_MESSAGE, userFacingMedia, userFacingTextNotice} from '@/lib/userCopy';
 import {cn} from '@/lib/utils';
 import {useCallback, useEffect, useRef, useState} from 'react';
@@ -168,8 +169,10 @@ export const ExplorePage = () => {
         setError('');
         setNotice('');
         try {
-            const response = await fetch('/api/card', {credentials: 'include'});
-            const body = await response.json().catch(() => null) as (CardDemoResponse & ErrorBody) | null;
+            const response = await fetch('/api/card', generateCardInit());
+            const body = await response.json().catch(() => null) as
+                | (CardDemoResponse & ErrorBody & {quota?: unknown;})
+                | null;
             if (response.status === 429) {
                 if (body?.error === 'QUOTA_EXCEEDED' || body?.message === QUOTA_EXCEEDED_MESSAGE) {
                     noteExhausted();
@@ -186,10 +189,16 @@ export const ExplorePage = () => {
                 setNotice(body?.message || '暂时不能生成卡片。');
                 return;
             }
-            heldCard.current = body;
-            setCard(body);
+            const {quota: responseQuota, ...cardBody} = body;
+            heldCard.current = cardBody;
+            setCard(cardBody);
             setStampKey((value) => value + 1);
-            noteSuccessfulUse();
+            if (isQuotaSnapshot(responseQuota)) {
+                quotaEpoch.current += 1;
+                setQuota(responseQuota);
+            } else {
+                noteSuccessfulUse();
+            }
             void refreshStreak();
         } catch (requestError) {
             const message = requestError instanceof Error ? requestError.message : '';

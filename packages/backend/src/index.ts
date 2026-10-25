@@ -2,14 +2,13 @@ import {Hono} from 'hono';
 import {isAdminUserId} from './config/admin.js';
 import {listRecentCardCreatedAt} from './database/cardHistory.js';
 import {createDb} from './database/db.js';
-import {readCardQuota, refundCardQuota, reserveCardQuota} from './quota/cardQuota.js';
+import {readCardQuota} from './quota/cardQuota.js';
 import {getAdminCardsResponse, logAdminCardList} from './routes/adminCards.js';
 import {auth, AuthConfigError} from './routes/auth.js';
-import {buildCardWithMemory} from './routes/card.js';
-import {CardGlossError} from './routes/cardGlossError.js';
+import {generateCard} from './routes/generateCard.js';
 import {getHistoryCardResponse, getHistoryResponse} from './routes/history.js';
 import type {Env} from './types.js';
-import {ADMIN_FORBIDDEN_MESSAGE} from './userCopy.js';
+import {ADMIN_FORBIDDEN_MESSAGE, CARD_METHOD_NOT_ALLOWED_MESSAGE} from './userCopy.js';
 import {countStreakDays} from './utils/streak.js';
 
 type AuthInstance = ReturnType<typeof auth>;
@@ -114,38 +113,22 @@ app.get('/api/me/quota', async (c) => {
     }
 });
 
-app.get('/api/card', async (c) => {
-    const userId = c.var.session!.user.id;
-    const now = new Date();
-    let charged = false;
-    try {
-        const reserved = await reserveCardQuota(c.env.DB, userId, now);
-        if (!reserved.ok) {
-            return c.json({error: reserved.code, message: reserved.message}, 429);
-        }
-        charged = true;
-        const card = await buildCardWithMemory({
-            db: createDb(c.env.DB),
-            userId,
-            env: c.env,
-            assetsBaseUrl: new URL(c.req.url).origin
-        });
-        charged = false;
-        return c.json(card.card);
-    } catch (error) {
-        if (charged) {
-            try {
-                await refundCardQuota(c.env.DB, userId, now);
-            } catch (refundError) {
-                console.error('Failed to refund card quota', refundError);
-            }
-        }
-        if (error instanceof CardGlossError) {
-            return c.json({error: error.code, message: error.message}, 422);
-        }
-        console.error('Failed to build card', error);
-        return c.json({error: 'CARD_GEN_FAILED', message: '生成失败，请稍后再试。'}, 500);
-    }
+// GET 不能生卡。浏览器和边缘会重试 GET，第二次 reserve 可能来不及退款。
+app.get('/api/card', (c) => {
+    c.header('Allow', 'POST');
+    return c.json({error: 'METHOD_NOT_ALLOWED', message: CARD_METHOD_NOT_ALLOWED_MESSAGE}, 405);
+});
+
+app.post('/api/card', async (c) => {
+    const result = await generateCard({
+        database: c.env.DB,
+        userId: c.var.session!.user.id,
+        env: c.env,
+        assetsBaseUrl: new URL(c.req.url).origin,
+        idempotencyKey: c.req.header('Idempotency-Key'),
+        now: new Date()
+    });
+    return c.json(result.body, result.status as 200);
 });
 
 app.get('/api/history/:id', async (c) => {
