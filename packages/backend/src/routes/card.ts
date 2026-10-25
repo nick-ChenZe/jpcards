@@ -10,6 +10,7 @@ import type {Env} from '../types.js';
 import {IMAGE_GENERATION_FAILED, LOCAL_PRACTICE_NOTICE} from '../userCopy.js';
 import {chooseReading} from '../utils/readingChoice.js';
 import {type ReadingOptions, toDisplayReading, toSentenceWithKanjiRomaji} from '../utils/romaji.js';
+import {CardGlossError} from './cardGlossError.js';
 import {
     buildCardUserPrompt,
     CARD_SYSTEM_PROMPT,
@@ -19,6 +20,14 @@ import {
 import {pickPracticeCard} from './practiceDeck.js';
 
 const DEFAULT_LEVEL = 'N5';
+
+function requireModelGloss (gloss: string): string {
+    if (!gloss.trim() || !/[\u4e00-\u9fff]/.test(gloss)) {
+        console.error('[card] model gloss missing');
+        throw new CardGlossError();
+    }
+    return gloss;
+}
 
 export interface TextNotice {
     configured: boolean;
@@ -136,9 +145,7 @@ export async function buildCardDemo (
     }
     const generated = await generateJapaneseCard(gate.text, [], fetchImpl);
     const sentence = generated.sentence;
-    if (!generated.gloss) {
-        console.error('[card] model gloss missing');
-    }
+    const gloss = requireModelGloss(generated.gloss);
     const options = readingContext(env);
     const sentenceHtml = await toSentenceWithKanjiRomaji(sentence, options);
     const reading = await resolveReading(sentence, generated.reading, options);
@@ -147,7 +154,7 @@ export async function buildCardDemo (
         sentence,
         sentenceHtml,
         reading,
-        gloss: generated.gloss,
+        gloss,
         imageDataUrl: media.image.ok ? media.image.imageDataUrl : '',
         audioDataUrl: media.audio.audioDataUrl,
         text: {configured: true, source: 'model', message: ''},
@@ -173,13 +180,10 @@ export async function buildCardWithMemory (input: {
     if (gate.enabled) {
         const generated = await generateJapaneseCard(gate.text, seenSentences, input.fetchImpl);
         sentence = generated.sentence;
-        gloss = generated.gloss;
+        gloss = requireModelGloss(generated.gloss);
         modelReading = generated.reading;
         reading = '';
         text = {configured: true, source: 'model', message: ''};
-        if (!gloss) {
-            console.error('[card] model gloss missing');
-        }
     } else {
         const practice = pickPracticeCard(seenSentences);
         sentence = practice.sentence;

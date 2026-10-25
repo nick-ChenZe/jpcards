@@ -1,7 +1,9 @@
 import {Hono} from 'hono';
 import {createDb} from './database/db.js';
+import {readCardQuota, reserveCardQuota} from './quota/cardQuota.js';
 import {auth, AuthConfigError} from './routes/auth.js';
 import {buildCardWithMemory} from './routes/card.js';
+import {CardGlossError} from './routes/cardGlossError.js';
 import {getHistoryCardResponse, getHistoryResponse} from './routes/history.js';
 import type {Env} from './types.js';
 
@@ -75,16 +77,34 @@ app.on(['GET', 'POST'], '/api/auth/*', (c) => {
     return c.var.auth.handler(c.req.raw);
 });
 
-app.get('/api/card', async (c) => {
+app.get('/api/me/quota', async (c) => {
     try {
+        const quota = await readCardQuota(c.env.DB, c.var.session!.user.id, new Date());
+        return c.json(quota);
+    } catch (error) {
+        console.error('Failed to read card quota', error);
+        return c.json({error: 'QUOTA_FAILED', message: '暂时无法读取今日额度。'}, 500);
+    }
+});
+
+app.get('/api/card', async (c) => {
+    const userId = c.var.session!.user.id;
+    try {
+        const reserved = await reserveCardQuota(c.env.DB, userId, new Date());
+        if (!reserved.ok) {
+            return c.json({error: reserved.code, message: reserved.message}, 429);
+        }
         const card = await buildCardWithMemory({
             db: createDb(c.env.DB),
-            userId: c.var.session!.user.id,
+            userId,
             env: c.env,
             assetsBaseUrl: new URL(c.req.url).origin
         });
         return c.json(card.card);
     } catch (error) {
+        if (error instanceof CardGlossError) {
+            return c.json({error: error.code, message: error.message}, 422);
+        }
         console.error('Failed to build card', error);
         return c.json({error: 'CARD_GEN_FAILED', message: '生成失败，请稍后再试。'}, 500);
     }
