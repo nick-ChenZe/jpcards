@@ -1,3 +1,4 @@
+import rizhaMark from '@/assets/rizha-mark.svg';
 import {useSession} from '@/lib/auth';
 import {Navigate, Outlet, useLocation} from 'react-router-dom';
 import {BottomNav} from './BottomNav';
@@ -13,7 +14,9 @@ export const AuthLayout = () => {
     if (isPending) {
         return (
             <div className="hiyori-loading">
-                <span className="hiyori-loading-seal" role="status" aria-label="正在翻开日和">和</span>
+                <span className="hiyori-loading-seal" role="status" aria-label="正在翻开日札">
+                    <img src={rizhaMark} alt="" width={44} height={44} />
+                </span>
             </div>
         );
     }
@@ -24,7 +27,7 @@ export const AuthLayout = () => {
 
     return (
         <div className="app-paper hiyori-app">
-            <PaperHeader initial={(session.user.name || session.user.email || '和').slice(0, 1).toUpperCase()} />
+            <PaperHeader initial={(session.user.name || session.user.email || '札').slice(0, 1).toUpperCase()} />
             <div key={location.pathname} className="paper-screen">
                 <Outlet />
             </div>

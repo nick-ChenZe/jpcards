@@ -4,7 +4,6 @@ import {streakChipText} from '@/lib/streakNote';
 import {QUOTA_EXCEEDED_MESSAGE, userFacingMedia, userFacingTextNotice} from '@/lib/userCopy';
 import {cn} from '@/lib/utils';
 import {useCallback, useEffect, useRef, useState} from 'react';
-import {FootprintHeat} from '../FootprintHeat';
 import {GenerateBar} from '../GenerateBar';
 import {PaperMotif} from '../PaperMotif';
 import {TodayCard} from '../TodayCard';
@@ -286,7 +285,6 @@ export const ExplorePage = () => {
                 onGenerate={generateCard}
             />
             <p className="hiyori-endnote">每天一点点，日语慢慢来。</p>
-            <FootprintHeat key={`heat-${stampKey}`} />
         </div>
     );
 };

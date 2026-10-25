@@ -66,7 +66,7 @@ describe('heat ink levels', () => {
         const explore = readFileSync(path.join(frontendRoot, 'src/components/pages/ExplorePage.tsx'), 'utf8');
         const history = readFileSync(path.join(frontendRoot, 'src/components/pages/HistoryPage.tsx'), 'utf8');
         const heat = readFileSync(path.join(frontendRoot, 'src/components/FootprintHeat.tsx'), 'utf8');
-        expect(explore).toContain('FootprintHeat');
+        expect(explore).not.toContain('FootprintHeat');
         expect(explore).toContain('streakChipText');
         expect(history).toContain('FootprintHeat');
         expect(history).toContain('/api/history?');

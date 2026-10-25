@@ -1,3 +1,5 @@
+import rizhaMark from '@/assets/rizha-mark.svg';
+
 export function PaperMotif ({kind = 'draw'}: {kind?: 'draw' | 'login';}) {
     return (
         <div className={`paper-motif is-${kind}`} aria-hidden="true">
@@ -12,7 +14,9 @@ export function PaperMotif ({kind = 'draw'}: {kind?: 'draw' | 'login';}) {
                             <span className="motif-verse" lang="ja">
                                 今日も、<br />いい日になる。
                             </span>
-                            <span className="motif-seal">日和</span>
+                            <span className="motif-seal">
+                                <img src={rizhaMark} alt="" width={27} height={27} />
+                            </span>
                         </>
                     )
                     : <span className="motif-verse" lang="ja">今日の言葉</span>}

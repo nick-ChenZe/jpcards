@@ -79,3 +79,42 @@ export function buildFootprintWeeks (
     }
     return weeks;
 }
+
+function monthDate (month: string): Date {
+    if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) throw new RangeError('Invalid calendar month');
+    return new Date(`${month}-01T00:00:00.000Z`);
+}
+
+export function shiftFootprintMonth (month: string, delta: number): string {
+    const date = monthDate(month);
+    date.setUTCMonth(date.getUTCMonth() + delta);
+    return date.toISOString().slice(0, 7);
+}
+
+/** A full month on a Sunday-first calendar; null cells are padding, never invented days. */
+export function buildFootprintMonth (month: string, today: string, counts: ReadonlyMap<string, number>) {
+    const first = monthDate(month);
+    const last = new Date(first);
+    last.setUTCMonth(last.getUTCMonth() + 1);
+    last.setUTCDate(0);
+    const from = `${month}-01`;
+    const to = last.toISOString().slice(0, 10);
+    const cells: (FootprintCell | null)[] = Array.from({length: first.getUTCDay()}, () => null);
+    for (let day = 1; day <= last.getUTCDate(); day += 1) {
+        const key = `${month}-${String(day).padStart(2, '0')}`;
+        const stored = counts.get(key) ?? 0;
+        const future = key > today;
+        const count = !future && Number.isFinite(stored) && stored > 0 ? Math.floor(stored) : 0;
+        cells.push({
+            day: key,
+            count,
+            level: heatInkLevel(count),
+            future,
+            today: key === today,
+            month: first.getUTCMonth() + 1,
+            dayOfMonth: day
+        });
+    }
+    while (cells.length % 7) cells.push(null);
+    return {from, to, year: first.getUTCFullYear(), month: first.getUTCMonth() + 1, cells};
+}

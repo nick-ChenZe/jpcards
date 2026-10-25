@@ -1,3 +1,4 @@
+import rizhaMark from '@/assets/rizha-mark.svg';
 import {parseReadingTokens, playbackTokenIndex, readingLineParts, splitSentenceHtml} from '@/lib/readingHighlight';
 import {cn} from '@/lib/utils';
 import {Pause, Play} from 'lucide-react';
@@ -310,7 +311,9 @@ export function TodayCard ({
                 <span>日々のことば</span>
                 <span>DAILY JAPANESE</span>
             </div>
-            <span className="hiyori-card-seal" aria-hidden="true">日々</span>
+            <span className="hiyori-card-seal" aria-hidden="true">
+                <img src={rizhaMark} alt="" width={34} height={34} />
+            </span>
             {painted && imageUrl
                 ? (
                     <PaintedArt url={imageUrl} onFail={() => setImageFailed(true)}>

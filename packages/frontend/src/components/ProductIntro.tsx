@@ -65,13 +65,13 @@ export function ProductIntro ({children}: {children: React.ReactNode;}) {
                     <div className="hiyori-auth-welcome">
                         <span className="hiyori-kicker">A LITTLE EVERY DAY</span>
                         <h1>{signingUp ? '把日语，收进日常。' : '新的一页，从这里开始。'}</h1>
-                        <p>{signingUp ? '从今天起，为自己留下一句日语。' : '登录日和，收下今天的第一句日语。'}</p>
+                        <p>{signingUp ? '从今天起，为自己留下一句日语。' : '登录日札，收下今天的第一句日语。'}</p>
                     </div>
                     {children}
                     <p className="hiyori-endnote">一期一会，一日一句。</p>
                 </div>
                 <footer className="hiyori-footer">
-                    <span>HIYORI</span>
+                    <span>日札</span>
                     <span>让日语，慢慢成为日常。</span>
                 </footer>
             </section>

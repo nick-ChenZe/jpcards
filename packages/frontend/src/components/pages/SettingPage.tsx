@@ -1,3 +1,4 @@
+import rizhaMark from '@/assets/rizha-mark.svg';
 import {useAdminAccess} from '@/hooks/useAdminAccess';
 import {signOut, useSession} from '@/lib/auth';
 import {applyPaperTheme, paperThemes, readPaperTheme} from '@/lib/paperTheme';
@@ -27,9 +28,11 @@ export const SettingPage = () => {
     };
     return (
         <div className="hiyori-page">
-            <h1 className="hiyori-page-title">我的日和</h1>
+            <h1 className="hiyori-page-title">我的日札</h1>
             <p className="hiyori-page-sub">{session?.user.name || '你'}，慢慢来，也是在向前。</p>
-            <div className="hiyori-personal-mark" aria-hidden="true">和</div>
+            <div className="hiyori-personal-mark" aria-hidden="true">
+                <img src={rizhaMark} alt="" width={100} height={100} />
+            </div>
             <fieldset className="hiyori-theme-options">
                 <legend>选择一种纸上的心情</legend>
                 {paperThemes.map((option) => (
