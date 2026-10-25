@@ -110,7 +110,7 @@ describe('buildCardWithMemory vendor gate', () => {
         );
     });
 
-    it('keeps the text card and qwen image, and does not call tts, when the Bailian key is set', async () => {
+    it('keeps the text card and stores qwen image and tts audio when the Bailian key is set', async () => {
         const fetchImpl = vi.fn(async (_input: string | URL | Request, init?: RequestInit) => {
             const body = JSON.parse(String(init?.body ?? '{}')) as {model?: string;};
             if (body.model === 'qwen-image-3.0') {
@@ -164,10 +164,15 @@ describe('buildCardWithMemory vendor gate', () => {
             expect(result.card.imageDataUrl).toBe(
                 'https://dashscope-result-sz.oss-cn-shenzhen.aliyuncs.com/card.png?Expires=1'
             );
-            expect(result.card.audioDataUrl).toBe('');
-            expect(result.card.audio.ok).toBe(false);
-            expect(result.card.audio.code).toBe('TTS_NOT_CONFIGURED');
-            expect(result.card.audio.message).toBe('语音暂未开通');
+            expect(result.card.audioDataUrl).toBe(
+                'https://dashscope-result-bj.oss-cn-beijing.aliyuncs.com/card.wav?Expires=1&Signature=test'
+            );
+            expect(result.card.audio.ok).toBe(true);
+            if (result.card.audio.ok) {
+                expect(result.card.audio.code).toBe('TTS_READY');
+                expect(result.card.audio.model).toBe('qwen3-tts-flash');
+                expect(result.card.audio.audioUrl).toBe(result.card.audioDataUrl);
+            }
             expect(result.card.image.ok).toBe(true);
             if (result.card.image.ok) {
                 expect(result.card.image.provider).toBe('qwen');
@@ -183,14 +188,31 @@ describe('buildCardWithMemory vendor gate', () => {
                 reading: 'こんにちは（konnichiwa）'
             })
         );
-        expect(history.updateCardAudio).not.toHaveBeenCalled();
+        expect(history.updateCardAudio).toHaveBeenCalledWith(
+            expect.anything(),
+            'card-1',
+            'user-1',
+            'https://dashscope-result-bj.oss-cn-beijing.aliyuncs.com/card.wav?Expires=1&Signature=test'
+        );
         expect(history.updateCardIllustration).toHaveBeenCalledWith(
             expect.anything(),
             'card-1',
             'user-1',
             'https://dashscope-result-sz.oss-cn-shenzhen.aliyuncs.com/card.png?Expires=1'
         );
-        expect(fetchImpl).toHaveBeenCalledTimes(1);
+        expect(fetchImpl).toHaveBeenCalledTimes(2);
+
+        const [ttsUrl, ttsInit] = fetchImpl.mock.calls[0] as unknown as [string, RequestInit];
+        expect(ttsUrl).toBe('https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation');
+        expect(new Headers(ttsInit.headers).get('Authorization')).toBe('Bearer dashscope-key');
+        expect(JSON.parse(String(ttsInit.body))).toEqual({
+            model: 'qwen3-tts-flash',
+            input: {
+                text: 'こんにちは。',
+                voice: 'Cherry',
+                language_type: 'Japanese'
+            }
+        });
 
         const chatFetch = hoisted.constructed[0]?.fetch;
         expect(chatFetch).toBeTypeOf('function');
@@ -199,7 +221,7 @@ describe('buildCardWithMemory vendor gate', () => {
         await expect(chatFetch?.('https://dashscope.aliyuncs.com/api/v1/services/aigc/text2image/image-synthesis'))
             .rejects.toThrow('Blocked outbound request');
 
-        const [imageUrl, imageInit] = fetchImpl.mock.calls[0] as unknown as [string, RequestInit];
+        const [imageUrl, imageInit] = fetchImpl.mock.calls[1] as unknown as [string, RequestInit];
         expect(imageUrl).toBe('https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation');
         expect(new Headers(imageInit.headers).get('Authorization')).toBe('Bearer dashscope-key');
         const imageBody = JSON.parse(String(imageInit.body));
@@ -207,7 +229,7 @@ describe('buildCardWithMemory vendor gate', () => {
         expect(imageBody.input.messages[0].content[0].text).toContain('こんにちは。');
     });
 
-    it('keeps the sentence when image generation fails and does not call tts', async () => {
+    it('keeps the sentence and audio when image generation fails', async () => {
         const fetchImpl = vi.fn(async (_input: string | URL | Request, init?: RequestInit) => {
             const body = JSON.parse(String(init?.body ?? '{}')) as {model?: string;};
             if (body.model === 'qwen-image-3.0') {
@@ -241,9 +263,14 @@ describe('buildCardWithMemory vendor gate', () => {
         expect(result.ok).toBe(true);
         if (result.ok) {
             expect(result.card.sentence).toBe('こんにちは。');
+            expect(result.card.gloss).toBe('你好。');
             expect(result.card.imageDataUrl).toBe('');
-            expect(result.card.audio.ok).toBe(false);
-            expect(result.card.audio.code).toBe('TTS_NOT_CONFIGURED');
+            expect(result.card.audio.ok).toBe(true);
+            if (result.card.audio.ok) {
+                expect(result.card.audio.audioUrl).toBe(
+                    'https://dashscope-result-bj.oss-cn-beijing.aliyuncs.com/card.wav?Expires=1&Signature=test'
+                );
+            }
             expect(result.card.image.ok).toBe(false);
             if (!result.card.image.ok) {
                 expect(result.card.image.code).toBe('IMAGE_FAILED');
@@ -251,9 +278,63 @@ describe('buildCardWithMemory vendor gate', () => {
                 expect(result.card.image.message).not.toMatch(/密钥|外部服务/);
             }
         }
-        expect(history.updateCardAudio).not.toHaveBeenCalled();
+        expect(history.updateCardAudio).toHaveBeenCalledOnce();
         expect(history.updateCardIllustration).not.toHaveBeenCalled();
-        expect(fetchImpl).toHaveBeenCalledTimes(1);
+        expect(fetchImpl).toHaveBeenCalledTimes(2);
+    });
+
+    it('keeps the sentence, gloss and image when speech generation fails', async () => {
+        const fetchImpl = vi.fn(async (_input: string | URL | Request, init?: RequestInit) => {
+            const body = JSON.parse(String(init?.body ?? '{}')) as {model?: string;};
+            if (body.model === 'qwen3-tts-flash') {
+                return new Response('no', {status: 500});
+            }
+            return new Response(
+                JSON.stringify({
+                    output: {
+                        choices: [{
+                            message: {
+                                content: [{
+                                    image: 'https://dashscope-result-sz.oss-cn-shenzhen.aliyuncs.com/card.png?Expires=1'
+                                }]
+                            }
+                        }]
+                    }
+                }),
+                {status: 200, headers: {'Content-Type': 'application/json'}}
+            );
+        });
+        const result = await buildCardWithMemory({
+            db: {} as never,
+            userId: 'user-1',
+            env: {
+                CHAT_API_KEY: 'chat-key',
+                CHAT_API_ENDPOINT: 'https://api.deepseek.com/v1',
+                DASHSCOPE_API_KEY: 'dashscope-key'
+            } as Env,
+            fetchImpl
+        });
+
+        expect(result.ok).toBe(true);
+        if (result.ok) {
+            expect(result.card.sentence).toBe('こんにちは。');
+            expect(result.card.gloss).toBe('你好。');
+            expect(result.card.imageDataUrl).toBe(
+                'https://dashscope-result-sz.oss-cn-shenzhen.aliyuncs.com/card.png?Expires=1'
+            );
+            expect(result.card.audioDataUrl).toBe('');
+            expect(result.card.audio.ok).toBe(false);
+            if (!result.card.audio.ok) {
+                expect(result.card.audio.code).toBe('TTS_FAILED');
+                expect(result.card.audio.message).toBe('语音暂时无法生成。');
+                expect(result.card.audio.message).not.toMatch(/密钥|外部服务|未配置/);
+            }
+            expect(result.card.image.ok).toBe(true);
+        }
+        expect(history.insertCardHistory).toHaveBeenCalledOnce();
+        expect(history.updateCardAudio).not.toHaveBeenCalled();
+        expect(history.updateCardIllustration).toHaveBeenCalledOnce();
+        expect(fetchImpl).toHaveBeenCalledTimes(2);
     });
 
     it('stores model kana and gloss when kuromoji returns an empty reading', async () => {

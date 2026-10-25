@@ -1,6 +1,6 @@
 # 日语卡片
 
-用邮箱和用户名注册，登录后查看自己的学习历史。配图没有密钥时保持关闭。语音先不外呼。这些都不会挡住注册、登录和历史。
+用邮箱和用户名注册，登录后查看自己的学习历史。配图和语音没有密钥时保持关闭。语音这一次失败也不会挡住卡片。这些都不会挡住注册、登录和历史。
 
 ## 现在能做什么
 
@@ -22,7 +22,8 @@
 - `QWEN_IMAGE_TIER=turbo`（以及 `preview` / `draft`）才改用 `qwen-image-2.1-turbo`。评测通过之前，它不是默认。
 - Seedream（`5.0-flash`）和 OpenAI GPT Image 必须把 `IMAGE_PROVIDER` 写成 `seedream` 或 `openai` 才会选中。OpenAI
   只认官方 API key，不要把 Codex 或 ChatGPT 的 OAuth 放进 Worker。
-- 语音先关闭。即使 Worker 里已经有百炼密钥，生成卡片也不会请求 `qwen3-tts-flash`。页面仍显示「语音暂未开通」。不会请求
+- 语音使用同一个百炼密钥。有 `DASHSCOPE_API_KEY` 或 `BAILIAN_API_KEY` 时，生成卡片会请求
+  `qwen3-tts-flash`（`language_type` 为 `Japanese`），并把可播放的音频地址写进这张卡片。没有密钥时仍是「语音暂未开通」，不会发请求。语音这一次失败时卡片继续可用，页面显示「语音暂时无法生成。」。不会请求
   MiniMax。火山生图也不在请求路径上。
 - 通义生图发请求前先走 `QwenImageLimiter`，大约每分钟 20 次。预览模型也走这个上限。
 
@@ -72,8 +73,8 @@ pnpm --filter @jpcards/backend eval:image
 4. `pnpm --filter @jpcards/backend exec wrangler secret put BETTER_AUTH_SECRET`
 5. 文本生卡需要时再放 `CHAT_API_KEY` 和 `CHAT_API_ENDPOINT`。不要放火山或 MiniMax 的假密钥。
 6. 百炼密钥只通过 `wrangler secret put DASHSCOPE_API_KEY` 或 `wrangler secret put BAILIAN_API_KEY`
-   写入。这个密钥只打开配图
-   `qwen-image-3.0`，不会打开语音。没有密钥时配图不会发请求。不要把密钥贴进仓库、提交或文档。Seedream、OpenAI
+   写入。同一个密钥会打开配图 `qwen-image-3.0` 和日语语音
+   `qwen3-tts-flash`。没有密钥时配图和语音都不会发请求。不要把密钥贴进仓库、提交或文档。Seedream、OpenAI
    可以先空着。
 7. `pnpm deploy`
 8. 自定义域名和 HTTPS 在 Cloudflare 控制台给这个 Worker 加域名。Workers 自带的 `*.workers.dev` 已经是

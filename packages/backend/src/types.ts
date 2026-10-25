@@ -33,7 +33,7 @@ export interface Env {
      * turbo / preview / draft：只用于预览 qwen-image-2.1-turbo，评测通过前不能当默认。
      */
     QWEN_IMAGE_TIER?: string;
-    /** 百炼 / DashScope。只给配图读。语音不使用这个密钥外呼。不要写进仓库。 */
+    /** 百炼 / DashScope。配图和日语语音共用。只放 Worker secret，不要写进仓库。 */
     DASHSCOPE_API_KEY?: string;
     /** 与 DASHSCOPE_API_KEY 相同用途的别名，同样只放 Worker secret。 */
     BAILIAN_API_KEY?: string;

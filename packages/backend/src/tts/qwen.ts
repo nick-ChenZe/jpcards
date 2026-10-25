@@ -1,5 +1,6 @@
 import {dashScopeApiKey} from '../image/qwen.js';
 import type {Env} from '../types.js';
+import {AUDIO_GENERATION_FAILED} from '../userCopy.js';
 import {synthesizePlaceholder} from './placeholder.js';
 import type {SpeechResult} from './types.js';
 
@@ -16,7 +17,7 @@ function failed (): SpeechResult {
         code: 'TTS_FAILED',
         provider: 'qwen',
         model: QWEN_TTS_MODEL,
-        message: '语音暂时无法生成。',
+        message: AUDIO_GENERATION_FAILED,
         audioDataUrl: '',
         audioUrl: null
     };
@@ -48,22 +49,15 @@ export function playableAudioUrl (raw: string): string | null {
 }
 
 /**
- * 语音先强制关闭。百炼密钥只留给生图，不能再因为同一个密钥请求 qwen3-tts-flash。
- */
-export const TTS_OUTBOUND_ENABLED = false;
-
-/**
  * 日语练习句语音。密钥只读传入的 Worker 绑定。
- * 当前不外呼；没有密钥时同样不发请求。
+ * 有 DASHSCOPE_API_KEY 或 BAILIAN_API_KEY 时请求 qwen3-tts-flash。
+ * 没有密钥，或这一次合成失败，都不抛错，句子、释义和配图仍可用。
  */
 export async function synthesizeSpeech (
     env: Env,
     text: string,
     fetchImpl: typeof fetch = fetch
 ): Promise<SpeechResult> {
-    if (!TTS_OUTBOUND_ENABLED) {
-        return synthesizePlaceholder();
-    }
     const apiKey = dashScopeApiKey(env);
     if (!apiKey) {
         return synthesizePlaceholder();
