@@ -1,6 +1,8 @@
+import {formatShanghaiTimestamp} from '@/lib/datetime';
 import {Loader2} from 'lucide-react';
 import {useCallback, useEffect, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
+import {CardReading} from '../CardReading';
 import {Button} from '../ui/button';
 import {Card, CardContent} from '../ui/card';
 
@@ -10,10 +12,12 @@ interface CardHistoryItem {
     sentence: string;
     sentenceHtml: string;
     gloss: string;
+    reading?: string;
     audioUrl: string | null;
     illustrationUrl: string | null;
     level: string;
     createdAt: string;
+    createdAtText?: string;
 }
 
 interface HistoryResponse {
@@ -43,7 +47,7 @@ export const HistoryPage = () => {
                 credentials: 'include'
             });
             if (!response.ok) {
-                throw new Error(`Request failed with status ${response.status}`);
+                throw new Error('暂时无法读取学习历史');
             }
             const data = await response.json() as HistoryResponse;
             setItems(data.items);
@@ -51,7 +55,8 @@ export const HistoryPage = () => {
             setTotal(data.pagination.total);
             setPage(p);
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Unknown error');
+            const message = err instanceof Error ? err.message : '';
+            setError(/[\u4e00-\u9fff]/.test(message) ? message : '请稍后再试');
         } finally {
             setLoading(false);
         }
@@ -61,15 +66,8 @@ export const HistoryPage = () => {
         fetchHistory(1);
     }, [fetchHistory]);
 
-    const formatDate = (dateStr: string) => {
-        const date = new Date(dateStr);
-        return date.toLocaleDateString('zh-CN', {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
+    const formatDate = (item: CardHistoryItem) => {
+        return item.createdAtText || formatShanghaiTimestamp(item.createdAt);
     };
 
     return (
@@ -108,7 +106,7 @@ export const HistoryPage = () => {
                         <div className="py-20 text-center">
                             <p className="text-muted-foreground">还没有学习记录</p>
                             <p className="mt-1 text-sm text-muted-foreground">
-                                在探索页生成一张卡片后，句子和释义会出现在这里。没有配图和语音也可以查看。
+                                在探索页生成一张卡片后，句子、读音和中文意思会出现在这里。
                             </p>
                         </div>
                     )
@@ -136,13 +134,18 @@ export const HistoryPage = () => {
                                                     className="font-japanese text-base font-medium leading-relaxed [&_ruby]:font-normal"
                                                     dangerouslySetInnerHTML={{__html: item.sentenceHtml}}
                                                 />
+                                                <div className="mt-1">
+                                                    <CardReading reading={item.reading} />
+                                                </div>
                                                 {item.gloss
                                                     ? <p className="mt-1 text-sm text-muted-foreground">{item.gloss}</p>
                                                     : null}
-                                                {/* 元信息 */}
                                                 <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
                                                     <span>{item.level}</span>
-                                                    <span>{formatDate(item.createdAt)}</span>
+                                                    <span>{formatDate(item)}</span>
+                                                    {item.audioUrl
+                                                        ? null
+                                                        : <span>语音暂未开通</span>}
                                                 </div>
                                                 {/* 音频 */}
                                                 {item.audioUrl && (

@@ -1,4 +1,5 @@
 import type {Env} from '../types.js';
+import {IMAGE_UNAVAILABLE} from '../userCopy.js';
 import type {ImageGenerationResult, ImageProvider, ImageRequest} from './types.js';
 
 export const noopImageProvider: ImageProvider = {
@@ -13,7 +14,7 @@ export const noopImageProvider: ImageProvider = {
             code: 'IMAGE_NOT_CONFIGURED',
             provider: 'noop',
             model: null,
-            message: '配图未配置'
+            message: IMAGE_UNAVAILABLE
         };
     }
 };

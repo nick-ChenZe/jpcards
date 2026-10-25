@@ -1,6 +1,6 @@
 import path from 'path';
 import {fileURLToPath} from 'url';
-import {toRomaji} from 'wanakana';
+import {toHiragana, toRomaji} from 'wanakana';
 import {installXHRPolyfill} from './xhrPolyfill.js';
 
 /** 汉字（CJK 统一表意文字）范围 */
@@ -102,6 +102,53 @@ export async function toSentenceWithKanjiRomaji (
         }
     }
     return parts.join('');
+}
+
+function particleRomaji (surface: string): string | null {
+    if (surface === 'は') {
+        return 'wa';
+    }
+    if (surface === 'を') {
+        return 'o';
+    }
+    if (surface === 'へ') {
+        return 'e';
+    }
+    return null;
+}
+
+/**
+ * 整句读音。分词失败时返回空字符串，调用方显示「读音暂未开通」，不请求语音服务。
+ */
+export async function toDisplayReading (sentence: string, assetsBaseUrl?: string): Promise<string> {
+    const tokenizer = await getTokenizer(assetsBaseUrl);
+    if (!tokenizer) {
+        return '';
+    }
+    const tokens = tokenizer.tokenize(sentence);
+    const kanaParts: string[] = [];
+    const romajiParts: string[] = [];
+    for (const token of tokens) {
+        const surface = token.surface_form;
+        const reading = token.reading ?? token.pronunciation ?? '';
+        kanaParts.push(reading ? toHiragana(reading) : surface);
+        const romaji = particleRomaji(surface) ?? toRomaji(reading || surface);
+        if (romaji) {
+            romajiParts.push(romaji);
+        }
+    }
+    const kana = kanaParts.join('');
+    const romaji = romajiParts.join(' ').replace(/\s+([.。、！？!?，,])/g, '$1').trim();
+    if (!kana && !romaji) {
+        return '';
+    }
+    if (!romaji || kana === romaji) {
+        return kana;
+    }
+    if (kana === sentence) {
+        return romaji;
+    }
+    return `${kana}（${romaji}）`;
 }
 
 function escapeHtml (text: string): string {

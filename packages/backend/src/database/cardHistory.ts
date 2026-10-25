@@ -9,6 +9,7 @@ export interface CardHistoryRecord {
     sentence: string;
     sentenceHtml: string;
     gloss: string;
+    reading: string;
     audioUrl: string | null;
     illustrationUrl: string | null;
     level: string;
@@ -20,6 +21,7 @@ export interface InsertCardHistoryInput {
     sentence: string;
     sentenceHtml: string;
     gloss?: string;
+    reading?: string;
     audioUrl?: string | null;
     illustrationUrl?: string | null;
     level?: string;
@@ -33,6 +35,7 @@ export async function insertCardHistory (db: AppDatabase, input: InsertCardHisto
         sentence: input.sentence,
         sentenceHtml: input.sentenceHtml,
         gloss: input.gloss ?? '',
+        reading: input.reading ?? '',
         audioUrl: input.audioUrl ?? null,
         illustrationUrl: input.illustrationUrl ?? null,
         level: input.level ?? 'N5'
@@ -81,6 +84,7 @@ export async function getCardHistory (
         sentence: row.sentence,
         sentenceHtml: row.sentenceHtml,
         gloss: row.gloss ?? '',
+        reading: row.reading ?? '',
         audioUrl: row.audioUrl,
         illustrationUrl: row.illustrationUrl,
         level: row.level ?? 'N5',
@@ -115,6 +119,7 @@ export async function getCardHistoryById (
         sentence: row.sentence,
         sentenceHtml: row.sentenceHtml,
         gloss: row.gloss ?? '',
+        reading: row.reading ?? '',
         audioUrl: row.audioUrl,
         illustrationUrl: row.illustrationUrl,
         level: row.level ?? 'N5',

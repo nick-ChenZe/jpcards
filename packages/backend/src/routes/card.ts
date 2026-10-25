@@ -7,11 +7,11 @@ import {createImageProvider, type ImageGenerationResult} from '../image/provider
 import {synthesizeSpeech} from '../tts/qwen.js';
 import type {SpeechResult} from '../tts/types.js';
 import type {Env} from '../types.js';
-import {toSentenceWithKanjiRomaji} from '../utils/romaji.js';
+import {IMAGE_UNAVAILABLE, LOCAL_PRACTICE_NOTICE} from '../userCopy.js';
+import {toDisplayReading, toSentenceWithKanjiRomaji} from '../utils/romaji.js';
 import {pickPracticeCard} from './practiceDeck.js';
 
 const DEFAULT_LEVEL = 'N5';
-const LOCAL_TEXT_MESSAGE = '文本模型尚未配置。这张是本地练习卡片，没有请求外部服务。';
 
 export interface TextNotice {
     configured: boolean;
@@ -23,6 +23,7 @@ export interface CardDemoResult {
     id?: string;
     sentence: string;
     sentenceHtml: string;
+    reading: string;
     gloss: string;
     imageDataUrl: string;
     audioDataUrl: string;
@@ -99,7 +100,7 @@ async function attachMedia (env: Env, sentence: string, fetchImpl?: typeof fetch
                 code: 'IMAGE_DISABLED',
                 provider: 'noop',
                 model: null,
-                message: '配图未配置'
+                message: IMAGE_UNAVAILABLE
             },
             audio
         };
@@ -116,10 +117,12 @@ export async function buildCardDemo (
     }
     const sentence = await generateJapaneseSentence(gate.text, [], fetchImpl);
     const sentenceHtml = await toSentenceWithKanjiRomaji(sentence);
+    const reading = await toDisplayReading(sentence);
     const media = await attachMedia(env, sentence, fetchImpl);
     return {
         sentence,
         sentenceHtml,
+        reading,
         gloss: '',
         imageDataUrl: media.image.ok ? media.image.imageDataUrl : '',
         audioDataUrl: media.audio.audioDataUrl,
@@ -140,24 +143,31 @@ export async function buildCardWithMemory (input: {
     const seenSentences = await getRecentSentences(input.db, input.userId);
     let sentence: string;
     let gloss: string;
+    let reading: string;
     let text: TextNotice;
     if (gate.enabled) {
         sentence = await generateJapaneseSentence(gate.text, seenSentences, input.fetchImpl);
         gloss = '';
+        reading = '';
         text = {configured: true, source: 'model', message: ''};
     } else {
         const practice = pickPracticeCard(seenSentences);
         sentence = practice.sentence;
         gloss = practice.gloss;
-        text = {configured: false, source: 'local', message: LOCAL_TEXT_MESSAGE};
+        reading = practice.reading;
+        text = {configured: false, source: 'local', message: LOCAL_PRACTICE_NOTICE};
     }
     await insertSentence(input.db, input.userId, sentence, DEFAULT_LEVEL);
     const sentenceHtml = await toSentenceWithKanjiRomaji(sentence, input.assetsBaseUrl);
+    if (!reading) {
+        reading = await toDisplayReading(sentence, input.assetsBaseUrl);
+    }
     const cardId = await insertCardHistory(input.db, {
         userId: input.userId,
         sentence,
         sentenceHtml,
         gloss,
+        reading,
         level: DEFAULT_LEVEL
     });
     const media = await attachMedia(input.env, sentence, input.fetchImpl);
@@ -175,6 +185,7 @@ export async function buildCardWithMemory (input: {
             id: cardId,
             sentence,
             sentenceHtml,
+            reading,
             gloss,
             text,
             imageDataUrl: media.image.ok ? media.image.imageDataUrl : '',

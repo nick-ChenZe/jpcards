@@ -1,5 +1,12 @@
-import {getCardHistory, getCardHistoryById, getCardHistoryCount} from '../database/cardHistory.js';
+import {
+    type CardHistoryRecord,
+    getCardHistory,
+    getCardHistoryById,
+    getCardHistoryCount
+} from '../database/cardHistory.js';
 import type {AppDatabase} from '../database/db.js';
+import {formatShanghaiTimestamp} from '../utils/shanghaiTime.js';
+import {readingForSentence} from './practiceDeck.js';
 
 export interface HistoryQuery {
     page?: string;
@@ -16,6 +23,28 @@ function normalizePagination (query: HistoryQuery): {page: number; pageSize: num
     };
 }
 
+function readingFromRuby (sentenceHtml: string): string {
+    return [...sentenceHtml.matchAll(/<rt>([^<]*)<\/rt>/gi)]
+        .map((match) =>
+            match[1]
+                .replace(/&amp;/g, '&')
+                .replace(/&lt;/g, '<')
+                .replace(/&gt;/g, '>')
+                .replace(/&quot;/g, '"')
+                .replace(/&#039;/g, '\'')
+        )
+        .filter(Boolean)
+        .join(' ');
+}
+
+export function presentHistoryCard (card: CardHistoryRecord) {
+    return {
+        ...card,
+        reading: card.reading || readingForSentence(card.sentence) || readingFromRuby(card.sentenceHtml),
+        createdAtText: formatShanghaiTimestamp(card.createdAt)
+    };
+}
+
 export async function getHistoryResponse (db: AppDatabase, userId: string, query: HistoryQuery) {
     const {page, pageSize, offset} = normalizePagination(query);
     const [items, total] = await Promise.all([
@@ -24,7 +53,7 @@ export async function getHistoryResponse (db: AppDatabase, userId: string, query
     ]);
 
     return {
-        items,
+        items: items.map(presentHistoryCard),
         pagination: {
             page,
             pageSize,
@@ -35,5 +64,6 @@ export async function getHistoryResponse (db: AppDatabase, userId: string, query
 }
 
 export async function getHistoryCardResponse (db: AppDatabase, userId: string, cardId: string) {
-    return getCardHistoryById(db, userId, cardId);
+    const card = await getCardHistoryById(db, userId, cardId);
+    return card ? presentHistoryCard(card) : null;
 }

@@ -29,7 +29,8 @@ vi.mock('openai', () => ({default: hoisted.OpenAI}));
 vi.mock('../../database/sentenceMemory.js', () => memory);
 vi.mock('../../database/cardHistory.js', () => history);
 vi.mock('../../utils/romaji.js', () => ({
-    toSentenceWithKanjiRomaji: vi.fn(async (sentence: string) => sentence)
+    toSentenceWithKanjiRomaji: vi.fn(async (sentence: string) => sentence),
+    toDisplayReading: vi.fn(async () => 'konnichiwa')
 }));
 
 import {buildCardWithMemory} from '../card.js';
@@ -61,8 +62,15 @@ describe('buildCardWithMemory vendor gate', () => {
         if (result.ok) {
             expect(result.card.sentence).toBe('こんにちは。');
             expect(result.card.gloss).toBe('你好。');
+            expect(result.card.reading).toBe('konnichiwa');
             expect(result.card.text.source).toBe('local');
             expect(result.card.text.configured).toBe(false);
+            expect(result.card.text.message).not.toMatch(/密钥|外部服务/);
+            expect(result.card.image.ok).toBe(false);
+            if (!result.card.image.ok) {
+                expect(result.card.image.message).toBe('配图暂未开通');
+            }
+            expect(result.card.audio.message).toBe('语音暂未开通');
             expect(result.card.imageDataUrl).toBe('');
             expect(result.card.audioDataUrl).toBe('');
             expect(result.card.image.ok).toBe(false);
@@ -82,7 +90,8 @@ describe('buildCardWithMemory vendor gate', () => {
             expect.objectContaining({
                 userId: 'user-1',
                 sentence: 'こんにちは。',
-                gloss: '你好。'
+                gloss: '你好。',
+                reading: 'konnichiwa'
             })
         );
     });

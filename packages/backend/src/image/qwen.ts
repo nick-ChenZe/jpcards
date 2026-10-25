@@ -1,4 +1,5 @@
 import type {Env} from '../types.js';
+import {IMAGE_UNAVAILABLE} from '../userCopy.js';
 import {QWEN_PRO_MIN_INTERVAL_MS, QWEN_PRO_RPM} from './qwenQueue.js';
 import type {ImageGenerationResult, ImageProvider, ImageRequest} from './types.js';
 
@@ -56,19 +57,16 @@ export const qwenImageProvider: ImageProvider = {
                 code: 'IMAGE_NOT_CONFIGURED',
                 provider: 'qwen',
                 model: plan.model,
-                message: '配图未配置'
+                message: IMAGE_UNAVAILABLE
             };
         }
 
-        const preview = plan.tier === 'turbo' ? 'qwen-image-2.1-turbo 只用于预览，评测通过前不会作为默认。' : '';
         return {
             ok: false,
             code: 'IMAGE_DISABLED',
             provider: 'qwen',
             model: plan.model,
-            message: preview
-                ? `${preview}本次不会请求生图。`
-                : '通义万相尚未接入，本次不会请求生图。'
+            message: IMAGE_UNAVAILABLE
         };
     }
 };
