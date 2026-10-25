@@ -1,3 +1,4 @@
+import {useAdminAccess} from '@/hooks/useAdminAccess';
 import {formatShanghaiTimestamp} from '@/lib/datetime';
 import {Loader2} from 'lucide-react';
 import {useCallback, useEffect, useState} from 'react';
@@ -38,6 +39,7 @@ export const HistoryPage = () => {
     const [total, setTotal] = useState(0);
     const [error, setError] = useState('');
     const navigate = useNavigate();
+    const admin = useAdminAccess();
 
     const fetchHistory = useCallback(async (p: number) => {
         setLoading(true);
@@ -73,13 +75,24 @@ export const HistoryPage = () => {
     return (
         <div className="px-4 py-3 pb-20">
             <div className="mx-auto max-w-3xl">
-                <div className="mb-4 flex items-center justify-between">
+                <div className="mb-4 flex items-center justify-between gap-3">
                     <h1 className="text-xl font-bold">学习历史</h1>
-                    {total > 0 && (
-                        <span className="text-sm text-muted-foreground">
-                            共 {total} 张卡片
-                        </span>
-                    )}
+                    <div className="flex items-center gap-3">
+                        {admin && (
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => navigate('/admin/cards')}
+                            >
+                                全部卡片
+                            </Button>
+                        )}
+                        {total > 0 && (
+                            <span className="text-sm text-muted-foreground">
+                                共 {total} 张卡片
+                            </span>
+                        )}
+                    </div>
                 </div>
 
                 {loading && items.length === 0

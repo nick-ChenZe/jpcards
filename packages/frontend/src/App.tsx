@@ -1,6 +1,7 @@
 import {BrowserRouter, Navigate, Route, Routes} from 'react-router-dom';
 import {AuthLayout} from './components/AuthLayout';
 import {LoginForm} from './components/LoginForm';
+import {AdminCardsPage} from './components/pages/AdminCardsPage';
 import {ExplorePage} from './components/pages/ExplorePage';
 import {FriendPage} from './components/pages/FriendPage';
 import {HistoryDetailPage} from './components/pages/HistoryDetailPage';
@@ -19,6 +20,7 @@ function App () {
                     <Route element={<AuthLayout />}>
                         <Route path="/explore" element={<ExplorePage />} />
                         <Route path="/history" element={<HistoryPage />} />
+                        <Route path="/admin/cards" element={<AdminCardsPage />} />
                         <Route path="/history/:id" element={<HistoryDetailPage />} />
                         <Route path="/friend" element={<FriendPage />} />
                         <Route path="/setting" element={<SettingPage />} />

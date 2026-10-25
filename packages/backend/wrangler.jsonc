@@ -18,4 +18,6 @@
             "migrations_dir": "migrations"
         }
     ]
+    // ADMIN_EMAILS 是 Worker secret，不要写进这个文件，也不要写进 vars。
+    // 不设置时全量卡片关闭。生产先不要写入，等名单和审计拍板后再 wrangler secret put。
 }

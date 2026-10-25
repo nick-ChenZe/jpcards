@@ -1,11 +1,15 @@
 # 日语卡片
 
-用邮箱和用户名注册，登录后查看自己的学习历史。配图和语音没有密钥时保持关闭。语音这一次失败也不会挡住卡片。这些都不会挡住注册、登录和历史。
+用邮箱和用户名注册，登录后查看自己的学习历史。配图和语音没有密钥时保持关闭。语音这一次失败也不会挡住卡片。这些都不会挡住注册、登录和历史。全量卡片的页面已经接上，但角色闸默认关闭。
 
 ## 现在能做什么
 
 - 注册、登录、退出。
 - 历史只返回当前登录用户的卡片。点开一条可以查看这一张。看历史不扣生成次数。
+- 全量卡片有角色闸，默认关闭。`GET /api/admin/cards` 只在登录邮箱命中 Worker secret `ADMIN_EMAILS` 时返回数据；没命中就
+  403，而且在查库之前返回。这个 secret 不写进仓库。没设置时没有任何管理员。页面在
+  `/admin/cards`，历史页和设置页只给闸内账号显示入口。普通用户的 `/api/history`
+  仍然只返回自己的卡片。名单和审计方式等张聪拍板前，不要在生产设置这个 secret，也不要把这条能力合进 main 或部署。
 - 每个登录用户每天可以生成 20 张卡片，按北京时间零点重置。只有卡片生成并保存成功才扣 1
   次，配图和语音算在同一次里，不另扣。生成失败不扣当天次数。两次生成至少间隔 5
   秒。用完后探索页按钮不可点，并显示「今日额度用完了」。`GET /api/me/quota` 返回 `{limit, used, remaining, resetsAt}`。
@@ -37,6 +41,15 @@ cp packages/backend/.dev.vars.example packages/backend/.dev.vars
 ```
 
 把 `.dev.vars` 里的 `BETTER_AUTH_SECRET` 换成一段足够长的随机字符串，不要用 `better-auth-secret-123456789`。
+
+只在本机验证全量卡片时，再加一行自己的登录邮箱，保存后重新运行 `pnpm dev`。不要把这一行复制到生产：
+
+```bash
+ADMIN_EMAILS=you@example.com
+```
+
+`you@example.com` 只是格式示例，换成注册时用的邮箱。多个邮箱用英文逗号分隔。没写这一行时，`/admin/cards` 和
+`GET /api/admin/cards` 返回 403。别的账号登录后也看不到「全部卡片」入口；直接打开页面会提示没有权限。
 
 ```bash
 pnpm dev
@@ -71,13 +84,16 @@ pnpm --filter @jpcards/backend eval:image
 3. `pnpm --filter @jpcards/backend db:migrate:remote`。每日额度表在
    `packages/backend/migrations/0004_daily_card_quota.sql`，这条命令会把它应用到远程 D1。
 4. `pnpm --filter @jpcards/backend exec wrangler secret put BETTER_AUTH_SECRET`
-5. 文本生卡需要时再放 `CHAT_API_KEY` 和 `CHAT_API_ENDPOINT`。不要放火山或 MiniMax 的假密钥。
-6. 百炼密钥只通过 `wrangler secret put DASHSCOPE_API_KEY` 或 `wrangler secret put BAILIAN_API_KEY`
+5. 先不要执行 `wrangler secret put ADMIN_EMAILS`。全量卡片默认关闭。张聪拍板名单和审计方案之前，生产 Worker 不要写入这个
+   secret。未设置时 `GET /api/admin/cards` 对所有人返回 403。拍板之后再用 secret 写入，不要写进 `wrangler.jsonc`
+   或仓库。
+6. 文本生卡需要时再放 `CHAT_API_KEY` 和 `CHAT_API_ENDPOINT`。不要放火山或 MiniMax 的假密钥。
+7. 百炼密钥只通过 `wrangler secret put DASHSCOPE_API_KEY` 或 `wrangler secret put BAILIAN_API_KEY`
    写入。同一个密钥会打开配图 `qwen-image-3.0` 和日语语音
    `qwen3-tts-flash`。没有密钥时配图和语音都不会发请求。不要把密钥贴进仓库、提交或文档。Seedream、OpenAI
    可以先空着。
-7. `pnpm deploy`
-8. 自定义域名和 HTTPS 在 Cloudflare 控制台给这个 Worker 加域名。Workers 自带的 `*.workers.dev` 已经是
+8. `pnpm deploy`
+9. 自定义域名和 HTTPS 在 Cloudflare 控制台给这个 Worker 加域名。Workers 自带的 `*.workers.dev` 已经是
    HTTPS；自己的域名要在控制台完成委派。
 
 `BETTER_AUTH_URL` 可以不设。不设时，登录用当前请求的 origin。如果站点有固定域名，再用 secret 或 var 设成那个 `https://`

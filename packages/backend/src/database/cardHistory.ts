@@ -1,7 +1,7 @@
 import {randomUUID} from 'crypto';
 import {and, count, desc, eq} from 'drizzle-orm';
 import type {AppDatabase} from './db.js';
-import {cardHistory} from './schema.js';
+import {cardHistory, user} from './schema.js';
 
 export interface CardHistoryRecord {
     id: string;
@@ -14,6 +14,12 @@ export interface CardHistoryRecord {
     illustrationUrl: string | null;
     level: string;
     createdAt: string;
+}
+
+export interface AdminCardRecord extends CardHistoryRecord {
+    userEmail: string | null;
+    userName: string | null;
+    username: string | null;
 }
 
 export interface InsertCardHistoryInput {
@@ -101,6 +107,55 @@ export async function getCardHistory (
         level: row.level ?? 'N5',
         createdAt: row.createdAt ?? ''
     }));
+}
+
+export async function listAllCards (
+    db: AppDatabase,
+    limit: number = 20,
+    offset: number = 0
+): Promise<AdminCardRecord[]> {
+    const rows = await db.select({
+        id: cardHistory.id,
+        userId: cardHistory.userId,
+        sentence: cardHistory.sentence,
+        sentenceHtml: cardHistory.sentenceHtml,
+        gloss: cardHistory.gloss,
+        reading: cardHistory.reading,
+        audioUrl: cardHistory.audioUrl,
+        illustrationUrl: cardHistory.illustrationUrl,
+        level: cardHistory.level,
+        createdAt: cardHistory.createdAt,
+        userEmail: user.email,
+        userName: user.name,
+        username: user.username
+    })
+        .from(cardHistory)
+        .leftJoin(user, eq(cardHistory.userId, user.id))
+        .orderBy(desc(cardHistory.createdAt), desc(cardHistory.id))
+        .limit(limit)
+        .offset(offset);
+
+    return rows.map((row) => ({
+        id: row.id,
+        userId: row.userId,
+        sentence: row.sentence,
+        sentenceHtml: row.sentenceHtml,
+        gloss: row.gloss ?? '',
+        reading: row.reading ?? '',
+        audioUrl: row.audioUrl,
+        illustrationUrl: row.illustrationUrl,
+        level: row.level ?? 'N5',
+        createdAt: row.createdAt ?? '',
+        userEmail: row.userEmail ?? null,
+        userName: row.userName ?? null,
+        username: row.username ?? null
+    }));
+}
+
+export async function countAllCards (db: AppDatabase): Promise<number> {
+    const result = await db.select({total: count()})
+        .from(cardHistory);
+    return result[0]?.total ?? 0;
 }
 
 export async function getCardHistoryCount (db: AppDatabase, userId: string): Promise<number> {

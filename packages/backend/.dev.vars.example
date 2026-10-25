@@ -5,6 +5,12 @@
 BETTER_AUTH_SECRET=replace-with-a-long-random-string
 BETTER_AUTH_URL=http://localhost:8787
 
+# 管理员邮箱，英文逗号分隔。只有这些登录用户能打开 /admin/cards。
+# 下面是格式示例，不要把真实邮箱提交进仓库。
+# 留空或不写这一行时角色闸关闭，没有任何管理员。
+# 生产先不要设置。名单和审计等拍板后，再用 wrangler secret put ADMIN_EMAILS。
+# ADMIN_EMAILS=you@example.com,editor@example.com
+
 # 文本模型。留空则生卡关闭，不会请求 DeepSeek。
 # CHAT_API_KEY=
 # CHAT_API_ENDPOINT=

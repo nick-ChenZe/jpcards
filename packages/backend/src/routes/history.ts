@@ -13,7 +13,7 @@ export interface HistoryQuery {
     pageSize?: string;
 }
 
-function normalizePagination (query: HistoryQuery): {page: number; pageSize: number; offset: number;} {
+export function normalizePagination (query: HistoryQuery): {page: number; pageSize: number; offset: number;} {
     const page = Math.max(1, Number(query.page) || 1);
     const pageSize = Math.min(50, Math.max(1, Number(query.pageSize) || 20));
     return {
