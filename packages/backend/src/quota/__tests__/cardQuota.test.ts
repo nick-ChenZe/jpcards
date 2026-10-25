@@ -7,6 +7,7 @@ import {
     DAILY_CARD_LIMIT,
     type QuotaExecutor,
     readCardQuotaWith,
+    refundCardQuotaWith,
     reserveCardQuotaWith
 } from '../cardQuota.js';
 
@@ -153,5 +154,86 @@ describe('daily card quota', () => {
         expect(other.ok).toBe(true);
         expect((await readCardQuotaWith(executor, 'user-1', now)).used).toBe(1);
         expect((await readCardQuotaWith(executor, 'user-2', now)).used).toBe(1);
+    });
+
+    it('refunds a reserved card without dropping the 5 second gap or going below zero', async () => {
+        const {sqlite, executor} = createQuotaDb();
+        const now = new Date('2026-10-25T03:00:00.000Z');
+        expect((await reserveCardQuotaWith(executor, 'user-1', now)).ok).toBe(true);
+
+        const refunded = await refundCardQuotaWith(executor, 'user-1', now);
+        expect(refunded).toEqual({
+            limit: 20,
+            used: 0,
+            remaining: 20,
+            resetsAt: '2026-10-25T16:00:00.000Z'
+        });
+        const row = sqlite.prepare('SELECT used, last_generated_at FROM daily_card_quota WHERE user_id = ?').get(
+            'user-1'
+        ) as {used: number; last_generated_at: number;};
+        expect(row.used).toBe(0);
+        expect(row.last_generated_at).toBe(now.getTime());
+
+        const again = await refundCardQuotaWith(executor, 'user-1', now);
+        expect(again.used).toBe(0);
+        expect(
+            (sqlite.prepare('SELECT used FROM daily_card_quota WHERE user_id = ?').get('user-1') as {used: number;})
+                .used
+        ).toBe(0);
+
+        const tooSoon = await reserveCardQuotaWith(executor, 'user-1', new Date(now.getTime() + 4999));
+        expect(tooSoon).toMatchObject({ok: false, code: 'QUOTA_COOLDOWN', message: QUOTA_COOLDOWN_MESSAGE});
+        expect((await readCardQuotaWith(executor, 'user-1', now)).used).toBe(0);
+
+        const ready = await reserveCardQuotaWith(
+            executor,
+            'user-1',
+            new Date(now.getTime() + CARD_GENERATION_INTERVAL_MS)
+        );
+        expect(ready.ok).toBe(true);
+        if (ready.ok) {
+            expect(ready.quota).toMatchObject({used: 1, remaining: 19});
+        }
+    });
+
+    it('returns the daily slot after a refund and does not refund a later Shanghai day', async () => {
+        const {executor} = createQuotaDb();
+        const start = new Date('2026-10-25T02:00:00.000Z');
+        for (let index = 0; index < DAILY_CARD_LIMIT; index += 1) {
+            const reserved = await reserveCardQuotaWith(
+                executor,
+                'user-1',
+                new Date(start.getTime() + index * CARD_GENERATION_INTERVAL_MS)
+            );
+            expect(reserved.ok).toBe(true);
+        }
+        const lastAt = new Date(start.getTime() + (DAILY_CARD_LIMIT - 1) * CARD_GENERATION_INTERVAL_MS);
+        expect((await readCardQuotaWith(executor, 'user-1', lastAt)).remaining).toBe(0);
+
+        const refunded = await refundCardQuotaWith(executor, 'user-1', lastAt);
+        expect(refunded).toMatchObject({used: 19, remaining: 1});
+        const recovered = await reserveCardQuotaWith(
+            executor,
+            'user-1',
+            new Date(lastAt.getTime() + CARD_GENERATION_INTERVAL_MS)
+        );
+        expect(recovered.ok).toBe(true);
+        if (recovered.ok) {
+            expect(recovered.quota.used).toBe(20);
+            expect(recovered.quota.remaining).toBe(0);
+        }
+
+        const endOfDay = new Date('2026-10-25T15:59:58.000Z');
+        expect((await reserveCardQuotaWith(executor, 'user-2', endOfDay)).ok).toBe(true);
+        const nextDay = new Date(endOfDay.getTime() + CARD_GENERATION_INTERVAL_MS);
+        const rolled = await reserveCardQuotaWith(executor, 'user-2', nextDay);
+        expect(rolled.ok).toBe(true);
+        if (rolled.ok) {
+            expect(rolled.quota).toMatchObject({used: 1, remaining: 19, resetsAt: '2026-10-26T16:00:00.000Z'});
+        }
+        const staleRefund = await refundCardQuotaWith(executor, 'user-2', endOfDay);
+        expect(staleRefund).toMatchObject({used: 0, remaining: 20, resetsAt: '2026-10-25T16:00:00.000Z'});
+        expect((await readCardQuotaWith(executor, 'user-2', nextDay)).used).toBe(1);
+        expect((await readCardQuotaWith(executor, 'user-1', lastAt)).used).toBe(20);
     });
 });

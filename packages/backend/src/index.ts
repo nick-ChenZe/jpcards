@@ -1,6 +1,6 @@
 import {Hono} from 'hono';
 import {createDb} from './database/db.js';
-import {readCardQuota, reserveCardQuota} from './quota/cardQuota.js';
+import {readCardQuota, refundCardQuota, reserveCardQuota} from './quota/cardQuota.js';
 import {auth, AuthConfigError} from './routes/auth.js';
 import {buildCardWithMemory} from './routes/card.js';
 import {CardGlossError} from './routes/cardGlossError.js';
@@ -89,19 +89,30 @@ app.get('/api/me/quota', async (c) => {
 
 app.get('/api/card', async (c) => {
     const userId = c.var.session!.user.id;
+    const now = new Date();
+    let charged = false;
     try {
-        const reserved = await reserveCardQuota(c.env.DB, userId, new Date());
+        const reserved = await reserveCardQuota(c.env.DB, userId, now);
         if (!reserved.ok) {
             return c.json({error: reserved.code, message: reserved.message}, 429);
         }
+        charged = true;
         const card = await buildCardWithMemory({
             db: createDb(c.env.DB),
             userId,
             env: c.env,
             assetsBaseUrl: new URL(c.req.url).origin
         });
+        charged = false;
         return c.json(card.card);
     } catch (error) {
+        if (charged) {
+            try {
+                await refundCardQuota(c.env.DB, userId, now);
+            } catch (refundError) {
+                console.error('Failed to refund card quota', refundError);
+            }
+        }
         if (error instanceof CardGlossError) {
             return c.json({error: error.code, message: error.message}, 422);
         }
