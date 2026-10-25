@@ -15,6 +15,11 @@
   次，配图和语音算在同一次里，不另扣。生成失败不扣当天次数。两次生成至少间隔 5
   秒。用完后探索页按钮不可点，并显示「今日额度已用完，明天 0 点（北京时间）再来」。还有次数时仍显示「今日还可生成 x/20
   张」。`GET /api/me/quota` 返回 `{limit, used, remaining, resetsAt}`。
+- `POST /api/auth/sign-up/email` 对同一个 IP、同一个邮箱各做 10 分钟短窗限制，窗口从该键第一次尝试起算，各最多 5
+  次。超限返回 429，正文只有「注册太频繁，请稍后再试。」，不写密钥、堆栈，也不说明是 IP
+  还是邮箱被拦住。校验失败同样计数，不退回。登录不走这条限制。IP 只认 `CF-Connecting-IP`。计数在 D1 表
+  `register_rate_limit`（迁移 `0007_register_rate_limit.sql`）。数字写在
+  `packages/backend/src/auth/registerRateLimit.ts`，没有单独的环境变量。
 - 界面字体是 Noto Sans SC 400/500，日文句子是 Noto Serif JP 500。子集放在 `packages/frontend/src/fonts/`，样式写在
   `packages/frontend/src/fonts/fonts.css`。生产页面不请求 `fonts.googleapis.com` 或 `fonts.gstatic.com`。这三个 woff2
   来自 Fontsource 5.3.1 打包的 Google Fonts 官方语言子集（简体中文约 7900 字、日文约 6900 字，均含常用拉丁字母），不是
@@ -103,17 +108,19 @@ pnpm --filter @jpcards/backend eval:image
    `database_id`。现在的全 0 id 只能本地开发。
 3. `pnpm --filter @jpcards/backend db:migrate:remote`。这条命令会把 `packages/backend/migrations/`
    里还没跑过的迁移应用到远程 D1，包括每日额度表 `0004_daily_card_quota.sql`、朗读分词
-   `0005_card_reading_tokens.sql`，以及抽签幂等表 `0006_card_generation_idempotency.sql`。跟词高亮的代码会读取
-   `reading_tokens` 列，抽签会写入幂等表，所以要在 `pnpm deploy`
-   **之前**先跑远程迁移。如果新代码已经部署上去了，马上补跑一次。没迁移之前，生成和历史读取会因为缺列或缺表失败。本地
-   `pnpm dev` 会自己跑 `db:migrate:local`。
+   `0005_card_reading_tokens.sql`、抽签幂等表 `0006_card_generation_idempotency.sql`，以及注册限流
+   `0007_register_rate_limit.sql`。跟词高亮的代码会读取 `reading_tokens` 列，抽签会写入幂等表，注册限流会读写
+   `register_rate_limit`。所以要在 `pnpm deploy`
+   **之前**先跑远程迁移。如果新代码已经部署上去了，马上补跑一次。没迁移之前，生成和历史读取会因为缺列或缺表失败，注册会因为缺少
+   `register_rate_limit` 返回 503。本地 `pnpm dev` 会自己跑 `db:migrate:local`。
 4. `pnpm --filter @jpcards/backend exec wrangler secret put BETTER_AUTH_SECRET`
 5. 全量卡片默认关闭。要指定管理员时再执行
    `pnpm --filter @jpcards/backend exec wrangler secret put ADMIN_USER_IDS`。提示输入时填
    userId，多个用英文逗号分隔。先用
    `pnpm --filter @jpcards/backend exec wrangler d1 execute jpcards --remote --command "SELECT id, email FROM user;"`
    查出 id。不要填邮箱，不要写进 `wrangler.jsonc` 或仓库。不设置时谁都不是管理员。
-6. 文本生卡需要时再放 `CHAT_API_KEY` 和 `CHAT_API_ENDPOINT`。不要放火山或 MiniMax 的假密钥。
+6. 文本生卡需要时再放 `CHAT_API_KEY` 和 `CHAT_API_ENDPOINT`。火山和 MiniMax
+   不是上线必选，不要为了凑清单去放这两家的密钥。
 7. 百炼密钥只通过 `wrangler secret put DASHSCOPE_API_KEY` 或 `wrangler secret put BAILIAN_API_KEY`
    写入。同一个密钥会打开配图 `qwen-image-3.0` 和日语语音
    `qwen3-tts-flash`。没有密钥时配图和语音都不会发请求。不要把密钥贴进仓库、提交或文档。Seedream、OpenAI 可以先空着。
@@ -125,3 +132,6 @@ pnpm --filter @jpcards/backend eval:image
 地址。
 
 `CLOUDFLARE_API_TOKEN` 只留给你本机的 drizzle-kit，不要放进 Worker。
+
+日配额、百炼配图和语音的粗算费用、谁可以改 secrets，以及只写在纸上的人工查看线，见
+[`docs/cost-and-quota.md`](docs/cost-and-quota.md)。没有费用仪表盘，也没有自动 pager。

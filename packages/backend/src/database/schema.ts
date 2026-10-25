@@ -85,6 +85,16 @@ export const cardGenerationIdempotency = sqliteTable('card_generation_idempotenc
     primaryKey({columns: [table.userId, table.idempotencyKey]})
 ]);
 
+/** 注册短窗。同一 IP、同一邮箱各一行，过期后由下次注册清掉。 */
+export const registerRateLimit = sqliteTable('register_rate_limit', {
+    scope: text('scope').notNull(),
+    bucketKey: text('bucket_key').notNull(),
+    windowStart: integer('window_start').notNull(),
+    count: integer('count').notNull().default(0)
+}, (table) => [
+    primaryKey({columns: [table.scope, table.bucketKey]})
+]);
+
 export const cardHistory = sqliteTable('card_history', {
     id: text('id').primaryKey(),
     userId: text('user_id').notNull(),
