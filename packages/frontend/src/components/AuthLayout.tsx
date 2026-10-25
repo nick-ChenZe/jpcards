@@ -28,7 +28,10 @@ export const AuthLayout = () => {
     return (
         <div className="app-paper hiyori-app">
             <PaperHeader initial={(session.user.name || session.user.email || '札').slice(0, 1).toUpperCase()} />
-            <div key={location.pathname} className="paper-screen">
+            <div
+                key={location.pathname}
+                className={`paper-screen${location.pathname.startsWith('/history') ? ' is-calendar-route' : ''}`}
+            >
                 <Outlet />
             </div>
             <BottomNav />

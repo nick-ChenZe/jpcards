@@ -224,7 +224,7 @@ function PaintedArt ({
     }, [url]);
 
     return (
-        <div className="card-illustration">
+        <div className="card-illustration" data-art={ready ? 'ready' : 'loading'}>
             <div className="art-paint">
                 <img
                     ref={imageRef}
@@ -232,8 +232,9 @@ function PaintedArt ({
                     alt="日语句子配图"
                     onLoad={() => setReady(true)}
                     onError={onFail}
-                    className={cn('art-cover', ready ? 'paper-fade-in' : 'opacity-0')}
+                    className="art-cover"
                 />
+                <span className="art-ink-veil" aria-hidden="true" />
                 <div className="jp-on-art">{children}</div>
             </div>
         </div>

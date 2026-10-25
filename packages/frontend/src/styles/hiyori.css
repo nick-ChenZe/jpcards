@@ -245,3 +245,88 @@ html, body { height:100%; min-height:0; overflow:hidden; overscroll-behavior:non
 .is-login .motif-seal { width:27px; height:27px; border:0; writing-mode:horizontal-tb; }
 .hiyori-card-seal { width:34px; height:34px; border:0; background:none; writing-mode:horizontal-tb; }
 .hiyori-personal-mark img { display:block; margin:0 auto; }
+
+/* Waiting feels like pigment settling, with real server stages and an honest estimate. */
+.generation-progress { min-height:390px; padding:25px 24px 24px; background:var(--card); border:1px solid var(--paper-edge); text-align:center; }
+.generation-wash { position:relative; height:148px; width:180px; margin:0 auto 10px; }
+.generation-wash i { position:absolute; width:100px; height:100px; left:20px; top:22px; border-radius:47% 53% 61% 39% / 54% 41% 59% 46%; background:radial-gradient(ellipse,var(--accent-mid),transparent 70%); animation:pigment-breathe 5s ease-in-out infinite alternate; }
+.generation-wash i:nth-child(2) { left:65px; top:42px; background:radial-gradient(ellipse,#8b957d55,transparent 70%); animation-delay:-2s; }
+.generation-wash i:nth-child(3) { left:42px; top:6px; background:radial-gradient(ellipse,#b7a68144,transparent 70%); animation-delay:-4s; }
+.generation-kicker { font:8px var(--font-zh); color:var(--muted); letter-spacing:1px; }
+.generation-progress h2 { font:22px/1.6 var(--font-editorial); letter-spacing:2px; margin:12px 0 9px; }
+.generation-eta { font-size:12px; color:var(--accent); min-height:22px; }
+.generation-steps { display:flex; gap:7px; margin:28px 0 14px; padding:0; list-style:none; text-align:left; }
+.generation-steps li { flex:1; min-width:0; font-size:9px; line-height:1.7; color:var(--muted); }
+.generation-step-line { display:block; height:2px; background:var(--paper-edge); margin-bottom:9px; }
+.generation-steps [data-state="done"] .generation-step-line { background:var(--accent); }
+.generation-steps [data-state="active"] { color:var(--accent); }
+.generation-steps [data-state="active"] .generation-step-line { background:var(--accent); animation:hiyori-breathe 2s ease-in-out infinite; }
+.generation-time { display:flex; justify-content:space-between; gap:8px; font-size:9px; color:var(--muted); font-variant-numeric:tabular-nums; }
+.generation-note { border-top:1px solid var(--paper-edge); padding-top:16px; margin-top:23px; font:11px var(--font-editorial); color:var(--muted); }
+.draw-arrow { display:grid; place-items:center; }
+@keyframes pigment-breathe { from { transform:scale(.75) rotate(-8deg); opacity:.5; } to { transform:scale(1.3) rotate(15deg); opacity:1; } }
+
+/* A soft, expanding ink mask reveals the loaded image; nothing animates before decode. */
+.art-paint { background:var(--card); }
+.card-illustration[data-art="loading"] .art-cover { opacity:0; }
+.card-illustration[data-art="ready"] .art-cover { animation:ink-image-bloom 2400ms cubic-bezier(.2,.55,.2,1) both; -webkit-mask-image:radial-gradient(ellipse at center,#000 47%,transparent 72%); mask-image:radial-gradient(ellipse at center,#000 47%,transparent 72%); -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat; -webkit-mask-position:50% 40%; mask-position:50% 40%; }
+.art-ink-veil { opacity:0; position:absolute; inset:0; z-index:1; pointer-events:none; background:radial-gradient(ellipse at 30% 35%,var(--card),transparent 65%),radial-gradient(ellipse at 70% 60%,var(--bg),transparent 70%); }
+.card-illustration[data-art="ready"] .art-ink-veil { animation:ink-veil-lift 2400ms ease-out both; }
+.card-illustration[data-art="loading"] .jp-on-art { opacity:0; }
+.card-illustration[data-art="ready"] .jp-on-art { animation:ink-caption 1600ms 650ms both; }
+@keyframes ink-image-bloom { 0% { opacity:0; filter:blur(9px) saturate(.5); transform:scale(1.035); -webkit-mask-size:0% 0%; mask-size:0% 0%; } 35% { opacity:.9; } 100% { opacity:1; filter:blur(0) saturate(1); transform:scale(1); -webkit-mask-size:300% 300%; mask-size:300% 300%; } }
+@keyframes ink-veil-lift { 0% { opacity:.9; } 100% { opacity:0; } }
+@keyframes ink-caption { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:translateY(0); } }
+
+/* The calendar owns this screen. Drill into a day, then a card; never stack them. */
+.hiyori-app>.paper-screen.is-calendar-route { overflow:hidden; scrollbar-width:none; }
+.is-calendar-route::-webkit-scrollbar,.detail-layout::-webkit-scrollbar { display:none; }
+.hiyori-app .calendar-screen,.hiyori-app .day-screen,.hiyori-app .history-detail-screen { height:100%; min-height:0; padding:12px 26px 18px; display:flex; flex-direction:column; }
+.calendar-page-heading { display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
+.calendar-page-heading h1 { font:21px var(--font-editorial); letter-spacing:3px; }
+.calendar-page-heading>span { font:9px var(--font-editorial); letter-spacing:2px; color:var(--muted); }
+.calendar-screen .footprint-monthly { flex:1; min-height:0; display:flex; flex-direction:column; padding:0; margin:22px 0 0; background:none; border:0; }
+.calendar-screen .footprint-toolbar { flex-shrink:0; margin-bottom:20px; }
+.calendar-screen .footprint-month-label { align-items:flex-end; gap:18px; }
+.calendar-screen .footprint-month-label strong { font:69px/.95 Georgia,serif; letter-spacing:-4px; }
+.calendar-screen .footprint-month-label small { font:14px var(--font-editorial); margin-left:9px; letter-spacing:1px; }
+.calendar-screen .footprint-month-label>span { writing-mode:vertical-rl; padding-bottom:4px; font-size:10px; }
+.calendar-screen .footprint-weekdays { padding-bottom:12px; margin-bottom:5px; flex-shrink:0; }
+.calendar-screen .footprint-calendar { flex:1; min-height:0; gap:3px; }
+.calendar-screen .footprint-day { min-height:0; gap:8px; padding:5px 0; border-radius:50% 44% 49% 45%; }
+.calendar-screen .footprint-day-number { font:18px/1 Georgia,serif; }
+.calendar-screen .footprint-day-ink { width:4px; height:4px; border:0; border-radius:50%; }
+.calendar-screen .footprint-day[data-ink="0"] .footprint-day-ink { visibility:hidden; }
+.calendar-screen .footprint-day[data-today="true"] { border-color:transparent; background:var(--accent-soft); position:relative; }
+.calendar-screen .footprint-day[data-today="true"]::after { content:""; position:absolute; width:29px; height:29px; border:1px solid var(--accent); border-radius:49% 43% 46% 51%; top:calc(50% - 21px); }
+.calendar-screen .footprint-caption { flex-shrink:0; font-size:10px; padding-top:16px; margin-top:12px; min-height:34px; }
+.day-page-heading { display:flex; align-items:center; gap:12px; flex-shrink:0; border-bottom:1px solid var(--paper-edge); padding-bottom:15px; }
+.day-page-heading>span { font:25px var(--font-editorial); letter-spacing:2px; }
+.day-page-heading>small { margin-left:auto; color:var(--muted); font-size:11px; }
+.paper-back { display:grid; place-items:center; width:36px; min-height:44px; background:none; border:0; color:var(--ink); margin-left:-8px; }
+.day-card-list { flex:1; min-height:0; display:flex; flex-direction:column; justify-content:center; gap:12px; padding:18px 0; }
+.day-card-list .wall-tile { flex:1; min-height:0; max-height:145px; display:flex; align-items:stretch; overflow:hidden; border:0; border-bottom:1px solid var(--paper-edge); box-shadow:none; background:none; text-align:left; }
+.day-card-list .wall-tile .wall-info { flex:1; min-width:0; padding:18px 0 18px 15px; display:flex; flex-direction:column; justify-content:center; }
+.day-card-list .wall-tile.is-plain .wall-info { padding-left:0; }
+.day-card-list .wall-thumb { flex:0 0 72px; width:72px; min-height:0; aspect-ratio:auto; }
+.day-card-list .wall-thumb img { height:100%; width:100%; object-fit:cover; }
+.day-card-list .wall-date-stamp { display:none; }
+.day-card-list .wall-jp { font:18px/1.85 var(--font-ja); letter-spacing:0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.day-card-list .wall-breath { font-size:9px; margin-top:9px; }
+.day-pagination { flex-shrink:0; display:flex; align-items:center; justify-content:space-between; border-top:1px solid var(--paper-edge); min-height:48px; color:var(--muted); font-size:10px; }
+.day-pagination button { min-width:44px; min-height:44px; display:grid; place-items:center; border:0; background:none; color:var(--ink); }
+.day-pagination button:disabled { opacity:.2; }
+.day-empty { margin:auto; text-align:center; font-size:12px; color:var(--muted); line-height:2; }
+.day-empty-mark { display:block; font:44px var(--font-editorial); letter-spacing:12px; margin-bottom:25px; color:var(--paper-edge); }
+.day-empty button { min-height:44px; margin:14px auto 0; display:flex; align-items:center; gap:12px; color:var(--accent); background:none; border:0; }
+.history-detail-screen .detail-layout { display:flex; flex-direction:column; flex:1; min-height:0; overflow-y:auto; scrollbar-width:none; gap:12px; }
+.history-detail-screen .detail-topbar { flex-shrink:0; }
+.history-detail-screen .today-card { flex:1; min-height:0; display:flex; flex-direction:column; overflow:visible; }
+.history-detail-screen .today-card>.hiyori-ticket-top { padding:12px 18px 8px; }
+.history-detail-screen .card-illustration { aspect-ratio:auto; flex:1 0 180px; }
+.history-detail-screen .card-body { flex-shrink:0; padding:10px 18px 13px; }
+.history-detail-screen .gloss-block { margin:0 0 4px; padding-top:0; }
+.history-detail-screen .card-actions { padding-top:0; }
+.history-detail-screen .jp-on-art { font-size:21px; }
+@media(max-height:700px) { .calendar-screen .footprint-monthly { margin-top:15px; } .calendar-screen .footprint-toolbar { margin-bottom:13px; } .calendar-screen .footprint-month-label strong { font-size:54px; } .calendar-screen .footprint-day-number { font-size:16px; } .calendar-screen .footprint-day { gap:5px; } .day-card-list { gap:6px; padding:8px 0; } .day-card-list .wall-tile .wall-info { padding-top:7px; padding-bottom:7px; } .day-card-list .wall-jp { font-size:16px; } }
+@media(max-width:360px) { .hiyori-app .calendar-screen,.hiyori-app .day-screen,.hiyori-app .history-detail-screen { padding-left:20px; padding-right:20px; } }

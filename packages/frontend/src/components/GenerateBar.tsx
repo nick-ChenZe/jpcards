@@ -1,5 +1,6 @@
 import {QUOTA_EXCEEDED_MESSAGE} from '@/lib/userCopy';
 import {cn} from '@/lib/utils';
+import {ArrowUpRight, MoreHorizontal} from 'lucide-react';
 import {useState} from 'react';
 
 interface GenerateBarProps {
@@ -46,7 +47,9 @@ export function GenerateBar ({
                 disabled={loading || exhausted}
             >
                 <span>{loading ? '抽签中…' : label}</span>
-                <span className="draw-arrow" aria-hidden="true">{loading ? '· · ·' : '↗'}</span>
+                <span className="draw-arrow" aria-hidden="true">
+                    {loading ? <MoreHorizontal size={22} /> : <ArrowUpRight size={24} strokeWidth={1.4} />}
+                </span>
             </button>
             <p className="quota-hint" aria-live="polite">
                 {exhausted

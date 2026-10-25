@@ -1,7 +1,7 @@
 import {buildFootprintMonth, type FootprintCell, footprintWindow, shiftFootprintMonth} from '@/lib/heatmapGrid';
 import {ChevronLeft, ChevronRight} from 'lucide-react';
 import {useEffect, useMemo, useState} from 'react';
-import {useNavigate} from 'react-router-dom';
+import {useNavigate, useSearchParams} from 'react-router-dom';
 
 const WEEKDAY_LABELS = ['日', '一', '二', '三', '四', '五', '六'];
 
@@ -12,13 +12,17 @@ function cellLabel (cell: FootprintCell, pending: boolean): string {
 
 export function FootprintHeat ({selectedDay}: {selectedDay?: string;}) {
     const navigate = useNavigate();
+    const [params] = useSearchParams();
     const today = useMemo(() => footprintWindow().today, []);
     const thisMonth = today.slice(0, 7);
-    const [month, setMonth] = useState(() => selectedDay?.slice(0, 7) || thisMonth);
+    const [month, setMonth] = useState(() => {
+        const saved = params.get('month') ?? '';
+        return selectedDay?.slice(0, 7)
+            || (/^\d{4}-(0[1-9]|1[0-2])$/.test(saved) && saved <= thisMonth ? saved : thisMonth);
+    });
     const [counts, setCounts] = useState<Map<string, number>>(() => new Map());
     const [pending, setPending] = useState(true);
     const [failed, setFailed] = useState(false);
-    const [note, setNote] = useState('');
     const [retry, setRetry] = useState(0);
     const range = useMemo(() => buildFootprintMonth(month, today, counts), [month, today, counts]);
 
@@ -30,7 +34,6 @@ export function FootprintHeat ({selectedDay}: {selectedDay?: string;}) {
         let cancelled = false;
         setPending(true);
         setFailed(false);
-        setNote('');
         const load = async () => {
             try {
                 const response = await fetch(`/api/me/heatmap?from=${range.from}&to=${range.to}`, {
@@ -68,25 +71,19 @@ export function FootprintHeat ({selectedDay}: {selectedDay?: string;}) {
     const days = range.cells.filter((cell): cell is FootprintCell => cell !== null);
     const drawn = days.reduce((sum, cell) => sum + cell.count, 0);
     const marked = days.filter((cell) => cell.count > 0).length;
-    const showInvite = !pending && !failed && drawn === 0;
     const openCell = (cell: FootprintCell) => {
         if (pending || failed || cell.future) return;
-        if (cell.count > 0) {
-            navigate(`/history?day=${cell.day}`);
-            return;
-        }
-        setNote(`${cell.month}月${cell.dayOfMonth}日，这天还没抽。`);
+        navigate(`/history?day=${cell.day}`);
     };
 
     return (
         <section className="footprint footprint-monthly" aria-label="纸上的日子" aria-busy={pending}>
-            <div className="footprint-heading">
-                <h2>纸上的日子</h2>
-                <span>日々の記録</span>
-            </div>
             <div className="footprint-toolbar">
                 <div className="footprint-month-label">
-                    <strong>{range.month}月</strong>
+                    <strong>
+                        {String(range.month).padStart(2, '0')}
+                        <small>月</small>
+                    </strong>
                     <span>{range.year}</span>
                 </div>
                 <div className="footprint-month-nav">
@@ -114,17 +111,15 @@ export function FootprintHeat ({selectedDay}: {selectedDay?: string;}) {
                     </button>
                 </div>
             </div>
-            <p className="footprint-summary" aria-live="polite">
-                {pending
-                    ? '正在展开这一页…'
-                    : failed
-                    ? '足迹暂时没有展开。'
-                    : `本月轻记 ${drawn} 张 · ${marked} 天留下墨迹`}
-            </p>
             <div className="footprint-weekdays" aria-hidden="true">
                 {WEEKDAY_LABELS.map((label) => <span key={label}>{label}</span>)}
             </div>
-            <div className="footprint-calendar" role="group" aria-label={`${range.year}年${range.month}月的日签足迹`}>
+            <div
+                className="footprint-calendar"
+                style={{gridTemplateRows: `repeat(${range.cells.length / 7}, minmax(0, 1fr))`}}
+                role="group"
+                aria-label={`${range.year}年${range.month}月的日签足迹`}
+            >
                 {range.cells.map((cell, index) =>
                     cell
                         ? (
@@ -149,14 +144,10 @@ export function FootprintHeat ({selectedDay}: {selectedDay?: string;}) {
                 )}
             </div>
             <div className="footprint-caption">
-                <span className="footprint-today-key">今天</span>
-                <div className="footprint-ink-key" aria-label="墨色越浓，日签越多">
-                    <span>淡</span>
-                    {[0, 1, 2, 3, 4].map((level) => (
-                        <i key={level} className="footprint-key-swatch" data-ink={level} aria-hidden="true" />
-                    ))}
-                    <span>浓</span>
-                </div>
+                <span aria-live="polite">
+                    {pending ? '正在翻开…' : failed ? '暂时未能读取' : `${marked} 天 · ${drawn} 枚日签`}
+                </span>
+                <span>点一日，重读那天</span>
             </div>
             {failed
                 ? (
@@ -165,8 +156,6 @@ export function FootprintHeat ({selectedDay}: {selectedDay?: string;}) {
                     </button>
                 )
                 : null}
-            {showInvite ? <p className="footprint-invite">抽出今日的日签，就会落在这里。</p> : null}
-            {note ? <p className="footprint-note" aria-live="polite">{note}</p> : null}
         </section>
     );
 }

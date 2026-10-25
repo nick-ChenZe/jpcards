@@ -1,7 +1,7 @@
-import {formatShanghaiTimestamp} from '@/lib/datetime';
+import {formatShanghaiTimestamp, parseShanghaiDayKey} from '@/lib/datetime';
 import {userFacingMedia} from '@/lib/userCopy';
 import {useEffect, useState} from 'react';
-import {useNavigate, useParams} from 'react-router-dom';
+import {useNavigate, useParams, useSearchParams} from 'react-router-dom';
 import {TodayCard} from '../TodayCard';
 
 interface CardDetail {
@@ -21,6 +21,9 @@ interface CardDetail {
 export const HistoryDetailPage = () => {
     const {id} = useParams();
     const navigate = useNavigate();
+    const [params] = useSearchParams();
+    const day = parseShanghaiDayKey(params.get('day') ?? '');
+    const back = day ? `/history?day=${day}&page=${params.get('page') || '1'}` : '/history';
     const [card, setCard] = useState<CardDetail | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -63,10 +66,10 @@ export const HistoryDetailPage = () => {
     }, [id]);
 
     return (
-        <div className="history-screen">
-            <div className="mx-auto flex max-w-lg flex-col gap-4">
+        <div className="history-screen history-detail-screen">
+            <div className="detail-layout">
                 <div className="detail-topbar">
-                    <button type="button" className="back-btn" aria-label="返回" onClick={() => navigate('/history')}>
+                    <button type="button" className="back-btn" aria-label="返回" onClick={() => navigate(back)}>
                         <svg
                             width="22"
                             height="22"

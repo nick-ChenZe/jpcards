@@ -1,3 +1,4 @@
+import {type CardStage, readCardResponse} from '@/lib/cardProgress';
 import {shanghaiRitualDate} from '@/lib/datetime';
 import {generateCardInit} from '@/lib/generateCard';
 import {streakChipText} from '@/lib/streakNote';
@@ -5,6 +6,7 @@ import {QUOTA_EXCEEDED_MESSAGE, userFacingMedia, userFacingTextNotice} from '@/l
 import {cn} from '@/lib/utils';
 import {useCallback, useEffect, useRef, useState} from 'react';
 import {GenerateBar} from '../GenerateBar';
+import {GenerationProgress} from '../GenerationProgress';
 import {PaperMotif} from '../PaperMotif';
 import {TodayCard} from '../TodayCard';
 
@@ -100,6 +102,16 @@ function EmptyRitual ({drawing = false}: {drawing?: boolean;}) {
 export const ExplorePage = () => {
     const [card, setCard] = useState<CardDemoResponse | null>(null);
     const [loading, setLoading] = useState(false);
+    const [stage, setStage] = useState<CardStage>('sentence');
+    const [startedAt, setStartedAt] = useState(0);
+    const [expected] = useState(() => {
+        try {
+            const previous = Number(localStorage.getItem('rizha-generation-seconds'));
+            return previous >= 15 && previous <= 180 ? previous : 50;
+        } catch {
+            return 50;
+        }
+    });
     const [error, setError] = useState('');
     const [notice, setNotice] = useState('');
     const [quota, setQuota] = useState<QuotaSnapshot | null>(null);
@@ -187,15 +199,22 @@ export const ExplorePage = () => {
             return;
         }
         generating.current = true;
+        const started = Date.now();
+        setStartedAt(started);
+        setStage('sentence');
         setLoading(true);
         setError('');
         setNotice('');
         try {
-            const response = await fetch('/api/card', generateCardInit());
-            const body = await response.json().catch(() => null) as
-                | (CardDemoResponse & ErrorBody & {quota?: unknown;})
-                | null;
-            if (response.status === 429) {
+            const init = generateCardInit();
+            const headers = new Headers(init.headers);
+            headers.set('Accept', 'application/x-ndjson');
+            const response = await fetch('/api/card', {...init, headers});
+            const {status, body} = await readCardResponse<CardDemoResponse & ErrorBody & {quota?: unknown;}>(
+                response,
+                setStage
+            );
+            if (status === 429) {
                 if (body?.error === 'QUOTA_EXCEEDED' || body?.message === QUOTA_EXCEEDED_MESSAGE) {
                     noteExhausted();
                     setNotice('');
@@ -204,7 +223,7 @@ export const ExplorePage = () => {
                 }
                 return;
             }
-            if (!response.ok || !body) {
+            if (status < 200 || status >= 300 || !body) {
                 if (!heldCard.current) {
                     setCard(null);
                 }
@@ -212,6 +231,9 @@ export const ExplorePage = () => {
                 return;
             }
             const {quota: responseQuota, ...cardBody} = body;
+            try {
+                localStorage.setItem('rizha-generation-seconds', String(Math.round((Date.now() - started) / 1000)));
+            } catch { /* Optional estimate. */ }
             heldCard.current = cardBody;
             setCard(cardBody);
             setStampKey((value) => value + 1);
@@ -273,7 +295,9 @@ export const ExplorePage = () => {
                             meta="今天"
                         />
                     )
-                    : <EmptyRitual drawing={loading} />}
+                    : loading
+                    ? <GenerationProgress stage={stage} startedAt={startedAt} expected={expected} />
+                    : <EmptyRitual />}
             </div>
             <div className="hiyori-notices" aria-live="polite">{notices}</div>
             <GenerateBar

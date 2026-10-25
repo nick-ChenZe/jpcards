@@ -6,6 +6,7 @@ import type {Env} from '../types.js';
 import {CARD_IN_PROGRESS_MESSAGE, IDEMPOTENCY_KEY_REQUIRED_MESSAGE} from '../userCopy.js';
 import {buildCardWithMemory, type CardDemoResult} from './card.js';
 import {CardGlossError} from './cardGlossError.js';
+import type {ReportCardStage} from './cardProgress.js';
 
 const GENERATION_FAILED = {
     error: 'CARD_GEN_FAILED',
@@ -24,6 +25,7 @@ export async function generateCard (input: {
     assetsBaseUrl: string;
     idempotencyKey: string | undefined;
     now?: Date;
+    onProgress?: ReportCardStage;
 }): Promise<GenerateCardResult> {
     const now = input.now ?? new Date();
     const key = normalizeIdempotencyKey(input.idempotencyKey);
@@ -66,7 +68,8 @@ export async function generateCard (input: {
             db: createDb(input.database),
             userId: input.userId,
             env: input.env,
-            assetsBaseUrl: input.assetsBaseUrl
+            assetsBaseUrl: input.assetsBaseUrl,
+            onProgress: input.onProgress
         });
         charged = false;
         const body = await cardBody(input.database, input.userId, now, card.card);

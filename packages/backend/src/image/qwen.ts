@@ -100,7 +100,8 @@ function imageParameters (tier: 'formal' | 'turbo'): {
     enable_thinking?: boolean;
 } {
     const parameters = {
-        prompt_extend: true,
+        // The art direction is complete; automatic rewriting can add glossy detail.
+        prompt_extend: false,
         watermark: false,
         n: 1,
         size: QWEN_IMAGE_SIZE

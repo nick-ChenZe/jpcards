@@ -8,5 +8,8 @@ describe('dayCardIllustrationPrompt', () => {
         expect(prompt).toContain('Warm paper-toned');
         expect(prompt).toContain('cream and ochre');
         expect(prompt).toContain('No near-black night scenes');
+        expect(prompt).toContain('ivory washi paper');
+        expect(prompt).toContain('lower third mostly pale ivory');
+        expect(prompt).toContain('without drawing any written words');
     });
 });

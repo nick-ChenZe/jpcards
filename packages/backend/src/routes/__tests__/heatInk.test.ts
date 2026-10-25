@@ -73,7 +73,7 @@ describe('heat ink levels', () => {
         expect(heat).toContain('/api/me/heatmap?from=');
         expect(heat).toContain('/history?day=');
         expect(heat).toContain('这天还没抽');
-        expect(heat).toContain('抽出今日的日签，就会落在这里。');
+        expect(heat).toContain('点一日，重读那天');
         expect(`${heat}\n${history}\n${explore}`).not.toMatch(/排名|打卡率|活跃度|KPI/);
     });
 });

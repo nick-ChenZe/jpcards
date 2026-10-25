@@ -94,7 +94,7 @@ describe('qwen image generation', () => {
                 }]
             },
             parameters: {
-                prompt_extend: true,
+                prompt_extend: false,
                 watermark: false,
                 n: 1,
                 size: '1024*1024',

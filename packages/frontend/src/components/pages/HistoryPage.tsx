@@ -1,210 +1,143 @@
-import {type DaySignTile, DaySignTileButton} from '@/components/DaySignWall';
-import {useAdminAccess} from '@/hooks/useAdminAccess';
+import {DaySignTileButton} from '@/components/DaySignWall';
 import {parseShanghaiDayKey, wallDateFromStored} from '@/lib/datetime';
-import {Loader2} from 'lucide-react';
-import {useCallback, useEffect, useMemo, useState} from 'react';
+import {ArrowLeft, ArrowUpRight, ChevronLeft, ChevronRight} from 'lucide-react';
+import {useEffect, useState} from 'react';
 import {useNavigate, useSearchParams} from 'react-router-dom';
 import {FootprintHeat} from '../FootprintHeat';
-import {Button} from '../ui/button';
 
-interface CardHistoryItem {
+interface HistoryItem {
     id: string;
-    userId: string;
     sentence: string;
-    sentenceHtml: string;
-    gloss: string;
-    reading?: string;
-    audioUrl: string | null;
     illustrationUrl: string | null;
-    level: string;
     createdAt: string;
-    createdAtText?: string;
-}
-
-interface HistoryResponse {
-    items: CardHistoryItem[];
-    pagination: {
-        page: number;
-        pageSize: number;
-        total: number;
-        totalPages: number;
-    };
-}
-
-interface DayGroup {
-    key: string;
-    breath: string;
-    tiles: DaySignTile[];
-}
-
-function groupByShanghaiDay (items: CardHistoryItem[]): DayGroup[] {
-    const groups: DayGroup[] = [];
-    for (const item of items) {
-        const date = wallDateFromStored(item.createdAt);
-        const tile: DaySignTile = {
-            id: item.id,
-            sentence: item.sentence,
-            thumbUrl: item.illustrationUrl,
-            month: date.month,
-            day: date.day,
-            breath: date.breath
-        };
-        const last = groups[groups.length - 1];
-        if (!last || last.key !== date.key) {
-            groups.push({key: date.key, breath: date.breath, tiles: [tile]});
-        } else {
-            last.tiles.push(tile);
-        }
-    }
-    return groups;
-}
-
-function dayBreath (dayKey: string): string {
-    const parts = dayKey.split('-');
-    return `${Number(parts[1])}月${Number(parts[2])}日`;
 }
 
 export const HistoryPage = () => {
-    const [items, setItems] = useState<CardHistoryItem[]>([]);
+    const [params, setParams] = useSearchParams();
+    const day = parseShanghaiDayKey(params.get('day') ?? '') ?? '';
+    const requestedPage = Number(params.get('page'));
+    const page = Number.isSafeInteger(requestedPage) && requestedPage > 0 ? requestedPage : 1;
+    const [data, setData] = useState<{day: string; items: HistoryItem[]; total: number; totalPages: number;} | null>(
+        null
+    );
     const [loading, setLoading] = useState(false);
-    const [page, setPage] = useState(1);
-    const [totalPages, setTotalPages] = useState(1);
-    const [total, setTotal] = useState(0);
     const [error, setError] = useState('');
+    const [retry, setRetry] = useState(0);
     const navigate = useNavigate();
-    const [searchParams] = useSearchParams();
-    const admin = useAdminAccess();
-    const dayKey = useMemo(() => parseShanghaiDayKey(searchParams.get('day') ?? '') ?? '', [searchParams]);
-
-    const fetchHistory = useCallback(async (p: number, append: boolean) => {
-        setLoading(true);
-        setError('');
-        try {
-            const params = new URLSearchParams({
-                page: String(p),
-                pageSize: dayKey ? '50' : '20'
-            });
-            if (dayKey) {
-                params.set('day', dayKey);
-            }
-            const response = await fetch(`/api/history?${params.toString()}`, {
-                credentials: 'include'
-            });
-            if (!response.ok) {
-                throw new Error('暂时无法读取学习历史');
-            }
-            const data = await response.json() as HistoryResponse;
-            setItems((current) => append ? [...current, ...data.items] : data.items);
-            setTotalPages(data.pagination.totalPages);
-            setTotal(data.pagination.total);
-            setPage(p);
-        } catch (err) {
-            const message = err instanceof Error ? err.message : '';
-            setError(/[\u4e00-\u9fff]/.test(message) ? message : '请稍后再试');
-        } finally {
-            setLoading(false);
-        }
-    }, [dayKey]);
 
     useEffect(() => {
-        void fetchHistory(1, false);
-    }, [fetchHistory]);
+        if (!day) return;
+        const controller = new AbortController();
+        setLoading(true);
+        setError('');
+        void (async () => {
+            try {
+                const response = await fetch(`/api/history?day=${day}&page=${page}&pageSize=3`, {
+                    credentials: 'include',
+                    signal: controller.signal
+                });
+                if (!response.ok) throw new Error('暂时无法读取日签');
+                const body = await response.json();
+                if (!controller.signal.aborted) {
+                    setData({
+                        day,
+                        items: body.items,
+                        total: body.pagination.total,
+                        totalPages: body.pagination.totalPages
+                    });
+                }
+            } catch {
+                if (!controller.signal.aborted) setError('这一页暂时没有展开，请再试一次。');
+            } finally {
+                if (!controller.signal.aborted) setLoading(false);
+            }
+        })();
+        return () => controller.abort();
+    }, [day, page, retry]);
 
-    const groups = groupByShanghaiDay(items);
+    if (!day) {
+        return (
+            <div className="history-screen calendar-screen">
+                <header className="calendar-page-heading">
+                    <h1>日签墙</h1>
+                    <span>日々の記録</span>
+                </header>
+                <FootprintHeat />
+            </div>
+        );
+    }
 
+    const items = data?.day === day ? data.items : [];
+    const total = data?.day === day ? data.total : 0;
     return (
-        <div className="history-screen">
-            <header className="history-header">
-                <div className="flex items-end justify-between gap-3">
-                    <h1>把喜欢的，留下。</h1>
-                    <div className="flex gap-2">
-                        {dayKey
-                            ? (
-                                <Button variant="outline" size="sm" onClick={() => navigate('/history')}>
-                                    整面墙
-                                </Button>
-                            )
-                            : null}
-                        {admin
-                            ? (
-                                <Button variant="outline" size="sm" onClick={() => navigate('/admin/cards')}>
-                                    全部卡片
-                                </Button>
-                            )
-                            : null}
-                    </div>
-                </div>
-                <p className="sub">
-                    {dayKey
-                        ? (!loading && !error && items.length === 0
-                            ? '这天还没抽'
-                            : dayBreath(dayKey))
-                        : (total > 0 ? `已轻记 ${total} 张` : '有些句子，值得再读一遍。')}
-                </p>
+        <div className="history-screen day-screen">
+            <header className="day-page-heading">
+                <button
+                    className="paper-back"
+                    type="button"
+                    onClick={() => navigate(`/history?month=${day.slice(0, 7)}`)}
+                    aria-label="返回月历"
+                >
+                    <ArrowLeft size={20} strokeWidth={1.3} />
+                </button>
+                <span>{Number(day.slice(5, 7))}月{Number(day.slice(8))}日</span>
+                <small>{!loading && !error ? `${total} 枚` : '日签'}</small>
             </header>
-
-            <FootprintHeat selectedDay={dayKey || undefined} />
-
-            {loading && items.length === 0
-                ? (
-                    <div className="flex items-center justify-center py-20">
-                        <Loader2 className="h-6 w-6 animate-spin text-ink-muted" />
-                    </div>
-                )
-                : error && items.length === 0
-                ? (
-                    <div className="py-10 text-center">
-                        <p className="text-sm text-red-500">加载失败：{error}</p>
-                        <Button variant="outline" className="mt-4" onClick={() => void fetchHistory(page, false)}>
-                            重试
-                        </Button>
-                    </div>
-                )
-                : items.length === 0
-                ? (
-                    <div className="history-empty">
-                        <span className="hiyori-empty-mark" aria-hidden="true">栞</span>
-                        <p>{dayKey ? '这天还没抽' : '抽出的日签都会留在这里。'}</p>
-                        <Button variant="outline" className="mt-5" onClick={() => navigate('/explore')}>
-                            去抽一张 ↗
-                        </Button>
-                    </div>
-                )
-                : (
-                    <div>
-                        {groups.map((group) => (
-                            <section key={group.key} aria-label={group.breath}>
-                                <p className="wall-day-breath">{group.breath}</p>
-                                <div className="wall-grid">
-                                    {group.tiles.map((tile) => (
-                                        <DaySignTileButton
-                                            key={tile.id}
-                                            tile={tile}
-                                            onOpen={() => navigate(`/history/${tile.id}`)}
-                                        />
-                                    ))}
-                                </div>
-                            </section>
-                        ))}
-                        {error
-                            ? <p className="py-4 text-center text-sm text-red-500">{error}</p>
-                            : null}
-                        {page < totalPages
-                            ? (
-                                <div className="flex justify-center py-6">
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        disabled={loading}
-                                        onClick={() => void fetchHistory(page + 1, true)}
-                                    >
-                                        {loading ? '翻看中…' : '更早的日签'}
-                                    </Button>
-                                </div>
-                            )
-                            : null}
-                    </div>
-                )}
+            <div className="day-card-list" aria-busy={loading}>
+                {loading
+                    ? <p className="day-empty" role="status">正在翻开这一天…</p>
+                    : error
+                    ? (
+                        <div className="day-empty">
+                            <p>{error}</p>
+                            <button onClick={() => setRetry(r => r + 1)}>重新翻开</button>
+                        </div>
+                    )
+                    : items.length
+                    ? items.map(item => {
+                        const date = wallDateFromStored(item.createdAt);
+                        return (
+                            <DaySignTileButton
+                                key={item.id}
+                                tile={{
+                                    id: item.id,
+                                    sentence: item.sentence,
+                                    thumbUrl: item.illustrationUrl,
+                                    month: date.month,
+                                    day: date.day,
+                                    breath: '轻触重读'
+                                }}
+                                onOpen={() => navigate(`/history/${item.id}?day=${day}&page=${page}`)}
+                            />
+                        );
+                    })
+                    : (
+                        <div className="day-empty">
+                            <span className="day-empty-mark">余白</span>
+                            <p>这一天，还没有留下日签。</p>
+                            <button onClick={() => navigate('/explore')}>
+                                去抽一枚 <ArrowUpRight size={17} />
+                            </button>
+                        </div>
+                    )}
+            </div>
+            <footer className="day-pagination">
+                <button
+                    aria-label="上一页日签"
+                    disabled={loading || page <= 1}
+                    onClick={() => setParams({day, page: String(page - 1)})}
+                >
+                    <ChevronLeft size={19} />
+                </button>
+                <span>{items.length ? `${page} / ${data?.totalPages || 1}` : '把一日，收在纸上。'}</span>
+                <button
+                    aria-label="下一页日签"
+                    disabled={loading || page >= (data?.totalPages || 1)}
+                    onClick={() => setParams({day, page: String(page + 1)})}
+                >
+                    <ChevronRight size={19} />
+                </button>
+            </footer>
         </div>
     );
 };

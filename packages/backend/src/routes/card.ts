@@ -13,6 +13,7 @@ import type {ReadingToken} from '../utils/readingHighlight.js';
 import {toReadingTokens} from '../utils/readingTokens.js';
 import {type ReadingOptions, toDisplayReading, toSentenceWithKanjiRomaji} from '../utils/romaji.js';
 import {CardGlossError} from './cardGlossError.js';
+import type {ReportCardStage} from './cardProgress.js';
 import {
     buildCardUserPrompt,
     CARD_SYSTEM_PROMPT,
@@ -126,10 +127,12 @@ async function attachReadingTokens (sentence: string, options: ReadingOptions): 
 /** 暖纸调。日签插画保持奶油与赭石，不要近黑夜景。 */
 export function dayCardIllustrationPrompt (sentence: string): string {
     return [
-        'Warm paper-toned illustration, cream and ochre palette, soft vermilion accents.',
-        'Daylight or gentle paper-lantern warmth.',
-        'No near-black night scenes, no dark skies, no cold neon, no black background.',
-        `A clean illustration that matches this Japanese sentence: ${sentence}`
+        'Warm paper-toned Japanese editorial illustration, hand-painted watercolor and delicate dry-brush ink on ivory washi paper.',
+        'Restrained cream and ochre, muted sage green, a tiny soft vermilion accent. Matte pigment, visible paper fibers, soft bleeding edges.',
+        'One simple everyday scene with a clear focal subject; quiet, poetic, airy, generous unpainted space. Flat shapes and light, fine irregular pencil lines.',
+        'Place the scene in the upper two thirds; leave the lower third mostly pale ivory paper for a separate caption. Let painted edges dissolve into the paper.',
+        'No near-black night scenes, no dark skies, no cold neon, no black background. No photography, 3D render, glossy anime, dense detail, border, collage, lettering, calligraphy, logo or watermark.',
+        `Depict the meaning of this Japanese sentence, without drawing any written words: ${sentence}`
     ].join(' ');
 }
 
@@ -137,7 +140,7 @@ async function attachMedia (env: Env, sentence: string, fetchImpl?: typeof fetch
     image: ImageGenerationResult;
     audio: SpeechResult;
 }> {
-    const audio = await synthesizeSpeech(env, sentence, fetchImpl);
+    const audioPromise = synthesizeSpeech(env, sentence, fetchImpl);
     try {
         const image = await createImageProvider(env).generate(
             {
@@ -146,7 +149,7 @@ async function attachMedia (env: Env, sentence: string, fetchImpl?: typeof fetch
             env,
             fetchImpl
         );
-        return {image, audio};
+        return {image, audio: await audioPromise};
     } catch (error) {
         console.error('Image provider failed', error);
         return {
@@ -157,7 +160,7 @@ async function attachMedia (env: Env, sentence: string, fetchImpl?: typeof fetch
                 model: null,
                 message: IMAGE_GENERATION_FAILED
             },
-            audio
+            audio: await audioPromise
         };
     }
 }
@@ -198,7 +201,9 @@ export async function buildCardWithMemory (input: {
     env: Env;
     assetsBaseUrl?: string;
     fetchImpl?: typeof fetch;
+    onProgress?: ReportCardStage;
 }): Promise<CardBuildResult> {
+    input.onProgress?.('sentence');
     const gate = assessCardGeneration(input.env);
     const seenSentences = await getRecentSentences(input.db, input.userId);
     let sentence: string;
@@ -236,7 +241,9 @@ export async function buildCardWithMemory (input: {
         readingTokens,
         level: DEFAULT_LEVEL
     });
+    input.onProgress?.('illustration');
     const media = await attachMedia(input.env, sentence, input.fetchImpl);
+    input.onProgress?.('finishing');
     if (media.audio.ok) {
         try {
             await updateCardAudio(input.db, cardId, input.userId, media.audio.audioUrl);

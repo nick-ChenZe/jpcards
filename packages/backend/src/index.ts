@@ -11,6 +11,7 @@ import {createDb} from './database/db.js';
 import {readCardQuota} from './quota/cardQuota.js';
 import {getAdminCardsResponse, logAdminCardList} from './routes/adminCards.js';
 import {auth, AuthConfigError} from './routes/auth.js';
+import {cardProgressStream} from './routes/cardProgress.js';
 import {generateCard} from './routes/generateCard.js';
 import {getHeatmapResponse} from './routes/heatmap.js';
 import {getHistoryCardResponse, getHistoryResponse} from './routes/history.js';
@@ -176,14 +177,18 @@ app.get('/api/card', (c) => {
 });
 
 app.post('/api/card', async (c) => {
-    const result = await generateCard({
+    const input = {
         database: c.env.DB,
         userId: c.var.session!.user.id,
         env: c.env,
         assetsBaseUrl: new URL(c.req.url).origin,
         idempotencyKey: c.req.header('Idempotency-Key'),
         now: new Date()
-    });
+    };
+    if (c.req.header('Accept')?.includes('application/x-ndjson')) {
+        return cardProgressStream((onProgress) => generateCard({...input, onProgress}));
+    }
+    const result = await generateCard(input);
     return c.json(result.body, result.status as 200);
 });
 
