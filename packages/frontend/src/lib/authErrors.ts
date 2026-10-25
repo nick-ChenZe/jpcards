@@ -18,7 +18,8 @@ const COPY_BY_CODE: Record<string, string> = {
     INVALID_USERNAME: '用户名只能使用字母、数字、下划线或点',
     EMAIL_NOT_VERIFIED: '邮箱还没有验证',
     FAILED_TO_CREATE_USER: '注册没有成功，请稍后再试',
-    EMAIL_PASSWORD_SIGN_UP_DISABLED: '暂时不能注册'
+    EMAIL_PASSWORD_SIGN_UP_DISABLED: '暂时不能注册',
+    REGISTER_RATE_LIMITED: '注册太频繁，请稍后再试。'
 };
 
 const COPY_BY_MESSAGE: Array<[RegExp, string]> = [

@@ -1,4 +1,10 @@
-import {Hono} from 'hono';
+import {type Context, Hono} from 'hono';
+import {
+    clientIpFromHeaders,
+    consumeRegisterAttempt,
+    isRegisterRequest,
+    readRegisterEmail
+} from './auth/registerRateLimit.js';
 import {isAdminUserId} from './config/admin.js';
 import {listRecentCardCreatedAt} from './database/cardHistory.js';
 import {createDb} from './database/db.js';
@@ -8,7 +14,7 @@ import {auth, AuthConfigError} from './routes/auth.js';
 import {generateCard} from './routes/generateCard.js';
 import {getHistoryCardResponse, getHistoryResponse} from './routes/history.js';
 import type {Env} from './types.js';
-import {ADMIN_FORBIDDEN_MESSAGE, CARD_METHOD_NOT_ALLOWED_MESSAGE} from './userCopy.js';
+import {ADMIN_FORBIDDEN_MESSAGE, CARD_METHOD_NOT_ALLOWED_MESSAGE, REGISTER_UNAVAILABLE_MESSAGE} from './userCopy.js';
 import {countStreakDays} from './utils/streak.js';
 
 type AuthInstance = ReturnType<typeof auth>;
@@ -77,7 +83,43 @@ app.get('/api/hello', (c) => {
     return c.json({ok: true, message: 'Hello from Hono!'});
 });
 
-app.on(['GET', 'POST'], '/api/auth/*', (c) => {
+async function enforceRegisterRateLimit (c: Context<{Bindings: Env; Variables: Variables;}>): Promise<Response | null> {
+    try {
+        const decision = await consumeRegisterAttempt(c.env.DB, {
+            ip: clientIpFromHeaders(c.req.raw.headers),
+            email: await readRegisterEmail(c.req.raw),
+            now: new Date()
+        });
+        if (decision.ok) {
+            return null;
+        }
+        return c.json(
+            {
+                error: 'REGISTER_RATE_LIMITED',
+                code: 'REGISTER_RATE_LIMITED',
+                message: decision.message
+            },
+            429,
+            {
+                'Retry-After': String(decision.retryAfterSeconds)
+            }
+        );
+    } catch (error) {
+        console.error('Register rate limit failed', error);
+        return c.json({
+            error: 'REGISTER_UNAVAILABLE',
+            message: REGISTER_UNAVAILABLE_MESSAGE
+        }, 503);
+    }
+}
+
+app.on(['GET', 'POST'], '/api/auth/*', async (c) => {
+    if (isRegisterRequest(c.req.method, new URL(c.req.url).pathname)) {
+        const blocked = await enforceRegisterRateLimit(c);
+        if (blocked) {
+            return blocked;
+        }
+    }
     return c.var.auth.handler(c.req.raw);
 });
 
