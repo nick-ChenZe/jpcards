@@ -154,8 +154,8 @@ describe('card quota routes', () => {
         expect(await quota.json()).toMatchObject({used: 1, remaining: 19, resetsAt: '2026-10-26T16:00:00.000Z'});
     });
 
-    it('does not charge quota when history is read, and still charges when generation fails', async () => {
-        const {env} = createEnv();
+    it('does not charge quota when history is read or when generation fails', async () => {
+        const {sqlite, env} = createEnv();
         const list = await app.request('/api/history', {}, env);
         const detail = await app.request('/api/history/old-card', {}, env);
         expect(list.status).toBe(200);
@@ -167,20 +167,60 @@ describe('card quota routes', () => {
         const failed = await app.request('/api/card', {}, env);
         expect(failed.status).toBe(500);
         expect(await failed.json()).toEqual({error: 'CARD_GEN_FAILED', message: '生成失败，请稍后再试。'});
-        expect(await (await app.request('/api/me/quota', {}, env)).json()).toMatchObject({used: 1, remaining: 19});
-        errorSpy.mockRestore();
+        expect(await (await app.request('/api/me/quota', {}, env)).json()).toMatchObject({used: 0, remaining: 20});
+        expect(cardApi.buildCardWithMemory).toHaveBeenCalledTimes(1);
+
+        const duringCooldown = await app.request('/api/card', {}, env);
+        expect(duringCooldown.status).toBe(429);
+        expect(await duringCooldown.json()).toEqual({
+            error: 'QUOTA_COOLDOWN',
+            message: QUOTA_COOLDOWN_MESSAGE
+        });
+        expect(cardApi.buildCardWithMemory).toHaveBeenCalledTimes(1);
+        expect(await (await app.request('/api/me/quota', {}, env)).json()).toMatchObject({used: 0, remaining: 20});
 
         vi.setSystemTime(new Date(dayStart.getTime() + CARD_GENERATION_INTERVAL_MS));
         cardApi.buildCardWithMemory.mockRejectedValueOnce(new CardGlossError());
-        const glossError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
         const missingGloss = await app.request('/api/card', {}, env);
         expect(missingGloss.status).toBe(422);
         expect(await missingGloss.json()).toEqual({
             error: 'CARD_GLOSS_MISSING',
             message: CARD_GLOSS_MISSING_MESSAGE
         });
-        expect(await (await app.request('/api/me/quota', {}, env)).json()).toMatchObject({used: 2, remaining: 18});
-        glossError.mockRestore();
+        expect(await (await app.request('/api/me/quota', {}, env)).json()).toMatchObject({used: 0, remaining: 20});
+        expect(sqlite.prepare('SELECT used FROM daily_card_quota WHERE user_id = ?').get('user-1')).toEqual({used: 0});
+
+        vi.setSystemTime(new Date(dayStart.getTime() + 2 * CARD_GENERATION_INTERVAL_MS));
+        const saved = await app.request('/api/card', {}, env);
+        expect(saved.status).toBe(200);
+        expect(await (await app.request('/api/me/quota', {}, env)).json()).toMatchObject({used: 1, remaining: 19});
+        errorSpy.mockRestore();
+    });
+
+    it('keeps the full daily allowance when every attempt fails, then charges one success', async () => {
+        const {env} = createEnv();
+        const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+        try {
+            for (let index = 0; index < DAILY_CARD_LIMIT; index += 1) {
+                vi.setSystemTime(new Date(dayStart.getTime() + index * CARD_GENERATION_INTERVAL_MS));
+                cardApi.buildCardWithMemory.mockRejectedValueOnce(new CardGlossError());
+                const failed = await app.request('/api/card', {}, env);
+                expect(failed.status).toBe(422);
+            }
+            expect(await (await app.request('/api/me/quota', {}, env)).json()).toMatchObject({used: 0, remaining: 20});
+
+            vi.setSystemTime(new Date(dayStart.getTime() + DAILY_CARD_LIMIT * CARD_GENERATION_INTERVAL_MS));
+            const saved = await app.request('/api/card', {}, env);
+            expect(saved.status).toBe(200);
+            expect(await (await app.request('/api/me/quota', {}, env)).json()).toEqual({
+                limit: 20,
+                used: 1,
+                remaining: 19,
+                resetsAt: '2026-10-25T16:00:00.000Z'
+            });
+        } finally {
+            errorSpy.mockRestore();
+        }
     });
 
     it('rejects anonymous quota and card requests', async () => {

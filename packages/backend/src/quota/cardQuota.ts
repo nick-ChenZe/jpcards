@@ -56,6 +56,15 @@ WHERE (? - daily_card_quota.last_generated_at) >= ?
     )
 `;
 
+// 失败时只退回当天次数。间隔仍由 last_generated_at 拦住，避免失败请求连点打模型。
+const REFUND_SQL = `
+UPDATE daily_card_quota
+SET used = used - 1
+WHERE user_id = ?
+    AND day_key = ?
+    AND used > 0
+`;
+
 export function quotaExecutorFromD1 (db: AnyD1Database): QuotaExecutor {
     return {
         async query(sql, params) {
@@ -82,6 +91,14 @@ export async function reserveCardQuota (
     now: Date = new Date()
 ): Promise<ReserveCardQuotaResult> {
     return reserveCardQuotaWith(quotaExecutorFromD1(db), userId, now);
+}
+
+export async function refundCardQuota (
+    db: AnyD1Database,
+    userId: string,
+    now: Date = new Date()
+): Promise<QuotaSnapshot> {
+    return refundCardQuotaWith(quotaExecutorFromD1(db), userId, now);
 }
 
 export async function readCardQuotaWith (
@@ -124,6 +141,16 @@ export async function reserveCardQuotaWith (
         return {ok: false, code: 'QUOTA_COOLDOWN', message: QUOTA_COOLDOWN_MESSAGE, quota};
     }
     return {ok: false, code: 'QUOTA_EXCEEDED', message: QUOTA_EXCEEDED_MESSAGE, quota};
+}
+
+export async function refundCardQuotaWith (
+    executor: QuotaExecutor,
+    userId: string,
+    now: Date = new Date()
+): Promise<QuotaSnapshot> {
+    const window = shanghaiDayWindow(now);
+    await executor.query(REFUND_SQL, [userId, window.dayKey]);
+    return readCardQuotaWith(executor, userId, now);
 }
 
 async function readRow (executor: QuotaExecutor, userId: string): Promise<QuotaRow | null> {
