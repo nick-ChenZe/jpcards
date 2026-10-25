@@ -71,6 +71,7 @@ export const cardHistory = sqliteTable('card_history', {
     sentence: text('sentence').notNull(),
     sentenceHtml: text('sentence_html').notNull(),
     gloss: text('gloss').notNull().default(''),
+    reading: text('reading').notNull().default(''),
     audioUrl: text('audio_url'),
     illustrationUrl: text('illustration_url'),
     level: text('level').default('N5'),

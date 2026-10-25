@@ -1,5 +1,7 @@
 import {useSession} from '@/lib/auth';
+import {userFacingMedia, userFacingTextNotice} from '@/lib/userCopy';
 import {useCallback, useState} from 'react';
+import {CardReading} from '../CardReading';
 import {Nav} from '../Nav';
 import {Button} from '../ui/button';
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '../ui/card';
@@ -19,6 +21,7 @@ interface CardDemoResponse {
     id?: string;
     sentence: string;
     sentenceHtml: string;
+    reading?: string;
     gloss?: string;
     imageDataUrl: string;
     audioDataUrl: string;
@@ -54,8 +57,8 @@ export const ExplorePage = () => {
             }
             setCard(body);
         } catch (requestError) {
-            const message = requestError instanceof Error ? requestError.message : 'Unknown error';
-            setError(message);
+            const message = requestError instanceof Error ? requestError.message : '';
+            setError(/[\u4e00-\u9fff]/.test(message) ? message : '请稍后再试');
         } finally {
             setLoading(false);
         }
@@ -69,11 +72,17 @@ export const ExplorePage = () => {
                     <CardHeader>
                         <CardTitle>日语卡片</CardTitle>
                         <CardDescription>
-                            生成一句日语和中文释义。没有文本模型密钥时使用本地练习句。配图和语音未配置时不会请求外部服务。
+                            生成一句日语、读音和中文意思。配图或语音还没开通时，也可以先练习。
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        <Button onClick={generateCard} disabled={loading}>
+                        <Button
+                            type="button"
+                            size="lg"
+                            className="card-generate"
+                            onClick={generateCard}
+                            disabled={loading}
+                        >
                             {loading ? '生成中...' : '生成一张卡片'}
                         </Button>
 
@@ -87,11 +96,16 @@ export const ExplorePage = () => {
                                         className="font-japanese text-lg font-medium leading-relaxed [&_ruby]:font-normal"
                                         dangerouslySetInnerHTML={{__html: card.sentenceHtml}}
                                     />
+                                    <CardReading reading={card.reading} />
                                     {card.gloss
                                         ? <p className="text-sm text-muted-foreground">{card.gloss}</p>
                                         : null}
-                                    {card.text?.message
-                                        ? <p className="text-sm text-muted-foreground">{card.text.message}</p>
+                                    {userFacingTextNotice(card.text?.message)
+                                        ? (
+                                            <p className="text-sm text-muted-foreground">
+                                                {userFacingTextNotice(card.text?.message)}
+                                            </p>
+                                        )
                                         : null}
                                     {card.imageDataUrl
                                         ? (
@@ -103,7 +117,7 @@ export const ExplorePage = () => {
                                         )
                                         : (
                                             <p className="rounded-lg border border-dashed px-3 py-6 text-center text-sm text-muted-foreground">
-                                                {card.image?.message || '配图未配置'}
+                                                {userFacingMedia('image', card.image?.message)}
                                             </p>
                                         )}
                                     {card.audioDataUrl
@@ -114,7 +128,7 @@ export const ExplorePage = () => {
                                         )
                                         : (
                                             <p className="text-sm text-muted-foreground">
-                                                {card.audio?.message || '语音未配置'}
+                                                {userFacingMedia('audio', card.audio?.message)}
                                             </p>
                                         )}
                                 </div>

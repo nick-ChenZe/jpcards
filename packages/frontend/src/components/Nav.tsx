@@ -1,10 +1,10 @@
-import {Session, UserSession} from '@/lib/auth';
+import {UserSession} from '@/lib/auth';
 
 export const Nav = ({session}: {session: UserSession;}) => {
-    const username = session.name;
+    const username = session.name?.trim();
     return (
         <div>
-            <h1>Hi, {username}</h1>
+            <p className="text-xl font-semibold">{username ? `你好，${username}` : '你好'}</p>
         </div>
     );
 };

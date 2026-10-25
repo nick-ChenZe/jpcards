@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {toSentenceWithKanjiRomaji} from '../romaji.js';
+import {toDisplayReading, toSentenceWithKanjiRomaji} from '../romaji.js';
 
 describe('romaji utility', () => {
     it('adds ruby with romaji only for kanji', async () => {
@@ -17,5 +17,12 @@ describe('romaji utility', () => {
         const result = await toSentenceWithKanjiRomaji('こんにちは');
         expect(result).toBe('こんにちは');
         expect(result).not.toContain('<ruby>');
+    });
+
+    it('builds a reading line without calling a speech service', async () => {
+        const reading = await toDisplayReading('水を飲みます。');
+        expect(reading).toContain('みず');
+        expect(reading).toContain('o');
+        expect(reading).not.toMatch(/密钥|外部服务/);
     });
 });

@@ -1,4 +1,5 @@
 import type {Env} from '../types.js';
+import {IMAGE_UNAVAILABLE} from '../userCopy.js';
 import type {ImageGenerationResult, ImageProvider, ImageRequest} from './types.js';
 
 /**
@@ -22,7 +23,7 @@ export const openAIImageProvider: ImageProvider = {
                 code: 'IMAGE_NOT_CONFIGURED',
                 provider: 'openai',
                 model: null,
-                message: '配图未配置'
+                message: IMAGE_UNAVAILABLE
             };
         }
 
@@ -31,7 +32,7 @@ export const openAIImageProvider: ImageProvider = {
             code: 'IMAGE_DISABLED',
             provider: 'openai',
             model: null,
-            message: 'GPT Image 尚未接入，本次不会请求生图。'
+            message: IMAGE_UNAVAILABLE
         };
     }
 };

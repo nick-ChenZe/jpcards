@@ -17,7 +17,7 @@
   只认官方 API key，不要把 Codex 或 ChatGPT 的 OAuth 放进 Worker。
 - 语音使用同一个百炼密钥。有 `DASHSCOPE_API_KEY` 或 `BAILIAN_API_KEY` 时，生成卡片会请求
   `qwen3-tts-flash`（`language_type` 为
-  `Japanese`），并把可播放的音频地址写进这张卡片。没有密钥时仍是「语音未配置」，不会请求百炼。不会请求
+  `Japanese`），并把可播放的音频地址写进这张卡片。没有密钥时仍是「语音暂未开通」，不会请求百炼。不会请求
   MiniMax。火山生图也不在请求路径上。
 - 接入 `qwen-image-3.0` 时先按大约每分钟 20 次排队，不要假设可以更高并发。预览模型也走这个上限。以后真正发请求时要先走
   `QwenImageLimiter`。

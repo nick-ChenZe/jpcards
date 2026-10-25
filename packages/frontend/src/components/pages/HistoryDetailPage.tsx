@@ -1,6 +1,9 @@
+import {formatShanghaiTimestamp} from '@/lib/datetime';
+import {userFacingMedia} from '@/lib/userCopy';
 import {Loader2} from 'lucide-react';
 import {useEffect, useState} from 'react';
 import {useNavigate, useParams} from 'react-router-dom';
+import {CardReading} from '../CardReading';
 import {Button} from '../ui/button';
 import {Card, CardContent} from '../ui/card';
 
@@ -9,10 +12,12 @@ interface CardDetail {
     sentence: string;
     sentenceHtml: string;
     gloss: string;
+    reading?: string;
     audioUrl: string | null;
     illustrationUrl: string | null;
     level: string;
     createdAt: string;
+    createdAtText?: string;
 }
 
 export const HistoryDetailPage = () => {
@@ -44,7 +49,8 @@ export const HistoryDetailPage = () => {
                 }
             } catch (requestError) {
                 if (!cancelled) {
-                    setError(requestError instanceof Error ? requestError.message : 'Unknown error');
+                    const message = requestError instanceof Error ? requestError.message : '';
+                    setError(/[\u4e00-\u9fff]/.test(message) ? message : '暂时无法读取这张卡片。');
                 }
             } finally {
                 if (!cancelled) {
@@ -80,10 +86,15 @@ export const HistoryDetailPage = () => {
                                     className="font-japanese text-lg font-medium leading-relaxed [&_ruby]:font-normal"
                                     dangerouslySetInnerHTML={{__html: card.sentenceHtml}}
                                 />
+                                <CardReading reading={card.reading} />
                                 {card.gloss
                                     ? <p className="text-sm text-muted-foreground">{card.gloss}</p>
                                     : null}
-                                <p className="text-xs text-muted-foreground">{card.level}</p>
+                                <p className="text-xs text-muted-foreground">
+                                    {card.level}
+                                    {' · '}
+                                    {card.createdAtText || formatShanghaiTimestamp(card.createdAt)}
+                                </p>
                                 {card.illustrationUrl
                                     ? (
                                         <img
@@ -94,7 +105,7 @@ export const HistoryDetailPage = () => {
                                     )
                                     : (
                                         <p className="rounded-lg border border-dashed px-3 py-6 text-center text-sm text-muted-foreground">
-                                            配图未配置
+                                            {userFacingMedia('image')}
                                         </p>
                                     )}
                                 {card.audioUrl
@@ -103,7 +114,7 @@ export const HistoryDetailPage = () => {
                                             您的浏览器不支持音频播放。
                                         </audio>
                                     )
-                                    : <p className="text-sm text-muted-foreground">语音未配置</p>}
+                                    : <p className="text-sm text-muted-foreground">{userFacingMedia('audio')}</p>}
                             </CardContent>
                         </Card>
                     )

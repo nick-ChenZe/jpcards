@@ -6,6 +6,7 @@ import {FriendPage} from './components/pages/FriendPage';
 import {HistoryDetailPage} from './components/pages/HistoryDetailPage';
 import {HistoryPage} from './components/pages/HistoryPage';
 import {SettingPage} from './components/pages/SettingPage';
+import {ProductIntro} from './components/ProductIntro';
 import {SignUpForm} from './components/SignUpForm';
 import {Toaster} from './components/ui/sonner';
 
@@ -27,17 +28,17 @@ function App () {
                     <Route
                         path="/login"
                         element={
-                            <div className="flex h-full w-full items-center justify-center">
+                            <ProductIntro>
                                 <LoginForm />
-                            </div>
+                            </ProductIntro>
                         }
                     />
                     <Route
                         path="/sign-up"
                         element={
-                            <div className="flex h-full w-full items-center justify-center">
+                            <ProductIntro>
                                 <SignUpForm />
-                            </div>
+                            </ProductIntro>
                         }
                     />
 

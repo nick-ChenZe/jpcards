@@ -3,8 +3,9 @@ import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/compo
 import {Field, FieldDescription, FieldGroup, FieldLabel} from '@/components/ui/field';
 import {Input} from '@/components/ui/input';
 import {authClient} from '@/lib/auth';
+import {chineseAuthError} from '@/lib/authErrors';
 import {cn} from '@/lib/utils';
-import {useCallback, useEffect} from 'react';
+import {useCallback, useState} from 'react';
 import {Link, useLocation, useNavigate} from 'react-router-dom';
 import {toast} from 'sonner';
 
@@ -14,70 +15,91 @@ export function LoginForm ({
 }: React.ComponentProps<'div'>) {
     const navigate = useNavigate();
     const location = useLocation();
-    const from = (location.state as {from?: {pathname: string;};})?.from?.pathname ?? '/';
+    const requested = (location.state as {from?: {pathname: string;};})?.from?.pathname ?? '/explore';
+    const next = requested.startsWith('/') && !requested.startsWith('//')
+            && requested !== '/login'
+            && requested !== '/sign-up'
+        ? requested
+        : '/explore';
+    const [submitting, setSubmitting] = useState(false);
+    const [formError, setFormError] = useState('');
 
     const handleSubmit = useCallback(
         async (e: React.FormEvent<HTMLFormElement>) => {
             e.preventDefault();
-            const target = e.target as HTMLFormElement;
-            const res = await authClient.signIn.username({
-                username: target.username.value,
-                password: target.password.value
-            });
+            if (submitting) {
+                return;
+            }
+            const data = new FormData(e.currentTarget);
+            setSubmitting(true);
+            setFormError('');
+            try {
+                const res = await authClient.signIn.username({
+                    username: String(data.get('username') ?? ''),
+                    password: String(data.get('password') ?? '')
+                });
 
-            if (res.error) {
-                toast.error('Login failed', {description: res.error.message});
-            } else {
-                toast.success('  signed in');
-                navigate('/', {replace: true});
+                if (res.error) {
+                    const message = chineseAuthError(res.error, '登录没有成功，请检查用户名和密码。');
+                    setFormError(message);
+                    toast.error('登录没有成功', {description: message});
+                    return;
+                }
+                toast.success('登录成功', {description: '正在进入日语卡片'});
+                navigate(next, {replace: true});
+            } catch {
+                const message = '登录没有成功，请稍后再试。';
+                setFormError(message);
+                toast.error('登录没有成功', {description: message});
+            } finally {
+                setSubmitting(false);
             }
         },
-        [navigate, from]
+        [navigate, next, submitting]
     );
 
     return (
-        <div className={cn('flex flex-col gap-6 w-[400px]', className)} {...props}>
+        <div className={cn('flex w-full flex-col gap-6', className)} {...props}>
             <Card>
                 <CardHeader className="text-center">
-                    <CardTitle className="text-xl">Welcome back</CardTitle>
-                    <CardDescription>Login to your account</CardDescription>
+                    <CardTitle className="text-xl">登录</CardTitle>
+                    <CardDescription>使用用户名和密码进入日语卡片</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={handleSubmit}>
                         <FieldGroup>
                             <Field>
-                                <FieldLabel htmlFor="username">Username</FieldLabel>
+                                <FieldLabel htmlFor="username">用户名</FieldLabel>
                                 <Input
                                     id="username"
                                     name="username"
-                                    placeholder="Username"
+                                    placeholder="请输入用户名"
+                                    autoComplete="username"
                                     required
                                 />
                             </Field>
                             <Field>
-                                <div className="flex items-center">
-                                    <FieldLabel htmlFor="password">Password</FieldLabel>
-                                    <a
-                                        href="#"
-                                        className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
-                                    >
-                                        Forgot your password?
-                                    </a>
-                                </div>
+                                <FieldLabel htmlFor="password">密码</FieldLabel>
                                 <Input
                                     id="password"
                                     name="password"
                                     type="password"
                                     required
-                                    placeholder="********"
+                                    autoComplete="current-password"
+                                    placeholder="请输入密码"
                                 />
                             </Field>
+                            {formError
+                                ? <p className="text-sm text-red-500" role="alert">{formError}</p>
+                                : null}
                             <Field>
-                                <Button type="submit">Login</Button>
+                                <Button type="submit" className="w-full" disabled={submitting}>
+                                    {submitting ? '登录中...' : '登录'}
+                                </Button>
                                 <FieldDescription className="text-center">
-                                    Don&apos;t have an account?{' '}
+                                    还没有账号？{' '}
                                     <Link to="/sign-up" className="underline underline-offset-4 hover:text-primary">
-                                        Sign up
+                                        去注册
                                     </Link>
                                 </FieldDescription>
                             </Field>

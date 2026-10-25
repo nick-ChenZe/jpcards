@@ -167,7 +167,7 @@ describe('createImageProvider', () => {
         expect(result.ok).toBe(false);
         if (!result.ok) {
             expect(result.code).toBe('IMAGE_NOT_CONFIGURED');
-            expect(result.message).toBe('配图未配置');
+            expect(result.message).toBe('配图暂未开通');
         }
     });
 
