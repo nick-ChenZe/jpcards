@@ -1,4 +1,7 @@
-import {shanghaiDayKeyFromStored, shanghaiDayWindow} from '../../../backend/src/utils/shanghaiTime';
+import {shanghaiDayWindow} from '../../../backend/src/utils/shanghaiTime';
+
+export {wallDateFromStored} from '../../../backend/src/utils/shanghaiTime';
+export type {WallDate} from '../../../backend/src/utils/shanghaiTime';
 
 const WEEKDAYS = ['日曜日', '月曜日', '火曜日', '水曜日', '木曜日', '金曜日', '土曜日'];
 
@@ -11,30 +14,6 @@ export function shanghaiRitualDate (now: Date = new Date()): {weekday: string; f
         weekday: WEEKDAYS[shifted.getUTCDay()] ?? '',
         fullDate: `${Number(monthText)}月${Number(dayText)}日`,
         dayKey
-    };
-}
-
-export interface WallDate {
-    key: string;
-    month: number;
-    day: number;
-    breath: string;
-}
-
-/** 日签墙按北京时间自然日分组。今天写成「今天」，其余是「M月D日」。 */
-export function wallDateFromStored (value: string, todayKey: string): WallDate {
-    const key = shanghaiDayKeyFromStored(value);
-    if (!key) {
-        return {key: value || 'unknown', month: 0, day: 0, breath: value};
-    }
-    const [, monthText, dayText] = key.split('-');
-    const month = Number(monthText);
-    const day = Number(dayText);
-    return {
-        key,
-        month,
-        day,
-        breath: key === todayKey ? '今天' : `${month}月${day}日`
     };
 }
 

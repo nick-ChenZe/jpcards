@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {formatShanghaiTimestamp, shanghaiDayWindow} from '../shanghaiTime.js';
+import {formatShanghaiTimestamp, shanghaiDayWindow, wallDateFromStored} from '../shanghaiTime.js';
 
 describe('formatShanghaiTimestamp', () => {
     it('shows a bare UTC timestamp in Asia/Shanghai instead of 凌晨 UTC', () => {
@@ -37,6 +37,56 @@ describe('shanghaiDayWindow', () => {
         expect(shanghaiDayWindow(new Date('2026-10-25T16:00:00.000Z'))).toEqual({
             dayKey: '2026-10-26',
             resetsAt: '2026-10-26T16:00:00.000Z'
+        });
+    });
+});
+
+describe('wallDateFromStored', () => {
+    it('uses each card Shanghai calendar date instead of labeling the wall 今天', () => {
+        expect(wallDateFromStored('2026-10-23 03:00:00')).toEqual({
+            key: '2026-10-23',
+            month: 10,
+            day: 23,
+            breath: '10月23日'
+        });
+        expect(wallDateFromStored('2026-10-24 03:00:00').breath).toBe('10月24日');
+        expect(wallDateFromStored('2026-10-25 02:00:00')).toMatchObject({
+            key: '2026-10-25',
+            month: 10,
+            day: 25,
+            breath: '10月25日'
+        });
+        expect(wallDateFromStored('2026-10-25T16:30:00Z')).toEqual({
+            key: '2026-10-26',
+            month: 10,
+            day: 26,
+            breath: '10月26日'
+        });
+        const labels = ['2026-10-23 03:00:00', '2026-10-24 03:00:00', '2026-10-25 02:00:00']
+            .map((value) => wallDateFromStored(value).breath);
+        expect(labels).toEqual(['10月23日', '10月24日', '10月25日']);
+        expect(labels).not.toContain('今天');
+    });
+
+    it('keeps a timestamp that already has an offset on that Shanghai day', () => {
+        expect(wallDateFromStored('2026-10-25T12:20:00+08:00')).toMatchObject({
+            key: '2026-10-25',
+            breath: '10月25日'
+        });
+    });
+
+    it('leaves an unreadable timestamp as-is instead of calling it 今天', () => {
+        expect(wallDateFromStored('not-a-date')).toEqual({
+            key: 'not-a-date',
+            month: 0,
+            day: 0,
+            breath: 'not-a-date'
+        });
+        expect(wallDateFromStored('')).toEqual({
+            key: 'unknown',
+            month: 0,
+            day: 0,
+            breath: ''
         });
     });
 });

@@ -68,6 +68,34 @@ export function shanghaiDayKeyFromStored (value: string): string | null {
     return shanghaiDayWindow(instant).dayKey;
 }
 
+export interface WallDate {
+    key: string;
+    month: number;
+    day: number;
+    /** 墙上读得出来的日期，例如「10月25日」。当天也不写成「今天」。 */
+    breath: string;
+}
+
+/**
+ * 日签墙按北京时间自然日取日期。
+ * 每张卡片、每个日分组都写「M月D日」，不用「今天」把整天墙标成同一天。
+ */
+export function wallDateFromStored (value: string): WallDate {
+    const key = shanghaiDayKeyFromStored(value);
+    if (!key) {
+        return {key: value || 'unknown', month: 0, day: 0, breath: value};
+    }
+    const [, monthText, dayText] = key.split('-');
+    const month = Number(monthText);
+    const day = Number(dayText);
+    return {
+        key,
+        month,
+        day,
+        breath: `${month}月${day}日`
+    };
+}
+
 /** 在 YYYY-MM-DD 上移动自然日。不处理时区，调用方应已是北京时间日期。 */
 export function shiftShanghaiDayKey (dayKey: string, deltaDays: number): string {
     const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dayKey);
