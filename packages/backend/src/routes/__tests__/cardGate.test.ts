@@ -45,6 +45,7 @@ vi.mock('../../utils/romaji.js', () => ({
 import {resetQwenImageLimiter} from '../../image/qwenQueue.js';
 import {toDisplayReading} from '../../utils/romaji.js';
 import {buildCardWithMemory} from '../card.js';
+import {CardGlossError} from '../cardGlossError.js';
 
 describe('buildCardWithMemory vendor gate', () => {
     beforeEach(() => {
@@ -290,37 +291,64 @@ describe('buildCardWithMemory vendor gate', () => {
         }
     });
 
-    it('logs instead of pretending a reading exists when both sources are empty', async () => {
+    it('does not store a model card when the Chinese gloss is missing', async () => {
         const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+        vi.mocked(toDisplayReading).mockClear();
         hoisted.create.mockResolvedValueOnce({
             choices: [{message: {content: 'こんにちは。'}}]
         });
-        vi.mocked(toDisplayReading).mockResolvedValueOnce('');
+        const fetchImpl = vi.fn();
         try {
-            const result = await buildCardWithMemory({
+            await expect(buildCardWithMemory({
                 db: {} as never,
                 userId: 'user-1',
                 env: {
                     CHAT_API_KEY: 'chat-key',
                     CHAT_API_ENDPOINT: 'https://api.deepseek.com/v1'
                 } as Env,
-                fetchImpl: vi.fn()
-            });
+                fetchImpl
+            })).rejects.toBeInstanceOf(CardGlossError);
+            expect(memory.insertSentence).not.toHaveBeenCalled();
+            expect(history.insertCardHistory).not.toHaveBeenCalled();
+            expect(history.updateCardAudio).not.toHaveBeenCalled();
+            expect(history.updateCardIllustration).not.toHaveBeenCalled();
+            expect(toDisplayReading).not.toHaveBeenCalled();
+            expect(fetchImpl).not.toHaveBeenCalled();
+            expect(error.mock.calls.map((call) => String(call[0]))).toContain('[card] model gloss missing');
+        } finally {
+            error.mockRestore();
+        }
+    });
 
-            expect(result.ok).toBe(true);
-            if (result.ok) {
-                expect(result.card.sentence).toBe('こんにちは。');
-                expect(result.card.reading).toBe('');
-                expect(result.card.gloss).toBe('');
-            }
-            expect(history.insertCardHistory).toHaveBeenCalledWith(
-                expect.anything(),
-                expect.objectContaining({reading: '', gloss: ''})
-            );
-            expect(error.mock.calls.map((call) => String(call[0]))).toEqual(expect.arrayContaining([
-                '[reading] no kana stored',
-                '[card] model gloss missing'
-            ]));
+    it('does not store a model card when the gloss is not Chinese', async () => {
+        const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+        hoisted.create.mockResolvedValueOnce({
+            choices: [{
+                message: {
+                    content: JSON.stringify({
+                        sentence: 'こんにちは。',
+                        reading: 'こんにちは。',
+                        gloss: 'hello'
+                    })
+                }
+            }]
+        });
+        const fetchImpl = vi.fn();
+        try {
+            await expect(buildCardWithMemory({
+                db: {} as never,
+                userId: 'user-1',
+                env: {
+                    CHAT_API_KEY: 'chat-key',
+                    CHAT_API_ENDPOINT: 'https://api.deepseek.com/v1'
+                } as Env,
+                fetchImpl
+            })).rejects.toMatchObject({
+                name: 'CardGlossError',
+                message: '这张没有中文意思，没有保存。请再试一次。'
+            });
+            expect(history.insertCardHistory).not.toHaveBeenCalled();
+            expect(fetchImpl).not.toHaveBeenCalled();
         } finally {
             error.mockRestore();
         }

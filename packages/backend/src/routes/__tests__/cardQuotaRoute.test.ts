@@ -38,6 +38,8 @@ vi.mock('../history.js', () => ({
 
 import app from '../../index.js';
 import {CARD_GENERATION_INTERVAL_MS, DAILY_CARD_LIMIT} from '../../quota/cardQuota.js';
+import {CARD_GLOSS_MISSING_MESSAGE} from '../../userCopy.js';
+import {CardGlossError} from '../cardGlossError.js';
 
 const migrationSql = readFileSync(new URL('../../../migrations/0004_daily_card_quota.sql', import.meta.url), 'utf8');
 const dayStart = new Date('2026-10-25T02:00:00.000Z');
@@ -167,6 +169,18 @@ describe('card quota routes', () => {
         expect(await failed.json()).toEqual({error: 'CARD_GEN_FAILED', message: '生成失败，请稍后再试。'});
         expect(await (await app.request('/api/me/quota', {}, env)).json()).toMatchObject({used: 1, remaining: 19});
         errorSpy.mockRestore();
+
+        vi.setSystemTime(new Date(dayStart.getTime() + CARD_GENERATION_INTERVAL_MS));
+        cardApi.buildCardWithMemory.mockRejectedValueOnce(new CardGlossError());
+        const glossError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+        const missingGloss = await app.request('/api/card', {}, env);
+        expect(missingGloss.status).toBe(422);
+        expect(await missingGloss.json()).toEqual({
+            error: 'CARD_GLOSS_MISSING',
+            message: CARD_GLOSS_MISSING_MESSAGE
+        });
+        expect(await (await app.request('/api/me/quota', {}, env)).json()).toMatchObject({used: 2, remaining: 18});
+        glossError.mockRestore();
     });
 
     it('rejects anonymous quota and card requests', async () => {

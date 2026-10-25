@@ -3,6 +3,7 @@ import {createDb} from './database/db.js';
 import {readCardQuota, reserveCardQuota} from './quota/cardQuota.js';
 import {auth, AuthConfigError} from './routes/auth.js';
 import {buildCardWithMemory} from './routes/card.js';
+import {CardGlossError} from './routes/cardGlossError.js';
 import {getHistoryCardResponse, getHistoryResponse} from './routes/history.js';
 import type {Env} from './types.js';
 
@@ -101,6 +102,9 @@ app.get('/api/card', async (c) => {
         });
         return c.json(card.card);
     } catch (error) {
+        if (error instanceof CardGlossError) {
+            return c.json({error: error.code, message: error.message}, 422);
+        }
         console.error('Failed to build card', error);
         return c.json({error: 'CARD_GEN_FAILED', message: '生成失败，请稍后再试。'}, 500);
     }
