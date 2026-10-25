@@ -102,9 +102,10 @@ pnpm --filter @jpcards/backend eval:image
 2. `pnpm --filter @jpcards/backend exec wrangler d1 create jpcards`，把输出的 database id 写进 `wrangler.jsonc` 的
    `database_id`。现在的全 0 id 只能本地开发。
 3. `pnpm --filter @jpcards/backend db:migrate:remote`。这条命令会把 `packages/backend/migrations/`
-   里还没跑过的迁移应用到远程 D1，包括每日额度表 `0004_daily_card_quota.sql` 和朗读分词
-   `0005_card_reading_tokens.sql`。跟词高亮的代码会读取 `reading_tokens` 列，所以要在 `pnpm deploy`
-   **之前**先跑远程迁移。如果新代码已经部署上去了，马上补跑一次。没迁移之前，生成和历史读取会因为缺列失败。本地
+   里还没跑过的迁移应用到远程 D1，包括每日额度表 `0004_daily_card_quota.sql`、朗读分词
+   `0005_card_reading_tokens.sql`，以及抽签幂等表 `0006_card_generation_idempotency.sql`。跟词高亮的代码会读取
+   `reading_tokens` 列，抽签会写入幂等表，所以要在 `pnpm deploy`
+   **之前**先跑远程迁移。如果新代码已经部署上去了，马上补跑一次。没迁移之前，生成和历史读取会因为缺列或缺表失败。本地
    `pnpm dev` 会自己跑 `db:migrate:local`。
 4. `pnpm --filter @jpcards/backend exec wrangler secret put BETTER_AUTH_SECRET`
 5. 全量卡片默认关闭。要指定管理员时再执行
