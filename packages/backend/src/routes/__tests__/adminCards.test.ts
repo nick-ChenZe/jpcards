@@ -28,6 +28,7 @@ vi.mock('../auth.js', () => ({
 }));
 
 import app from '../../index.js';
+import {countStreakDays} from '../../utils/streak.js';
 
 const migrationSql = ['0001_init.sql', '0002_card_gloss.sql', '0003_card_reading.sql', '0005_card_reading_tokens.sql']
     .map((name) => readFileSync(new URL(`../../../migrations/${name}`, import.meta.url), 'utf8'))
@@ -148,7 +149,8 @@ describe('admin cards', () => {
             email: 'other@example.com',
             name: '其他人',
             username: null,
-            isAdmin: false
+            isAdmin: false,
+            streakDays: countStreakDays(['2026-10-25 01:00:00'], new Date())
         });
         expect(auditEntries(logSpy)).toEqual([]);
     });
@@ -191,7 +193,11 @@ describe('admin cards', () => {
             email: 'Admin@Example.com',
             name: '管理员',
             username: 'admin',
-            isAdmin: true
+            isAdmin: true,
+            streakDays: countStreakDays([
+                '2026-10-25 03:00:00',
+                '2026-10-25 02:00:00'
+            ], new Date())
         });
 
         const first = await app.request('/api/admin/cards?page=1&pageSize=2', {}, env);

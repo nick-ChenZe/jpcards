@@ -123,6 +123,16 @@ async function attachReadingTokens (sentence: string, options: ReadingOptions): 
     }
 }
 
+/** 暖纸调。日签插画保持奶油与赭石，不要近黑夜景。 */
+export function dayCardIllustrationPrompt (sentence: string): string {
+    return [
+        'Warm paper-toned illustration, cream and ochre palette, soft vermilion accents.',
+        'Daylight or gentle paper-lantern warmth.',
+        'No near-black night scenes, no dark skies, no cold neon, no black background.',
+        `A clean illustration that matches this Japanese sentence: ${sentence}`
+    ].join(' ');
+}
+
 async function attachMedia (env: Env, sentence: string, fetchImpl?: typeof fetch): Promise<{
     image: ImageGenerationResult;
     audio: SpeechResult;
@@ -131,7 +141,7 @@ async function attachMedia (env: Env, sentence: string, fetchImpl?: typeof fetch
     try {
         const image = await createImageProvider(env).generate(
             {
-                prompt: `A clean illustration that matches this Japanese sentence: ${sentence}`
+                prompt: dayCardIllustrationPrompt(sentence)
             },
             env,
             fetchImpl

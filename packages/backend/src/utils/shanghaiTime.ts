@@ -10,10 +10,8 @@ export function formatShanghaiTimestamp (value: string): string {
     if (!trimmed) {
         return '';
     }
-    const hasZone = /(?:z|[+-]\d{2}:?\d{2})$/i.test(trimmed);
-    const iso = hasZone ? trimmed : `${trimmed.replace(' ', 'T')}Z`;
-    const date = new Date(iso);
-    if (Number.isNaN(date.getTime())) {
+    const date = instantFromStoredTimestamp(trimmed);
+    if (!date) {
         return trimmed;
     }
     const shanghai = new Date(date.getTime() + SHANGHAI_OFFSET_MS);
@@ -32,6 +30,21 @@ export interface ShanghaiDayWindow {
     resetsAt: string;
 }
 
+/** 库里的 UTC 时间戳解析成时刻。解析失败返回 null。 */
+export function instantFromStoredTimestamp (value: string): Date | null {
+    const trimmed = value.trim();
+    if (!trimmed) {
+        return null;
+    }
+    const hasZone = /(?:z|[+-]\d{2}:?\d{2})$/i.test(trimmed);
+    const iso = hasZone ? trimmed : `${trimmed.replace(' ', 'T')}Z`;
+    const date = new Date(iso);
+    if (Number.isNaN(date.getTime())) {
+        return null;
+    }
+    return date;
+}
+
 /** 北京时间自然日。上海没有夏令时，固定按 UTC+8 切日。 */
 export function shanghaiDayWindow (now: Date = new Date()): ShanghaiDayWindow {
     const shifted = new Date(now.getTime() + SHANGHAI_OFFSET_MS);
@@ -44,4 +57,26 @@ export function shanghaiDayWindow (now: Date = new Date()): ShanghaiDayWindow {
         dayKey,
         resetsAt: new Date(resetsAtMs).toISOString()
     };
+}
+
+/** 存储时间对应的北京时间日期。无法解析时返回 null。 */
+export function shanghaiDayKeyFromStored (value: string): string | null {
+    const instant = instantFromStoredTimestamp(value);
+    if (!instant) {
+        return null;
+    }
+    return shanghaiDayWindow(instant).dayKey;
+}
+
+/** 在 YYYY-MM-DD 上移动自然日。不处理时区，调用方应已是北京时间日期。 */
+export function shiftShanghaiDayKey (dayKey: string, deltaDays: number): string {
+    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dayKey);
+    if (!match) {
+        return dayKey;
+    }
+    const shifted = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3]) + deltaDays));
+    const year = shifted.getUTCFullYear();
+    const month = String(shifted.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(shifted.getUTCDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
 }

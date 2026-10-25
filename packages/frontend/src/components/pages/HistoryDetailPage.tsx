@@ -3,7 +3,6 @@ import {userFacingMedia} from '@/lib/userCopy';
 import {useEffect, useState} from 'react';
 import {useNavigate, useParams} from 'react-router-dom';
 import {TodayCard} from '../TodayCard';
-import {Button} from '../ui/button';
 
 interface CardDetail {
     id: string;
@@ -64,11 +63,26 @@ export const HistoryDetailPage = () => {
     }, [id]);
 
     return (
-        <div className="px-4 py-3 pb-20">
+        <div className="history-screen">
             <div className="mx-auto flex max-w-lg flex-col gap-4">
-                <Button variant="outline" className="self-start" onClick={() => navigate('/history')}>
-                    返回历史
-                </Button>
+                <div className="detail-topbar">
+                    <button type="button" className="back-btn" aria-label="返回" onClick={() => navigate('/history')}>
+                        <svg
+                            width="22"
+                            height="22"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            aria-hidden="true"
+                        >
+                            <path d="M15 18l-6-6 6-6" />
+                        </svg>
+                    </button>
+                    <span className="title">日签详情</span>
+                </div>
                 {loading
                     ? <TodayCard loading loadingLabel="正在读取这张卡片" />
                     : error
