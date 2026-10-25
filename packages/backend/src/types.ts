@@ -18,10 +18,10 @@ export interface Env {
     BETTER_AUTH_TRUSTED_ORIGINS?: string;
 
     /**
-     * 管理员邮箱，英文逗号分隔。只放 Worker secret 或本机 `.dev.vars`。
+     * 管理员 userId，英文逗号分隔。只放 Worker secret 或本机 `.dev.vars`。
      * 未设置时没有任何管理员，`GET /api/admin/cards` 一律 403。
      */
-    ADMIN_EMAILS?: string;
+    ADMIN_USER_IDS?: string;
 
     /** 文本模型。缺一则生卡关闭，且不会请求 DeepSeek。 */
     CHAT_API_KEY?: string;

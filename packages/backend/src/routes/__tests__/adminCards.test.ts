@@ -1,6 +1,6 @@
 import {readFileSync} from 'node:fs';
 import {DatabaseSync} from 'node:sqlite';
-import {beforeEach, describe, expect, it, vi} from 'vitest';
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {Env} from '../../types.js';
 import {ADMIN_FORBIDDEN_MESSAGE} from '../../userCopy.js';
 
@@ -97,11 +97,24 @@ function createDb () {
         DB: db,
         ASSETS: {fetch: async () => new Response('ok')},
         BETTER_AUTH_SECRET: 'local-test-secret-not-used-for-admin',
-        ADMIN_EMAILS: 'admin@example.com'
+        ADMIN_USER_IDS: ' user-admin , , '
     } as unknown as Env;
 }
 
+function auditEntries (spy: {mock: {calls: unknown[][];};}) {
+    return spy.mock.calls.flatMap((call) => {
+        try {
+            const parsed = JSON.parse(String(call[0])) as {audit?: string;};
+            return parsed.audit ? [parsed] : [];
+        } catch {
+            return [];
+        }
+    });
+}
+
 describe('admin cards', () => {
+    let logSpy: ReturnType<typeof vi.spyOn>;
+
     beforeEach(() => {
         sessionState.user = {
             id: 'user-admin',
@@ -109,6 +122,11 @@ describe('admin cards', () => {
             email: 'Admin@Example.com',
             username: 'admin'
         };
+        logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+        logSpy.mockRestore();
     });
 
     it('rejects anonymous and non-admin callers before reading cards', async () => {
@@ -125,7 +143,14 @@ describe('admin cards', () => {
         expect(JSON.stringify(body)).not.toContain('管理员的句子');
 
         const me = await app.request('/api/me', {}, env);
-        expect(await me.json()).toMatchObject({email: 'other@example.com', admin: false});
+        expect(await me.json()).toEqual({
+            id: 'user-other',
+            email: 'other@example.com',
+            name: '其他人',
+            username: null,
+            isAdmin: false
+        });
+        expect(auditEntries(logSpy)).toEqual([]);
     });
 
     it('does not query the database when the allowlist misses the caller', async () => {
@@ -137,14 +162,15 @@ describe('admin cards', () => {
                 }
             },
             ASSETS: {fetch: async () => new Response('ok')},
-            ADMIN_EMAILS: 'owner@example.com'
+            ADMIN_USER_IDS: 'admin@example.com'
         } as unknown as Env;
         const denied = await app.request('/api/admin/cards', {}, env);
         expect(denied.status).toBe(403);
+        expect(await denied.json()).toMatchObject({error: 'FORBIDDEN', message: ADMIN_FORBIDDEN_MESSAGE});
 
         const unset = {
             ...env,
-            ADMIN_EMAILS: undefined,
+            ADMIN_USER_IDS: undefined,
             DB: {
                 prepare() {
                     throw new Error('should not query');
@@ -152,16 +178,20 @@ describe('admin cards', () => {
             }
         } as unknown as Env;
         expect((await app.request('/api/admin/cards', {}, unset)).status).toBe(403);
+        expect((await app.request('/api/admin/cards', {}, {...unset, ADMIN_USER_IDS: '  ,  '})).status).toBe(403);
+        expect(auditEntries(logSpy)).toEqual([]);
     });
 
-    it('lists every card for an allowlisted email and keeps personal history scoped', async () => {
+    it('lists every card for an allowlisted user id and keeps personal history scoped', async () => {
         const env = createDb();
         const me = await app.request('/api/me', {}, env);
         expect(me.status).toBe(200);
-        expect(await me.json()).toMatchObject({
+        expect(await me.json()).toEqual({
             id: 'user-admin',
             email: 'Admin@Example.com',
-            admin: true
+            name: '管理员',
+            username: 'admin',
+            isAdmin: true
         });
 
         const first = await app.request('/api/admin/cards?page=1&pageSize=2', {}, env);
@@ -169,6 +199,7 @@ describe('admin cards', () => {
         const pageOne = await first.json() as {
             items: Array<{
                 id: string;
+                userId: string;
                 sentence: string;
                 gloss: string;
                 reading: string;
@@ -182,6 +213,8 @@ describe('admin cards', () => {
         expect(pageOne.pagination).toEqual({page: 1, pageSize: 2, total: 4, totalPages: 2});
         expect(pageOne.items.map((item) => item.id)).toEqual(['card-new', 'card-mid']);
         expect(pageOne.items[0]).toMatchObject({
+            id: 'card-new',
+            userId: 'user-admin',
             sentence: '管理员的句子',
             gloss: '自己的意思',
             reading: 'かんり',
@@ -195,6 +228,17 @@ describe('admin cards', () => {
                 username: 'admin'
             }
         });
+        expect(auditEntries(logSpy)).toEqual([
+            expect.objectContaining({
+                audit: 'admin.cards.list',
+                adminId: 'user-admin',
+                resultCount: 2
+            })
+        ]);
+        const logged = auditEntries(logSpy)[0] as {timestamp: string;};
+        expect(logged.timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+        expect(JSON.stringify(logged)).not.toContain('句子');
+        expect(JSON.stringify(logged)).not.toContain('https://');
 
         const second = await app.request('/api/admin/cards?page=2&pageSize=2', {}, env);
         const pageTwo = await second.json() as {
@@ -218,6 +262,14 @@ describe('admin cards', () => {
         const ownHistory = await app.request('/api/history?pageSize=20', {}, env);
         const own = await ownHistory.json() as {items: Array<{id: string; sentence: string;}>;};
         expect(own.items.map((item) => item.sentence)).toEqual(['管理员的句子', '中间的句子']);
+        const otherDetail = await app.request('/api/history/card-old', {}, env);
+        expect(otherDetail.status).toBe(404);
+
+        for (const method of ['POST', 'PUT', 'PATCH', 'DELETE']) {
+            const write = await app.request('/api/admin/cards', {method}, env);
+            expect(write.status).not.toBe(200);
+            expect(write.status).not.toBe(204);
+        }
 
         sessionState.user = {id: 'user-other', name: '其他人', email: 'other@example.com'};
         const otherHistory = await app.request('/api/history?pageSize=20', {}, env);

@@ -1,8 +1,8 @@
 import {Hono} from 'hono';
-import {isAdminEmail} from './config/admin.js';
+import {isAdminUserId} from './config/admin.js';
 import {createDb} from './database/db.js';
 import {readCardQuota, refundCardQuota, reserveCardQuota} from './quota/cardQuota.js';
-import {getAdminCardsResponse} from './routes/adminCards.js';
+import {getAdminCardsResponse, logAdminCardList} from './routes/adminCards.js';
 import {auth, AuthConfigError} from './routes/auth.js';
 import {buildCardWithMemory} from './routes/card.js';
 import {CardGlossError} from './routes/cardGlossError.js';
@@ -90,7 +90,7 @@ app.get('/api/me', (c) => {
         email: current.email,
         name: current.name,
         username,
-        admin: isAdminEmail(c.env.ADMIN_EMAILS, current.email)
+        isAdmin: isAdminUserId(c.env.ADMIN_USER_IDS, current.id)
     });
 });
 
@@ -152,13 +152,15 @@ app.get('/api/history/:id', async (c) => {
 });
 
 app.get('/api/admin/cards', async (c) => {
-    // 角色闸默认关闭：ADMIN_EMAILS 未设置或邮箱不在名单里时，在查库之前返回 403。
-    if (!isAdminEmail(c.env.ADMIN_EMAILS, c.var.session!.user.email)) {
+    // 只认 ADMIN_USER_IDS。未设置或不在名单里时，在查库之前返回 403。这里只读，不改卡片。
+    const adminId = c.var.session!.user.id;
+    if (!isAdminUserId(c.env.ADMIN_USER_IDS, adminId)) {
         return c.json({error: 'FORBIDDEN', message: ADMIN_FORBIDDEN_MESSAGE}, 403);
     }
 
     try {
         const data = await getAdminCardsResponse(createDb(c.env.DB), c.req.query());
+        logAdminCardList(adminId, data.items.length);
         return c.json(data);
     } catch (error) {
         console.error('Failed to fetch admin cards', error);
