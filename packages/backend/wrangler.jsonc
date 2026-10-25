@@ -14,7 +14,7 @@
         {
             "binding": "DB",
             "database_name": "jpcards",
-            "database_id": "00000000-0000-0000-0000-000000000000",
+            "database_id": "5b998b68-97d1-4710-8d46-556c8f4c7a70",
             "migrations_dir": "migrations"
         }
     ]
