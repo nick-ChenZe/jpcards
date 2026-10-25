@@ -54,6 +54,17 @@ export async function updateCardAudio (
         .where(and(eq(cardHistory.id, cardId), eq(cardHistory.userId, userId)));
 }
 
+export async function updateCardIllustration (
+    db: AppDatabase,
+    cardId: string,
+    userId: string,
+    illustrationUrl: string
+): Promise<void> {
+    await db.update(cardHistory)
+        .set({illustrationUrl})
+        .where(and(eq(cardHistory.id, cardId), eq(cardHistory.userId, userId)));
+}
+
 export async function updateCardAssets (
     db: AppDatabase,
     cardId: string,

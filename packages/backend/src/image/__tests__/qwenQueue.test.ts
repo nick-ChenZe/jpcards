@@ -1,6 +1,6 @@
 import {readFileSync} from 'node:fs';
 import {describe, expect, it} from 'vitest';
-import {QWEN_PRO_MIN_INTERVAL_MS, QWEN_PRO_RPM, QwenImageLimiter} from '../qwenQueue.js';
+import {paceQwenImage, QWEN_PRO_MIN_INTERVAL_MS, QWEN_PRO_RPM, QwenImageLimiter} from '../qwenQueue.js';
 
 describe('Qwen pro rate limit', () => {
     it('spaces calls for about 20 requests per minute', () => {
@@ -13,6 +13,20 @@ describe('Qwen pro rate limit', () => {
         expect(first.waitMs).toBe(0);
         expect(second.waitMs).toBe(3000);
         expect(second.nextAt - first.nextAt).toBe(3000);
+    });
+
+    it('waits for the planned gap before the next send', async () => {
+        const limiter = new QwenImageLimiter();
+        const slept: number[] = [];
+        const first = await paceQwenImage(limiter, 1_000, async (ms) => {
+            slept.push(ms);
+        });
+        const second = await paceQwenImage(limiter, 1_000, async (ms) => {
+            slept.push(ms);
+        });
+        expect(first).toBe(0);
+        expect(second).toBe(3000);
+        expect(slept).toEqual([3000]);
     });
 });
 

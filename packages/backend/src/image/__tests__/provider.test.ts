@@ -1,7 +1,8 @@
 import {readFileSync} from 'node:fs';
-import {describe, expect, it, vi} from 'vitest';
+import {beforeEach, describe, expect, it, vi} from 'vitest';
 import type {Env} from '../../types.js';
 import {createImageProvider, openAIImageProvider, qwenImageProvider, seedreamImageProvider} from '../provider.js';
+import {resetQwenImageLimiter} from '../qwenQueue.js';
 
 const imageDir = new URL('..', import.meta.url);
 
@@ -19,7 +20,28 @@ async function expectNoFetch (run: () => Promise<unknown>) {
     }
 }
 
+function imageResponse (): Response {
+    return new Response(
+        JSON.stringify({
+            output: {
+                choices: [{
+                    message: {
+                        content: [{
+                            image: 'https://dashscope-result-sz.oss-cn-shenzhen.aliyuncs.com/card.png?Expires=1'
+                        }]
+                    }
+                }]
+            }
+        }),
+        {status: 200, headers: {'Content-Type': 'application/json'}}
+    );
+}
+
 describe('createImageProvider', () => {
+    beforeEach(() => {
+        resetQwenImageLimiter();
+    });
+
     it('defaults to noop when no image key is set', () => {
         expect(createImageProvider({} as Env).id).toBe('noop');
     });
@@ -44,11 +66,15 @@ describe('createImageProvider', () => {
             const provider = createImageProvider(fromAlias);
             expect(provider.id).toBe('qwen');
             expect(provider.model).toBe('qwen-image-3.0');
-            const result = await provider.generate({prompt: 'name card'}, fromAlias);
-            expect(result.ok).toBe(false);
-            if (!result.ok) {
+            const fetchImpl = vi.fn(async () => imageResponse());
+            const result = await provider.generate({prompt: 'name card'}, fromAlias, fetchImpl);
+            expect(result.ok).toBe(true);
+            if (result.ok) {
                 expect(result.model).toBe('qwen-image-3.0');
             }
+            const [, init] = fetchImpl.mock.calls[0] as unknown as [string, RequestInit];
+            expect(new Headers(init.headers).get('Authorization')).toBe('Bearer worker-binding-only');
+            expect(String(init.body)).not.toContain('process-env-must-not-be-used');
         } finally {
             if (previousDashScope === undefined) {
                 delete process.env.DASHSCOPE_API_KEY;
@@ -68,26 +94,35 @@ describe('createImageProvider', () => {
         const provider = createImageProvider(env);
         expect(provider.id).toBe('qwen');
         expect(provider.model).toBe('qwen-image-3.0');
-        const result = await provider.generate({prompt: 'name card'}, env);
-        expect(result.ok).toBe(false);
-        if (!result.ok) {
+        const fetchImpl = vi.fn(async () => imageResponse());
+        const result = await provider.generate({prompt: 'name card'}, env, fetchImpl);
+        expect(result.ok).toBe(true);
+        if (result.ok) {
             expect(result.model).toBe('qwen-image-3.0');
+            expect(result.imageDataUrl).toContain('aliyuncs.com');
         }
+        const body = JSON.parse(String((fetchImpl.mock.calls[0] as unknown as [string, RequestInit])[1].body));
+        expect(body.model).toBe('qwen-image-3.0');
     });
 
     it('keeps turbo as an explicit preview and never the default', async () => {
         const preview = {DASHSCOPE_API_KEY: 'dashscope-key', QWEN_IMAGE_TIER: 'turbo'} as Env;
         expect(createImageProvider(preview).model).toBe('qwen-image-3.0');
-        const result = await createImageProvider(preview).generate({prompt: 'name card'}, preview);
-        expect(result.ok).toBe(false);
-        if (!result.ok) {
+        const previewFetch = vi.fn(async () => imageResponse());
+        const result = await createImageProvider(preview).generate({prompt: 'name card'}, preview, previewFetch);
+        expect(result.ok).toBe(true);
+        if (result.ok) {
             expect(result.model).toBe('qwen-image-2.1-turbo');
         }
+        expect(JSON.parse(String((previewFetch.mock.calls[0] as unknown as [string, RequestInit])[1].body)).model)
+            .toBe('qwen-image-2.1-turbo');
 
+        resetQwenImageLimiter();
         const unset = {DASHSCOPE_API_KEY: 'dashscope-key', QWEN_IMAGE_TIER: ''} as Env;
-        const formal = await createImageProvider(unset).generate({prompt: 'name card'}, unset);
-        expect(formal.ok).toBe(false);
-        if (!formal.ok) {
+        const formalFetch = vi.fn(async () => imageResponse());
+        const formal = await createImageProvider(unset).generate({prompt: 'name card'}, unset, formalFetch);
+        expect(formal.ok).toBe(true);
+        if (formal.ok) {
             expect(formal.model).toBe('qwen-image-3.0');
         }
     });
@@ -141,10 +176,9 @@ describe('createImageProvider', () => {
         ).toBe('noop');
     });
 
-    it('does not call the network for noop, Qwen, Seedream, or OpenAI', async () => {
+    it('does not call the network for noop, Seedream, or OpenAI', async () => {
         const cases = [
             createImageProvider({} as Env),
-            qwenImageProvider,
             seedreamImageProvider,
             openAIImageProvider
         ];
@@ -162,6 +196,13 @@ describe('createImageProvider', () => {
         }
     });
 
+    it('does not call the network for Qwen when no Bailian key is set', async () => {
+        const fetchImpl = vi.fn();
+        const result = await qwenImageProvider.generate({prompt: 'a cat'}, {} as Env, fetchImpl);
+        expect(result.ok).toBe(false);
+        expect(fetchImpl).not.toHaveBeenCalled();
+    });
+
     it('reports not configured when the selected stub has no key', async () => {
         const result = await qwenImageProvider.generate({prompt: 'a cat'}, {} as Env);
         expect(result.ok).toBe(false);
@@ -171,15 +212,23 @@ describe('createImageProvider', () => {
         }
     });
 
-    it('does not contain a fetch call or OAuth env names', () => {
+    it('does not contain OAuth env names or process.env', () => {
         const banned = ['CODEX_TOKEN', 'CHATGPT_OAUTH', 'OPENAI_OAUTH'];
         for (const name of ['noop.ts', 'qwen.ts', 'seedream.ts', 'openai.ts', 'provider.ts']) {
             const source = sourceOf(name);
-            expect(source).not.toMatch(/\bfetch\s*\(/);
             expect(source).not.toMatch(/process\.env/);
             for (const token of banned) {
                 expect(source.includes(token)).toBe(false);
             }
+            if (name !== 'qwen.ts') {
+                expect(source).not.toMatch(/\bfetch\s*\(/);
+            }
         }
+        const qwen = sourceOf('qwen.ts');
+        expect(qwen).toContain(
+            'https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation'
+        );
+        expect(qwen).toContain('paceQwenImage');
+        expect(qwen).not.toContain('send: false');
     });
 });

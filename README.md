@@ -10,17 +10,16 @@
   DeepSeek。
 - 文本模型的 `CHAT_API_KEY` 和 `CHAT_API_ENDPOINT` 都填写之后，句子改由模型生成。缺任何一个都不会请求 DeepSeek。
 - 配图默认是 `noop`。Worker 绑定里有 `DASHSCOPE_API_KEY` 或 `BAILIAN_API_KEY` 时才会选中通义，正式模型是
-  `qwen-image-3.0`。密钥只放在 Cloudflare secret 或本机
-  `.dev.vars`，不要写进仓库。当前版本即使有密钥也不会发出生图请求。
-- `QWEN_IMAGE_TIER=turbo` 只把预览模型标成 `qwen-image-2.1-turbo`。评测通过之前，它不是默认。
+  `qwen-image-3.0`。密钥只放在 Cloudflare secret 或本机 `.dev.vars`，不要写进仓库。有密钥时会请求 DashScope 同步接口
+  `POST https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation`，成功后把图片地址交给卡片。没有密钥时仍是「配图暂未开通」，不会发请求。生图失败时卡片继续可用，页面显示「配图这次没有生成」。
+- `QWEN_IMAGE_TIER=turbo`（以及 `preview` / `draft`）才改用 `qwen-image-2.1-turbo`。评测通过之前，它不是默认。
 - Seedream（`5.0-flash`）和 OpenAI GPT Image 必须把 `IMAGE_PROVIDER` 写成 `seedream` 或 `openai` 才会选中。OpenAI
   只认官方 API key，不要把 Codex 或 ChatGPT 的 OAuth 放进 Worker。
 - 语音使用同一个百炼密钥。有 `DASHSCOPE_API_KEY` 或 `BAILIAN_API_KEY` 时，生成卡片会请求
   `qwen3-tts-flash`（`language_type` 为
   `Japanese`），并把可播放的音频地址写进这张卡片。没有密钥时仍是「语音暂未开通」，不会请求百炼。不会请求
   MiniMax。火山生图也不在请求路径上。
-- 接入 `qwen-image-3.0` 时先按大约每分钟 20 次排队，不要假设可以更高并发。预览模型也走这个上限。以后真正发请求时要先走
-  `QwenImageLimiter`。
+- 通义生图发请求前先走 `QwenImageLimiter`，大约每分钟 20 次。预览模型也走这个上限。
 
 ## 本地启动
 
@@ -51,7 +50,8 @@ pnpm --filter @jpcards/backend test
 pnpm --filter @jpcards/backend eval:image
 ```
 
-`--live` 会直接退出，并说明客户端还没接入。
+`--live` 仍会直接退出。这个脚本只检查夹具，不发送生图请求。要看真实配图，把密钥放进 `.dev.vars` 后
+`pnpm dev`，登录并生成一张卡片。留空密钥时卡片仍能生成，配图保持关闭。
 
 ## 部署
 
@@ -66,8 +66,8 @@ pnpm --filter @jpcards/backend eval:image
 4. `pnpm --filter @jpcards/backend exec wrangler secret put BETTER_AUTH_SECRET`
 5. 文本生卡需要时再放 `CHAT_API_KEY` 和 `CHAT_API_ENDPOINT`。不要放火山或 MiniMax 的假密钥。
 6. 百炼密钥只通过 `wrangler secret put DASHSCOPE_API_KEY` 或 `wrangler secret put BAILIAN_API_KEY`
-   写入。同一个密钥会打开日语语音
-   `qwen3-tts-flash`。配图即使有密钥也不会发请求。不要把密钥贴进仓库、提交或文档。Seedream、OpenAI 可以先空着。
+   写入。同一个密钥会打开日语语音 `qwen3-tts-flash`，并让配图请求
+   `qwen-image-3.0`。没有密钥时配图和语音都不会发请求。不要把密钥贴进仓库、提交或文档。Seedream、OpenAI 可以先空着。
 7. `pnpm deploy`
 8. 自定义域名和 HTTPS 在 Cloudflare 控制台给这个 Worker 加域名。Workers 自带的 `*.workers.dev` 已经是
    HTTPS；自己的域名要在控制台完成委派。

@@ -10,8 +10,8 @@ BETTER_AUTH_URL=http://localhost:8787
 # CHAT_API_ENDPOINT=
 # CHAT_MODEL=
 
-# 配图。不填 IMAGE_PROVIDER 时，没有百炼密钥就是 noop。
-# 有 DASHSCOPE_API_KEY 或 BAILIAN_API_KEY 才会选通义，正式模型是 qwen-image-3.0。
+# 配图。不填 IMAGE_PROVIDER 时，没有百炼密钥就是 noop，不会发请求。
+# 有 DASHSCOPE_API_KEY 或 BAILIAN_API_KEY 才会选通义，正式模型是 qwen-image-3.0，并请求百炼同步生图。
 # 同一个密钥会让卡片请求 qwen3-tts-flash 日语语音。都留空则语音不请求。
 # QWEN_IMAGE_TIER=turbo 只用于预览 qwen-image-2.1-turbo，评测通过前不要当默认。
 # Seedream / OpenAI 必须显式选择。不要填真实密钥，也不要填 Codex / ChatGPT OAuth。
