@@ -1,13 +1,13 @@
 import OpenAI from 'openai';
 import {assessCardGeneration, createChatFetch, type TextModelConfig} from '../config/index.js';
-import {insertCardHistory, updateCardAudio} from '../database/cardHistory.js';
+import {insertCardHistory, updateCardAudio, updateCardIllustration} from '../database/cardHistory.js';
 import type {AppDatabase} from '../database/db.js';
 import {getRecentSentences, insertSentence} from '../database/sentenceMemory.js';
 import {createImageProvider, type ImageGenerationResult} from '../image/provider.js';
 import {synthesizeSpeech} from '../tts/qwen.js';
 import type {SpeechResult} from '../tts/types.js';
 import type {Env} from '../types.js';
-import {IMAGE_UNAVAILABLE, LOCAL_PRACTICE_NOTICE} from '../userCopy.js';
+import {IMAGE_GENERATION_FAILED, LOCAL_PRACTICE_NOTICE} from '../userCopy.js';
 import {toDisplayReading, toSentenceWithKanjiRomaji} from '../utils/romaji.js';
 import {pickPracticeCard} from './practiceDeck.js';
 
@@ -88,19 +88,23 @@ async function attachMedia (env: Env, sentence: string, fetchImpl?: typeof fetch
 }> {
     const audio = await synthesizeSpeech(env, sentence, fetchImpl);
     try {
-        const image = await createImageProvider(env).generate({
-            prompt: `A clean illustration that matches this Japanese sentence: ${sentence}`
-        }, env);
+        const image = await createImageProvider(env).generate(
+            {
+                prompt: `A clean illustration that matches this Japanese sentence: ${sentence}`
+            },
+            env,
+            fetchImpl
+        );
         return {image, audio};
     } catch (error) {
         console.error('Image provider failed', error);
         return {
             image: {
                 ok: false,
-                code: 'IMAGE_DISABLED',
+                code: 'IMAGE_FAILED',
                 provider: 'noop',
                 model: null,
-                message: IMAGE_UNAVAILABLE
+                message: IMAGE_GENERATION_FAILED
             },
             audio
         };
@@ -176,6 +180,13 @@ export async function buildCardWithMemory (input: {
             await updateCardAudio(input.db, cardId, input.userId, media.audio.audioUrl);
         } catch (error) {
             console.error('Failed to save card audio');
+        }
+    }
+    if (media.image.ok && media.image.illustrationUrl) {
+        try {
+            await updateCardIllustration(input.db, cardId, input.userId, media.image.illustrationUrl);
+        } catch (error) {
+            console.error('Failed to save card illustration');
         }
     }
 

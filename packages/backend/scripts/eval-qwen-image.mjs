@@ -23,8 +23,8 @@ for (const item of fixtures) {
 }
 
 if (live) {
-    console.error('通义生图客户端还没有接入。正式模型应为 qwen-image-3.0，turbo 只用于预览。本次不会请求百炼。');
+    console.error('盲评脚本仍不发送生图请求。应用里的通义客户端会在有密钥时请求 qwen-image-3.0；turbo 只用于预览。');
     process.exit(2);
 }
 
-console.log('盲评脚本仍是占位。有密钥之后再比较 qwen-image-3.0 与 qwen-image-2.1-turbo。');
+console.log('盲评脚本只检查夹具，不发送生图请求。比较 qwen-image-3.0 与 qwen-image-2.1-turbo 时请走应用。');

@@ -14,4 +14,34 @@ export class QwenImageLimiter {
         this.nextAt = nextAt;
         return {waitMs, nextAt};
     }
+
+    reset(): void {
+        this.nextAt = 0;
+    }
+}
+
+/** 同一隔离里的生图请求共用这一条队列。 */
+export const qwenImageLimiter = new QwenImageLimiter();
+
+export function resetQwenImageLimiter (): void {
+    qwenImageLimiter.reset();
+}
+
+function delay (ms: number): Promise<void> {
+    return new Promise((resolve) => {
+        setTimeout(resolve, ms);
+    });
+}
+
+/** 先占位，再按 waitMs 等待。真正的 HTTP 要放在这次等待之后。 */
+export async function paceQwenImage (
+    limiter: QwenImageLimiter = qwenImageLimiter,
+    now = Date.now(),
+    sleep: (ms: number) => Promise<void> = delay
+): Promise<number> {
+    const {waitMs} = limiter.plan(now);
+    if (waitMs > 0) {
+        await sleep(waitMs);
+    }
+    return waitMs;
 }

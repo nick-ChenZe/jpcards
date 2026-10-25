@@ -16,7 +16,7 @@ export type ImageGenerationResult =
     }
     | {
         ok: false;
-        code: 'IMAGE_NOT_CONFIGURED' | 'IMAGE_DISABLED';
+        code: 'IMAGE_NOT_CONFIGURED' | 'IMAGE_DISABLED' | 'IMAGE_FAILED';
         provider: ImageProviderId;
         model: string | null;
         message: string;
@@ -26,5 +26,5 @@ export interface ImageProvider {
     readonly id: ImageProviderId;
     readonly model: string | null;
     isConfigured(env: Env): boolean;
-    generate(input: ImageRequest, env: Env): Promise<ImageGenerationResult>;
+    generate(input: ImageRequest, env: Env, fetchImpl?: typeof fetch): Promise<ImageGenerationResult>;
 }
