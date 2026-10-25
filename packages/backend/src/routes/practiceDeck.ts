@@ -1,14 +1,14 @@
 export interface PracticeCard {
     sentence: string;
     gloss: string;
-    /** 给学习者看的读音。不依赖语音服务。 */
+    /** 给学习者看的读音。假名在前，需要时在括号里附上罗马音。不依赖语音服务。 */
     reading: string;
 }
 
 /** 没有文本模型时使用。不联网。 */
 const PRACTICE_CARDS: PracticeCard[] = [
-    {sentence: 'こんにちは。', gloss: '你好。', reading: 'konnichiwa'},
-    {sentence: 'ありがとうございます。', gloss: '谢谢。', reading: 'arigatou gozaimasu'},
+    {sentence: 'こんにちは。', gloss: '你好。', reading: 'こんにちは（konnichiwa）'},
+    {sentence: 'ありがとうございます。', gloss: '谢谢。', reading: 'ありがとうございます（arigatou gozaimasu）'},
     {sentence: 'これは本です。', gloss: '这是书。', reading: 'これはほんです（kore wa hon desu）'},
     {sentence: '水を飲みます。', gloss: '我喝水。', reading: 'みずをのみます（mizu o nomimasu）'},
     {

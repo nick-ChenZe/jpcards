@@ -118,7 +118,17 @@ function particleRomaji (surface: string): string | null {
 }
 
 /**
- * 整句读音。分词失败时返回空字符串，调用方显示「读音暂未开通」，不请求语音服务。
+ * 汉字用词典读音转平假名。表面已经是假名时保留原文，这样片假名外来语不会被折成平假名。
+ */
+function tokenKana (surface: string, reading: string): string {
+    if (KANJI_REGEX.test(surface) && reading) {
+        return toHiragana(reading);
+    }
+    return surface;
+}
+
+/**
+ * 整句读音：假名在前，罗马音放在括号里。分词失败时返回空字符串，调用方显示「读音暂未开通」，不请求语音服务。
  */
 export async function toDisplayReading (sentence: string, assetsBaseUrl?: string): Promise<string> {
     const tokenizer = await getTokenizer(assetsBaseUrl);
@@ -131,7 +141,7 @@ export async function toDisplayReading (sentence: string, assetsBaseUrl?: string
     for (const token of tokens) {
         const surface = token.surface_form;
         const reading = token.reading ?? token.pronunciation ?? '';
-        kanaParts.push(reading ? toHiragana(reading) : surface);
+        kanaParts.push(tokenKana(surface, reading));
         const romaji = particleRomaji(surface) ?? toRomaji(reading || surface);
         if (romaji) {
             romajiParts.push(romaji);
@@ -144,9 +154,6 @@ export async function toDisplayReading (sentence: string, assetsBaseUrl?: string
     }
     if (!romaji || kana === romaji) {
         return kana;
-    }
-    if (kana === sentence) {
-        return romaji;
     }
     return `${kana}（${romaji}）`;
 }

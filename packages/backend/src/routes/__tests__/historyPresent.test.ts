@@ -19,8 +19,21 @@ const card = (overrides: Partial<CardHistoryRecord>): CardHistoryRecord => ({
 describe('presentHistoryCard', () => {
     it('shows the practice reading and Shanghai time for rows saved before readings existed', () => {
         const presented = presentHistoryCard(card({}));
-        expect(presented.reading).toBe('konnichiwa');
+        expect(presented.reading).toBe('こんにちは（konnichiwa）');
         expect(presented.createdAtText).toBe('2026/10/25 12:20');
+    });
+
+    it('replaces a stored romaji-only practice reading with the deck kana', () => {
+        const presented = presentHistoryCard(card({reading: 'konnichiwa'}));
+        expect(presented.reading).toBe('こんにちは（konnichiwa）');
+    });
+
+    it('keeps a stored romaji reading when the sentence is not in the practice deck', () => {
+        const presented = presentHistoryCard(card({
+            sentence: 'モデルの文です。',
+            reading: 'moderu no bun desu'
+        }));
+        expect(presented.reading).toBe('moderu no bun desu');
     });
 
     it('keeps a stored reading and does not show the raw UTC clock', () => {

@@ -23,6 +23,10 @@ function normalizePagination (query: HistoryQuery): {page: number; pageSize: num
     };
 }
 
+function hasKana (value: string): boolean {
+    return /[\u3040-\u30ff]/.test(value);
+}
+
 function readingFromRuby (sentenceHtml: string): string {
     return [...sentenceHtml.matchAll(/<rt>([^<]*)<\/rt>/gi)]
         .map((match) =>
@@ -38,9 +42,14 @@ function readingFromRuby (sentenceHtml: string): string {
 }
 
 export function presentHistoryCard (card: CardHistoryRecord) {
+    const stored = card.reading.trim();
+    // 旧的本地练习卡可能只存了罗马音。词表里有假名时，用词表补上，不改数据库。
+    const reading = stored && hasKana(stored)
+        ? stored
+        : readingForSentence(card.sentence) || stored || readingFromRuby(card.sentenceHtml);
     return {
         ...card,
-        reading: card.reading || readingForSentence(card.sentence) || readingFromRuby(card.sentenceHtml),
+        reading,
         createdAtText: formatShanghaiTimestamp(card.createdAt)
     };
 }
