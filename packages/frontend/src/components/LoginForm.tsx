@@ -98,7 +98,7 @@ export function LoginForm ({
                                 </Button>
                                 <FieldDescription className="text-center">
                                     还没有账号？{' '}
-                                    <Link to="/sign-up" className="underline underline-offset-4 hover:text-primary">
+                                    <Link to="/sign-up" className="text-seal underline underline-offset-4">
                                         去注册
                                     </Link>
                                 </FieldDescription>

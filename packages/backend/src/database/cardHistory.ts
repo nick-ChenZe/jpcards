@@ -200,3 +200,17 @@ export async function getCardHistoryById (
         createdAt: row.createdAt ?? ''
     };
 }
+
+/** 最近卡片的入库时间，供连签按北京时间自然日计算。不改表。 */
+export async function listRecentCardCreatedAt (
+    db: AppDatabase,
+    userId: string,
+    limit: number = 2000
+): Promise<string[]> {
+    const rows = await db.select({createdAt: cardHistory.createdAt})
+        .from(cardHistory)
+        .where(eq(cardHistory.userId, userId))
+        .orderBy(desc(cardHistory.createdAt))
+        .limit(limit);
+    return rows.map((row) => row.createdAt ?? '').filter((value) => value.length > 0);
+}

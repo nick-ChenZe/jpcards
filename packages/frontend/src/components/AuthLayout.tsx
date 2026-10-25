@@ -23,7 +23,9 @@ export const AuthLayout = () => {
 
     return (
         <div className="min-h-screen pb-16">
-            <Outlet />
+            <div key={location.pathname} className="paper-screen">
+                <Outlet />
+            </div>
             <BottomNav />
         </div>
     );

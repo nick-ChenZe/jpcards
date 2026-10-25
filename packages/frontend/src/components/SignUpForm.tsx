@@ -150,7 +150,7 @@ export function SignUpForm ({
                                 </Button>
                                 <FieldDescription className="text-center">
                                     已经有账号？{' '}
-                                    <Link to="/login" className="underline underline-offset-4 hover:text-primary">
+                                    <Link to="/login" className="text-seal underline underline-offset-4">
                                         去登录
                                     </Link>
                                 </FieldDescription>

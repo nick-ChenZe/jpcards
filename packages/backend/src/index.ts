@@ -1,5 +1,6 @@
 import {Hono} from 'hono';
 import {isAdminUserId} from './config/admin.js';
+import {listRecentCardCreatedAt} from './database/cardHistory.js';
 import {createDb} from './database/db.js';
 import {readCardQuota, refundCardQuota, reserveCardQuota} from './quota/cardQuota.js';
 import {getAdminCardsResponse, logAdminCardList} from './routes/adminCards.js';
@@ -9,6 +10,7 @@ import {CardGlossError} from './routes/cardGlossError.js';
 import {getHistoryCardResponse, getHistoryResponse} from './routes/history.js';
 import type {Env} from './types.js';
 import {ADMIN_FORBIDDEN_MESSAGE} from './userCopy.js';
+import {countStreakDays} from './utils/streak.js';
 
 type AuthInstance = ReturnType<typeof auth>;
 type Session = Awaited<ReturnType<AuthInstance['api']['getSession']>>;
@@ -80,17 +82,25 @@ app.on(['GET', 'POST'], '/api/auth/*', (c) => {
     return c.var.auth.handler(c.req.raw);
 });
 
-app.get('/api/me', (c) => {
+app.get('/api/me', async (c) => {
     const current = c.var.session!.user;
     const username = 'username' in current && typeof current.username === 'string'
         ? current.username
         : null;
+    let streakDays = 0;
+    try {
+        const createdAt = await listRecentCardCreatedAt(createDb(c.env.DB), current.id);
+        streakDays = countStreakDays(createdAt, new Date());
+    } catch (error) {
+        console.error('Failed to read streak', error);
+    }
     return c.json({
         id: current.id,
         email: current.email,
         name: current.name,
         username,
-        isAdmin: isAdminUserId(c.env.ADMIN_USER_IDS, current.id)
+        isAdmin: isAdminUserId(c.env.ADMIN_USER_IDS, current.id),
+        streakDays
     });
 });
 
