@@ -1,3 +1,4 @@
+import {useAdminAccess} from '@/hooks/useAdminAccess';
 import {signOut} from '@/lib/auth';
 import {Settings} from 'lucide-react';
 import {useNavigate} from 'react-router-dom';
@@ -5,6 +6,7 @@ import {Button} from '../ui/button';
 
 export const SettingPage = () => {
     const navigate = useNavigate();
+    const admin = useAdminAccess();
 
     const handleLogout = async () => {
         await signOut();
@@ -21,9 +23,16 @@ export const SettingPage = () => {
                     <p className="mt-1 text-sm text-muted-foreground">
                         更多个性化设置敬请期待
                     </p>
-                    <Button variant="outline" className="mt-6" onClick={handleLogout}>
-                        退出登录
-                    </Button>
+                    <div className="mt-6 flex flex-col items-center gap-3">
+                        {admin && (
+                            <Button variant="outline" onClick={() => navigate('/admin/cards')}>
+                                全部卡片
+                            </Button>
+                        )}
+                        <Button variant="outline" onClick={handleLogout}>
+                            退出登录
+                        </Button>
+                    </div>
                 </div>
             </div>
         </div>

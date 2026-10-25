@@ -5,6 +5,10 @@
 BETTER_AUTH_SECRET=replace-with-a-long-random-string
 BETTER_AUTH_URL=http://localhost:8787
 
+# 管理员 userId，英文逗号分隔。留空或不写这一行时没有管理员。
+# 不要把真实 userId 写进仓库。生产用 wrangler secret put ADMIN_USER_IDS。
+# ADMIN_USER_IDS=
+
 # 文本模型。留空则生卡关闭，不会请求 DeepSeek。
 # CHAT_API_KEY=
 # CHAT_API_ENDPOINT=

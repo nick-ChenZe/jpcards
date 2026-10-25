@@ -1,11 +1,14 @@
 import {Hono} from 'hono';
+import {isAdminUserId} from './config/admin.js';
 import {createDb} from './database/db.js';
 import {readCardQuota, refundCardQuota, reserveCardQuota} from './quota/cardQuota.js';
+import {getAdminCardsResponse, logAdminCardList} from './routes/adminCards.js';
 import {auth, AuthConfigError} from './routes/auth.js';
 import {buildCardWithMemory} from './routes/card.js';
 import {CardGlossError} from './routes/cardGlossError.js';
 import {getHistoryCardResponse, getHistoryResponse} from './routes/history.js';
 import type {Env} from './types.js';
+import {ADMIN_FORBIDDEN_MESSAGE} from './userCopy.js';
 
 type AuthInstance = ReturnType<typeof auth>;
 type Session = Awaited<ReturnType<AuthInstance['api']['getSession']>>;
@@ -77,6 +80,20 @@ app.on(['GET', 'POST'], '/api/auth/*', (c) => {
     return c.var.auth.handler(c.req.raw);
 });
 
+app.get('/api/me', (c) => {
+    const current = c.var.session!.user;
+    const username = 'username' in current && typeof current.username === 'string'
+        ? current.username
+        : null;
+    return c.json({
+        id: current.id,
+        email: current.email,
+        name: current.name,
+        username,
+        isAdmin: isAdminUserId(c.env.ADMIN_USER_IDS, current.id)
+    });
+});
+
 app.get('/api/me/quota', async (c) => {
     try {
         const quota = await readCardQuota(c.env.DB, c.var.session!.user.id, new Date());
@@ -131,6 +148,23 @@ app.get('/api/history/:id', async (c) => {
     } catch (error) {
         console.error('Failed to fetch card', error);
         return c.json({error: 'HISTORY_FAILED', message: '暂时无法读取这张卡片。'}, 500);
+    }
+});
+
+app.get('/api/admin/cards', async (c) => {
+    // 只认 ADMIN_USER_IDS。未设置或不在名单里时，在查库之前返回 403。这里只读，不改卡片。
+    const adminId = c.var.session!.user.id;
+    if (!isAdminUserId(c.env.ADMIN_USER_IDS, adminId)) {
+        return c.json({error: 'FORBIDDEN', message: ADMIN_FORBIDDEN_MESSAGE}, 403);
+    }
+
+    try {
+        const data = await getAdminCardsResponse(createDb(c.env.DB), c.req.query());
+        logAdminCardList(adminId, data.items.length);
+        return c.json(data);
+    } catch (error) {
+        console.error('Failed to fetch admin cards', error);
+        return c.json({error: 'ADMIN_CARDS_FAILED', message: '暂时无法读取全部卡片。'}, 500);
     }
 });
 
