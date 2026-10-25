@@ -65,6 +65,14 @@ export const sentenceMemory = sqliteTable('sentence_memory', {
     index('idx_sentence_memory_user_created').on(table.userId, table.createdAt)
 ]);
 
+/** 每个用户一行：当天已生成次数，以及上一次点「生成」的时间。 */
+export const dailyCardQuota = sqliteTable('daily_card_quota', {
+    userId: text('user_id').primaryKey(),
+    dayKey: text('day_key').notNull(),
+    used: integer('used').notNull().default(0),
+    lastGeneratedAt: integer('last_generated_at').notNull().default(0)
+});
+
 export const cardHistory = sqliteTable('card_history', {
     id: text('id').primaryKey(),
     userId: text('user_id').notNull(),

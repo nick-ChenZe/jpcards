@@ -82,6 +82,14 @@ button.card-generate:hover:not(:disabled) {
   background-color: #3f3f46 !important;
   border-color: #3f3f46 !important;
 }
+button.card-generate.card-generate-exhausted:disabled {
+  opacity: 1;
+  background-color: #a1a1aa !important;
+  border-color: #a1a1aa !important;
+  color: #fafafa !important;
+  box-shadow: none;
+  cursor: not-allowed;
+}
 
 @media (prefers-color-scheme: light) {
   :root {

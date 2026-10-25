@@ -5,7 +5,10 @@
 ## 现在能做什么
 
 - 注册、登录、退出。
-- 历史只返回当前登录用户的卡片。点开一条可以查看这一张。
+- 历史只返回当前登录用户的卡片。点开一条可以查看这一张。看历史不扣生成次数。
+- 每个登录用户每天可以生成 20 张卡片，按北京时间零点重置。点一次「生成」扣 1
+  次，配图和语音算在同一次里，不另扣。两次生成至少间隔 5
+  秒。用完后探索页按钮不可点，并显示「今日额度用完了」。`GET /api/me/quota` 返回 `{limit, used, remaining, resetsAt}`。
 - 没有文本模型密钥时，已登录用户仍可以生成一张本地练习卡片：日语句子、读音和中文释义会写入自己的历史，不会请求
   DeepSeek。
 - 文本模型的 `CHAT_API_KEY` 和 `CHAT_API_ENDPOINT` 都填写之后，句子、假名读音和中文释义由这一次生成写入卡片。读音优先用
@@ -62,7 +65,8 @@ pnpm --filter @jpcards/backend eval:image
 1. `wrangler login`，或准备好有 Workers 和 D1 权限的 API token。
 2. `pnpm --filter @jpcards/backend exec wrangler d1 create jpcards`，把输出的 database id 写进 `wrangler.jsonc` 的
    `database_id`。现在的全 0 id 只能本地开发。
-3. `pnpm --filter @jpcards/backend db:migrate:remote`
+3. `pnpm --filter @jpcards/backend db:migrate:remote`。每日额度表在
+   `packages/backend/migrations/0004_daily_card_quota.sql`，这条命令会把它应用到远程 D1。
 4. `pnpm --filter @jpcards/backend exec wrangler secret put BETTER_AUTH_SECRET`
 5. 文本生卡需要时再放 `CHAT_API_KEY` 和 `CHAT_API_ENDPOINT`。不要放火山或 MiniMax 的假密钥。
 6. 百炼密钥只通过 `wrangler secret put DASHSCOPE_API_KEY` 或 `wrangler secret put BAILIAN_API_KEY`
