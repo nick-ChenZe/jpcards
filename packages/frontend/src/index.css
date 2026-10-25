@@ -877,11 +877,18 @@ a:hover {
   to { opacity: 1; transform: translateY(0); }
 }
 .wall-tile:active { transform: scale(0.97); }
+/* 无插画不留 4:3 米色空位；日期印直接落在纸砖上。 */
+.wall-tile.has-stamp .wall-info {
+  padding: 12px 48px 14px 12px;
+}
+.wall-tile.is-plain .wall-date-stamp {
+  z-index: 1;
+}
 .wall-thumb {
   aspect-ratio: 4 / 3;
   overflow: hidden;
   position: relative;
-  background: #E8E0D4;
+  background: var(--bg);
 }
 .wall-thumb img {
   width: 100%;

@@ -1,6 +1,6 @@
 import {type DaySignTile, DaySignTileButton} from '@/components/DaySignWall';
 import {useAdminAccess} from '@/hooks/useAdminAccess';
-import {shanghaiRitualDate, wallDateFromStored} from '@/lib/datetime';
+import {wallDateFromStored} from '@/lib/datetime';
 import {Loader2} from 'lucide-react';
 import {useCallback, useEffect, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
@@ -36,10 +36,10 @@ interface DayGroup {
     tiles: DaySignTile[];
 }
 
-function groupByShanghaiDay (items: CardHistoryItem[], todayKey: string): DayGroup[] {
+function groupByShanghaiDay (items: CardHistoryItem[]): DayGroup[] {
     const groups: DayGroup[] = [];
     for (const item of items) {
-        const date = wallDateFromStored(item.createdAt, todayKey);
+        const date = wallDateFromStored(item.createdAt);
         const tile: DaySignTile = {
             id: item.id,
             sentence: item.sentence,
@@ -67,7 +67,6 @@ export const HistoryPage = () => {
     const [error, setError] = useState('');
     const navigate = useNavigate();
     const admin = useAdminAccess();
-    const todayKey = shanghaiRitualDate().dayKey;
 
     const fetchHistory = useCallback(async (p: number, append: boolean) => {
         setLoading(true);
@@ -96,7 +95,7 @@ export const HistoryPage = () => {
         void fetchHistory(1, false);
     }, [fetchHistory]);
 
-    const groups = groupByShanghaiDay(items, todayKey);
+    const groups = groupByShanghaiDay(items);
 
     return (
         <div className="history-screen">
