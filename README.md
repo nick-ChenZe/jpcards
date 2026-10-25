@@ -28,7 +28,7 @@
 - Seedream（`5.0-flash`）和 OpenAI GPT Image 必须把 `IMAGE_PROVIDER` 写成 `seedream` 或 `openai` 才会选中。OpenAI
   只认官方 API key，不要把 Codex 或 ChatGPT 的 OAuth 放进 Worker。
 - 语音使用同一个百炼密钥。有 `DASHSCOPE_API_KEY` 或 `BAILIAN_API_KEY` 时，生成卡片会请求
-  `qwen3-tts-flash`（`language_type` 为 `Japanese`），并把可播放的音频地址写进这张卡片。没有密钥时仍是「语音暂未开通」，不会发请求。语音这一次失败时卡片继续可用，页面显示「语音暂时无法生成。」。不会请求
+  `qwen3-tts-flash`（`language_type` 为 `Japanese`），并把可播放的音频地址写进这张卡片。没有密钥时不发请求，卡片上也不留播放占位。语音这一次失败时卡片继续可用，同样不显示播放钮。有可播放地址时才显示圆形播放钮。不会请求
   MiniMax。火山生图也不在请求路径上。
 - 通义生图发请求前先走 `QwenImageLimiter`，大约每分钟 20 次。预览模型也走这个上限。
 

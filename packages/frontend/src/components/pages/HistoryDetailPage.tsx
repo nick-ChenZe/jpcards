@@ -1,11 +1,9 @@
 import {formatShanghaiTimestamp} from '@/lib/datetime';
 import {userFacingMedia} from '@/lib/userCopy';
-import {Loader2} from 'lucide-react';
 import {useEffect, useState} from 'react';
 import {useNavigate, useParams} from 'react-router-dom';
-import {CardReading} from '../CardReading';
+import {TodayCard} from '../TodayCard';
 import {Button} from '../ui/button';
-import {Card, CardContent} from '../ui/card';
 
 interface CardDetail {
     id: string;
@@ -66,57 +64,25 @@ export const HistoryDetailPage = () => {
 
     return (
         <div className="px-4 py-3 pb-20">
-            <div className="mx-auto max-w-3xl">
-                <Button variant="outline" className="mb-4" onClick={() => navigate('/history')}>
+            <div className="mx-auto flex max-w-lg flex-col gap-4">
+                <Button variant="outline" className="self-start" onClick={() => navigate('/history')}>
                     返回历史
                 </Button>
                 {loading
-                    ? (
-                        <div className="flex items-center justify-center py-20">
-                            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-                        </div>
-                    )
+                    ? <TodayCard loading loadingLabel="正在读取这张卡片" />
                     : error
                     ? <p className="text-sm text-red-500">{error}</p>
                     : card
                     ? (
-                        <Card>
-                            <CardContent className="space-y-4 p-4">
-                                <div
-                                    className="font-japanese text-lg font-medium leading-relaxed [&_ruby]:font-normal"
-                                    dangerouslySetInnerHTML={{__html: card.sentenceHtml}}
-                                />
-                                <CardReading reading={card.reading} />
-                                {card.gloss
-                                    ? <p className="text-sm text-muted-foreground">{card.gloss}</p>
-                                    : null}
-                                <p className="text-xs text-muted-foreground">
-                                    {card.level}
-                                    {' · '}
-                                    {card.createdAtText || formatShanghaiTimestamp(card.createdAt)}
-                                </p>
-                                {card.illustrationUrl
-                                    ? (
-                                        <img
-                                            src={card.illustrationUrl}
-                                            alt="日语句子配图"
-                                            className="w-full max-w-xl rounded-lg border"
-                                        />
-                                    )
-                                    : (
-                                        <p className="rounded-lg border border-dashed px-3 py-6 text-center text-sm text-muted-foreground">
-                                            {userFacingMedia('image')}
-                                        </p>
-                                    )}
-                                {card.audioUrl
-                                    ? (
-                                        <audio controls src={card.audioUrl} className="w-full max-w-xl">
-                                            您的浏览器不支持音频播放。
-                                        </audio>
-                                    )
-                                    : <p className="text-sm text-muted-foreground">{userFacingMedia('audio')}</p>}
-                            </CardContent>
-                        </Card>
+                        <TodayCard
+                            sentenceHtml={card.sentenceHtml}
+                            reading={card.reading}
+                            gloss={card.gloss}
+                            imageUrl={card.illustrationUrl}
+                            imageMessage={userFacingMedia('image')}
+                            audioUrl={card.audioUrl}
+                            meta={`${card.level} · ${card.createdAtText || formatShanghaiTimestamp(card.createdAt)}`}
+                        />
                     )
                     : null}
             </div>

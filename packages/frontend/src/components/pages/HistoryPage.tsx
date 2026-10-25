@@ -3,9 +3,8 @@ import {formatShanghaiTimestamp} from '@/lib/datetime';
 import {Loader2} from 'lucide-react';
 import {useCallback, useEffect, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
-import {CardReading} from '../CardReading';
+import {HistoryRow} from '../HistoryRow';
 import {Button} from '../ui/button';
-import {Card, CardContent} from '../ui/card';
 
 interface CardHistoryItem {
     id: string;
@@ -74,9 +73,9 @@ export const HistoryPage = () => {
 
     return (
         <div className="px-4 py-3 pb-20">
-            <div className="mx-auto max-w-3xl">
+            <div className="mx-auto max-w-lg">
                 <div className="mb-4 flex items-center justify-between gap-3">
-                    <h1 className="text-xl font-bold">学习历史</h1>
+                    <h1 className="text-xl font-medium text-ink">学习历史</h1>
                     <div className="flex items-center gap-3">
                         {admin && (
                             <Button
@@ -88,7 +87,7 @@ export const HistoryPage = () => {
                             </Button>
                         )}
                         {total > 0 && (
-                            <span className="text-sm text-muted-foreground">
+                            <span className="text-sm text-ink-muted">
                                 共 {total} 张卡片
                             </span>
                         )}
@@ -124,56 +123,15 @@ export const HistoryPage = () => {
                         </div>
                     )
                     : (
-                        <div className="space-y-4">
+                        <div className="space-y-3">
                             {items.map((item) => (
-                                <Card
+                                <HistoryRow
                                     key={item.id}
-                                    className="cursor-pointer overflow-hidden"
-                                    onClick={() => navigate(`/history/${item.id}`)}
-                                >
-                                    <CardContent className="p-4">
-                                        <div className="flex gap-4">
-                                            {/* 插图缩略图 */}
-                                            {item.illustrationUrl && (
-                                                <img
-                                                    src={item.illustrationUrl}
-                                                    alt=""
-                                                    className="h-20 w-20 flex-shrink-0 rounded-md object-cover"
-                                                />
-                                            )}
-                                            <div className="min-w-0 flex-1">
-                                                {/* 句子 HTML */}
-                                                <div
-                                                    className="font-japanese text-base font-medium leading-relaxed [&_ruby]:font-normal"
-                                                    dangerouslySetInnerHTML={{__html: item.sentenceHtml}}
-                                                />
-                                                <div className="mt-1">
-                                                    <CardReading reading={item.reading} />
-                                                </div>
-                                                {item.gloss
-                                                    ? <p className="mt-1 text-sm text-muted-foreground">{item.gloss}</p>
-                                                    : null}
-                                                <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
-                                                    <span>{item.level}</span>
-                                                    <span>{formatDate(item)}</span>
-                                                    {item.audioUrl
-                                                        ? null
-                                                        : <span>语音暂未开通</span>}
-                                                </div>
-                                                {/* 音频 */}
-                                                {item.audioUrl && (
-                                                    <audio
-                                                        controls
-                                                        src={item.audioUrl}
-                                                        className="mt-2 h-8 w-full max-w-sm"
-                                                    >
-                                                        您的浏览器不支持音频播放。
-                                                    </audio>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </CardContent>
-                                </Card>
+                                    sentence={item.sentence}
+                                    date={formatDate(item)}
+                                    thumbUrl={item.illustrationUrl}
+                                    onOpen={() => navigate(`/history/${item.id}`)}
+                                />
                             ))}
 
                             {/* 分页 */}
