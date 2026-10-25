@@ -9,6 +9,8 @@ import type {SpeechResult} from '../tts/types.js';
 import type {Env} from '../types.js';
 import {IMAGE_GENERATION_FAILED, LOCAL_PRACTICE_NOTICE} from '../userCopy.js';
 import {chooseReading} from '../utils/readingChoice.js';
+import type {ReadingToken} from '../utils/readingHighlight.js';
+import {toReadingTokens} from '../utils/readingTokens.js';
 import {type ReadingOptions, toDisplayReading, toSentenceWithKanjiRomaji} from '../utils/romaji.js';
 import {CardGlossError} from './cardGlossError.js';
 import {
@@ -40,6 +42,7 @@ export interface CardDemoResult {
     sentence: string;
     sentenceHtml: string;
     reading: string;
+    readingTokens: ReadingToken[] | null;
     gloss: string;
     imageDataUrl: string;
     audioDataUrl: string;
@@ -106,6 +109,20 @@ async function resolveReading (
     return chosen.reading;
 }
 
+/** 分词失败不能挡住生卡。没有词或抛错时返回 null，播放端不高亮。 */
+async function attachReadingTokens (sentence: string, options: ReadingOptions): Promise<ReadingToken[] | null> {
+    try {
+        const tokens = await toReadingTokens(sentence, options);
+        if (!tokens || tokens.length === 0) {
+            return null;
+        }
+        return tokens;
+    } catch {
+        console.error('[reading] tokenize failed');
+        return null;
+    }
+}
+
 async function attachMedia (env: Env, sentence: string, fetchImpl?: typeof fetch): Promise<{
     image: ImageGenerationResult;
     audio: SpeechResult;
@@ -149,11 +166,13 @@ export async function buildCardDemo (
     const options = readingContext(env);
     const sentenceHtml = await toSentenceWithKanjiRomaji(sentence, options);
     const reading = await resolveReading(sentence, generated.reading, options);
+    const readingTokens = await attachReadingTokens(sentence, options);
     const media = await attachMedia(env, sentence, fetchImpl);
     return {
         sentence,
         sentenceHtml,
         reading,
+        readingTokens,
         gloss,
         imageDataUrl: media.image.ok ? media.image.imageDataUrl : '',
         audioDataUrl: media.audio.audioDataUrl,
@@ -197,12 +216,14 @@ export async function buildCardWithMemory (input: {
     if (!reading) {
         reading = await resolveReading(sentence, modelReading, options);
     }
+    const readingTokens = await attachReadingTokens(sentence, options);
     const cardId = await insertCardHistory(input.db, {
         userId: input.userId,
         sentence,
         sentenceHtml,
         gloss,
         reading,
+        readingTokens,
         level: DEFAULT_LEVEL
     });
     const media = await attachMedia(input.env, sentence, input.fetchImpl);
@@ -228,6 +249,7 @@ export async function buildCardWithMemory (input: {
             sentence,
             sentenceHtml,
             reading,
+            readingTokens,
             gloss,
             text,
             imageDataUrl: media.image.ok ? media.image.imageDataUrl : '',

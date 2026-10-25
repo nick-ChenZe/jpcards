@@ -28,8 +28,14 @@
 - Seedream（`5.0-flash`）和 OpenAI GPT Image 必须把 `IMAGE_PROVIDER` 写成 `seedream` 或 `openai` 才会选中。OpenAI
   只认官方 API key，不要把 Codex 或 ChatGPT 的 OAuth 放进 Worker。
 - 语音使用同一个百炼密钥。有 `DASHSCOPE_API_KEY` 或 `BAILIAN_API_KEY` 时，生成卡片会请求
-  `qwen3-tts-flash`（`language_type` 为 `Japanese`），并把可播放的音频地址写进这张卡片。没有密钥时不发请求，卡片上也不留播放占位。语音这一次失败时卡片继续可用，同样不显示播放钮。有可播放地址时才显示圆形播放钮。不会请求
-  MiniMax。火山生图也不在请求路径上。
+  `qwen3-tts-flash`（`language_type` 为
+  `Japanese`），并把可播放的音频地址写进这张卡片。没有密钥时不发请求，卡片上也不留播放占位。语音这一次失败时卡片继续可用，同样不显示播放钮。有可播放地址时才显示圆形播放钮。不会请求
+  MiniMax。火山生图也不在请求路径上。语音没有词级时间戳，也不做强制对齐。
+- 生卡时如果 kuromoji 分词成功，会把 `reading_tokens` 写进这张卡片。每一项是 `surface`、可选的 `reading`，以及
+  `moraWeight`：假名和长音各算一拍，拗音小字不算，标点权重为 0 并并入相邻的词。分词失败只记
+  `[reading] tokenize failed`，卡片照常保存，这一列为空。播放用 TodayCard 上的那一个圆形播放钮。`audio.duration`
+  出来之后，按 mora 权重把整段时长线性分给各词，`timeupdate`
+  时高亮当前词，读音行能对上时一起高亮。没有分词、没有时长，或是迁移前的旧卡片，句子保持原样，不高亮。
 - 通义生图发请求前先走 `QwenImageLimiter`，大约每分钟 20 次。预览模型也走这个上限。
 
 ## 本地启动
@@ -88,8 +94,11 @@ pnpm --filter @jpcards/backend eval:image
 1. `wrangler login`，或准备好有 Workers 和 D1 权限的 API token。
 2. `pnpm --filter @jpcards/backend exec wrangler d1 create jpcards`，把输出的 database id 写进 `wrangler.jsonc` 的
    `database_id`。现在的全 0 id 只能本地开发。
-3. `pnpm --filter @jpcards/backend db:migrate:remote`。每日额度表在
-   `packages/backend/migrations/0004_daily_card_quota.sql`，这条命令会把它应用到远程 D1。
+3. `pnpm --filter @jpcards/backend db:migrate:remote`。这条命令会把 `packages/backend/migrations/`
+   里还没跑过的迁移应用到远程 D1，包括每日额度表 `0004_daily_card_quota.sql` 和朗读分词
+   `0005_card_reading_tokens.sql`。跟词高亮的代码会读取 `reading_tokens` 列，所以要在 `pnpm deploy`
+   **之前**先跑远程迁移。如果新代码已经部署上去了，马上补跑一次。没迁移之前，生成和历史读取会因为缺列失败。本地
+   `pnpm dev` 会自己跑 `db:migrate:local`。
 4. `pnpm --filter @jpcards/backend exec wrangler secret put BETTER_AUTH_SECRET`
 5. 全量卡片默认关闭。要指定管理员时再执行
    `pnpm --filter @jpcards/backend exec wrangler secret put ADMIN_USER_IDS`。提示输入时填
@@ -99,8 +108,7 @@ pnpm --filter @jpcards/backend eval:image
 6. 文本生卡需要时再放 `CHAT_API_KEY` 和 `CHAT_API_ENDPOINT`。不要放火山或 MiniMax 的假密钥。
 7. 百炼密钥只通过 `wrangler secret put DASHSCOPE_API_KEY` 或 `wrangler secret put BAILIAN_API_KEY`
    写入。同一个密钥会打开配图 `qwen-image-3.0` 和日语语音
-   `qwen3-tts-flash`。没有密钥时配图和语音都不会发请求。不要把密钥贴进仓库、提交或文档。Seedream、OpenAI
-   可以先空着。
+   `qwen3-tts-flash`。没有密钥时配图和语音都不会发请求。不要把密钥贴进仓库、提交或文档。Seedream、OpenAI 可以先空着。
 8. `pnpm deploy`
 9. 自定义域名和 HTTPS 在 Cloudflare 控制台给这个 Worker 加域名。Workers 自带的 `*.workers.dev` 已经是
    HTTPS；自己的域名要在控制台完成委派。

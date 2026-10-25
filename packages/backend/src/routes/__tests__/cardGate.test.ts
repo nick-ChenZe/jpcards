@@ -34,9 +34,24 @@ const history = vi.hoisted(() => ({
     updateCardIllustration: vi.fn(async () => undefined)
 }));
 
+const readingTokensApi = vi.hoisted(() => ({
+    toReadingTokens: vi.fn(async () =>
+        null as
+            | Array<{
+                surface: string;
+                reading?: string;
+                moraWeight: number;
+            }>
+            | null
+    )
+}));
+
 vi.mock('openai', () => ({default: hoisted.OpenAI}));
 vi.mock('../../database/sentenceMemory.js', () => memory);
 vi.mock('../../database/cardHistory.js', () => history);
+vi.mock('../../utils/readingTokens.js', () => ({
+    toReadingTokens: readingTokensApi.toReadingTokens
+}));
 vi.mock('../../utils/romaji.js', () => ({
     toSentenceWithKanjiRomaji: vi.fn(async (sentence: string) => sentence),
     toDisplayReading: vi.fn(async () => 'こんにちは（konnichiwa）')
@@ -56,6 +71,8 @@ describe('buildCardWithMemory vendor gate', () => {
         history.insertCardHistory.mockClear();
         history.updateCardAudio.mockClear();
         history.updateCardIllustration.mockClear();
+        readingTokensApi.toReadingTokens.mockReset();
+        readingTokensApi.toReadingTokens.mockResolvedValue(null);
         resetQwenImageLimiter();
     });
 
@@ -335,6 +352,55 @@ describe('buildCardWithMemory vendor gate', () => {
         expect(history.updateCardAudio).not.toHaveBeenCalled();
         expect(history.updateCardIllustration).toHaveBeenCalledOnce();
         expect(fetchImpl).toHaveBeenCalledTimes(2);
+    });
+
+    it('stores mora tokens when tokenization succeeds', async () => {
+        const tokens = [{surface: 'こんにちは。', reading: 'こんにちは。', moraWeight: 5}];
+        readingTokensApi.toReadingTokens.mockResolvedValueOnce(tokens);
+        const result = await buildCardWithMemory({
+            db: {} as never,
+            userId: 'user-1',
+            env: {} as Env,
+            fetchImpl: vi.fn()
+        });
+
+        expect(result.ok).toBe(true);
+        if (result.ok) {
+            expect(result.card.readingTokens).toEqual(tokens);
+        }
+        expect(history.insertCardHistory).toHaveBeenCalledWith(
+            expect.anything(),
+            expect.objectContaining({readingTokens: tokens})
+        );
+    });
+
+    it('still saves the card when tokenization throws', async () => {
+        const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+        readingTokensApi.toReadingTokens.mockRejectedValueOnce(new Error('tokenize exploded'));
+        try {
+            const result = await buildCardWithMemory({
+                db: {} as never,
+                userId: 'user-1',
+                env: {} as Env,
+                fetchImpl: vi.fn()
+            });
+
+            expect(result.ok).toBe(true);
+            if (result.ok) {
+                expect(result.card.sentence).toBe('こんにちは。');
+                expect(result.card.readingTokens).toBeNull();
+            }
+            expect(history.insertCardHistory).toHaveBeenCalledWith(
+                expect.anything(),
+                expect.objectContaining({
+                    sentence: 'こんにちは。',
+                    readingTokens: null
+                })
+            );
+            expect(error.mock.calls.map((call) => String(call[0]))).toContain('[reading] tokenize failed');
+        } finally {
+            error.mockRestore();
+        }
     });
 
     it('stores model kana and gloss when kuromoji returns an empty reading', async () => {

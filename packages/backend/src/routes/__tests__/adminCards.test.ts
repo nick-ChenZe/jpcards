@@ -29,7 +29,7 @@ vi.mock('../auth.js', () => ({
 
 import app from '../../index.js';
 
-const migrationSql = ['0001_init.sql', '0002_card_gloss.sql', '0003_card_reading.sql']
+const migrationSql = ['0001_init.sql', '0002_card_gloss.sql', '0003_card_reading.sql', '0005_card_reading_tokens.sql']
     .map((name) => readFileSync(new URL(`../../../migrations/${name}`, import.meta.url), 'utf8'))
     .join('\n');
 

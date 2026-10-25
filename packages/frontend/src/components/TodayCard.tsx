@@ -1,3 +1,4 @@
+import {parseReadingTokens, playbackTokenIndex, readingLineParts, splitSentenceHtml} from '@/lib/readingHighlight';
 import {cn} from '@/lib/utils';
 import {Pause, Play} from 'lucide-react';
 import {useEffect, useRef, useState} from 'react';
@@ -8,6 +9,7 @@ export interface TodayCardProps {
     loadingLabel?: string;
     sentenceHtml?: string;
     reading?: string;
+    readingTokens?: unknown;
     gloss?: string;
     imageUrl?: string | null;
     imageMessage?: string;
@@ -74,26 +76,56 @@ function CardImage ({url, message}: {url?: string | null; message?: string;}) {
     );
 }
 
-function CardPlayButton ({src}: {src: string;}) {
+interface PlaybackSample {
+    currentTime: number;
+    duration: number;
+    ended: boolean;
+}
+
+const IDLE_SAMPLE: PlaybackSample = {currentTime: 0, duration: 0, ended: false};
+
+/**
+ * 圆形播放钮和词高亮共用这一份 Audio。不要再 new 一个，也不要另放 controls 播放器。
+ */
+function useCardAudio (src: string | null | undefined) {
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const [playing, setPlaying] = useState(false);
+    const [sample, setSample] = useState<PlaybackSample>(IDLE_SAMPLE);
 
     useEffect(() => {
+        if (!src) {
+            setPlaying(false);
+            setSample(IDLE_SAMPLE);
+            return;
+        }
+        let disposed = false;
         const audio = new Audio(src);
         audio.preload = 'none';
         audioRef.current = audio;
-        const onEnded = () => setPlaying(false);
-        const onPause = () => setPlaying(false);
-        const onPlay = () => setPlaying(true);
-        audio.addEventListener('ended', onEnded);
-        audio.addEventListener('pause', onPause);
-        audio.addEventListener('play', onPlay);
+        const publish = () => {
+            if (disposed) {
+                return;
+            }
+            setPlaying(!audio.paused && !audio.ended);
+            setSample({
+                currentTime: audio.currentTime || 0,
+                duration: Number.isFinite(audio.duration) ? audio.duration : 0,
+                ended: audio.ended
+            });
+        };
+        const events = ['play', 'pause', 'ended', 'timeupdate', 'seeked', 'loadedmetadata', 'durationchange'] as const;
+        for (const event of events) {
+            audio.addEventListener(event, publish);
+        }
         return () => {
+            disposed = true;
             audio.pause();
-            audio.removeEventListener('ended', onEnded);
-            audio.removeEventListener('pause', onPause);
-            audio.removeEventListener('play', onPlay);
-            audioRef.current = null;
+            for (const event of events) {
+                audio.removeEventListener(event, publish);
+            }
+            if (audioRef.current === audio) {
+                audioRef.current = null;
+            }
         };
     }, [src]);
 
@@ -109,13 +141,17 @@ function CardPlayButton ({src}: {src: string;}) {
         void audio.play().catch(() => setPlaying(false));
     };
 
+    return {playing, toggle, sample};
+}
+
+function CardPlayButton ({playing, onToggle}: {playing: boolean; onToggle: () => void;}) {
     return (
         <button
             type="button"
             className="flex size-11 items-center justify-center rounded-full border border-seal bg-card-surface text-seal shadow-[var(--shadow-card)] hover:bg-seal-soft"
             aria-label={playing ? '暂停朗读' : '播放朗读'}
             aria-pressed={playing}
-            onClick={toggle}
+            onClick={onToggle}
         >
             {playing
                 ? <Pause className="size-4" />
@@ -124,11 +160,68 @@ function CardPlayButton ({src}: {src: string;}) {
     );
 }
 
+function CardSentence ({
+    sentenceHtml,
+    surfaces,
+    segments,
+    activeIndex
+}: {
+    sentenceHtml?: string;
+    surfaces: string[] | null;
+    segments: string[] | null;
+    activeIndex: number | null;
+}) {
+    if (surfaces && segments) {
+        return (
+            <div
+                lang="ja"
+                className="font-japanese text-[1.35rem] font-medium leading-relaxed text-ink [&_ruby]:font-normal"
+            >
+                {surfaces.map((surface, index) => (
+                    <span
+                        key={`${index}-${surface}`}
+                        className={index === activeIndex ? 'mora-token-active' : undefined}
+                        dangerouslySetInnerHTML={{__html: segments[index] ?? ''}}
+                    />
+                ))}
+            </div>
+        );
+    }
+    if (!sentenceHtml) {
+        if (!surfaces || surfaces.length === 0) {
+            return null;
+        }
+        return (
+            <div
+                lang="ja"
+                className="font-japanese text-[1.35rem] font-medium leading-relaxed text-ink"
+            >
+                {surfaces.map((surface, index) => (
+                    <span
+                        key={`${index}-${surface}`}
+                        className={index === activeIndex ? 'mora-token-active' : undefined}
+                    >
+                        {surface}
+                    </span>
+                ))}
+            </div>
+        );
+    }
+    return (
+        <div
+            lang="ja"
+            className="font-japanese text-[1.35rem] font-medium leading-relaxed text-ink [&_ruby]:font-normal"
+            dangerouslySetInnerHTML={{__html: sentenceHtml}}
+        />
+    );
+}
+
 export function TodayCard ({
     loading = false,
     loadingLabel = '正在生成卡片',
     sentenceHtml,
     reading,
+    readingTokens,
     gloss,
     imageUrl,
     imageMessage,
@@ -136,6 +229,19 @@ export function TodayCard ({
     note,
     meta
 }: TodayCardProps) {
+    const tokens = parseReadingTokens(readingTokens);
+    const playback = useCardAudio(audioUrl);
+    const activeIndex = playbackTokenIndex(
+        tokens,
+        playback.sample.currentTime,
+        playback.sample.duration,
+        playback.playing,
+        playback.sample.ended
+    );
+    const surfaces = tokens?.map((token) => token.surface) ?? null;
+    const segments = sentenceHtml && surfaces ? splitSentenceHtml(sentenceHtml, surfaces) : null;
+    const readingParts = tokens && reading ? readingLineParts(reading, tokens) : null;
+
     if (loading) {
         return <CardSkeleton label={loadingLabel} />;
     }
@@ -144,16 +250,13 @@ export function TodayCard ({
         <article className="overflow-hidden rounded-[var(--radius-card)] border border-border bg-card-surface shadow-[var(--shadow-card)]">
             <CardImage url={imageUrl} message={imageMessage} />
             <div className="space-y-3 px-5 py-5">
-                {sentenceHtml
-                    ? (
-                        <div
-                            lang="ja"
-                            className="font-japanese text-[1.35rem] font-medium leading-relaxed text-ink [&_ruby]:font-normal"
-                            dangerouslySetInnerHTML={{__html: sentenceHtml}}
-                        />
-                    )
-                    : null}
-                <CardReading reading={reading} />
+                <CardSentence
+                    sentenceHtml={sentenceHtml}
+                    surfaces={surfaces}
+                    segments={segments}
+                    activeIndex={segments || !sentenceHtml ? activeIndex : null}
+                />
+                <CardReading reading={reading} parts={readingParts} activeIndex={activeIndex} />
                 {gloss
                     ? <p className="text-sm leading-6 text-ink">{gloss}</p>
                     : null}
@@ -163,7 +266,7 @@ export function TodayCard ({
                 {meta
                     ? <p className="text-xs text-ink-muted">{meta}</p>
                     : null}
-                {audioUrl ? <CardPlayButton src={audioUrl} /> : null}
+                {audioUrl ? <CardPlayButton playing={playback.playing} onToggle={playback.toggle} /> : null}
             </div>
         </article>
     );
