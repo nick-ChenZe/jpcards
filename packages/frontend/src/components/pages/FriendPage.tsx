@@ -1,18 +1,16 @@
-import {Users} from 'lucide-react';
-
 export const FriendPage = () => {
     return (
-        <div className="px-4 py-3 pb-20">
-            <div className="mx-auto max-w-3xl">
-                <h1 className="mb-4 text-xl font-bold">好友</h1>
-                <div className="flex flex-col items-center justify-center py-20">
-                    <Users className="h-12 w-12 text-muted-foreground/50" />
-                    <p className="mt-4 text-muted-foreground">好友功能即将上线</p>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                        在这里你可以添加好友，互相分享学习进度
-                    </p>
-                </div>
+        <div className="hiyori-page">
+            <h1 className="hiyori-page-title">学日语，也结缘。</h1>
+            <p className="hiyori-page-sub">让一句喜欢的话，成为彼此的问候。</p>
+            <div className="hiyori-friend-art" aria-hidden="true">
+                <span>縁</span>
+                <span>友</span>
             </div>
+            <h2 className="hiyori-empty-title">好句子，想与你分享。</h2>
+            <p className="hiyori-empty-copy">
+                好友功能筹备中<br />未来在这里，遇见一起坚持的人。
+            </p>
         </div>
     );
 };

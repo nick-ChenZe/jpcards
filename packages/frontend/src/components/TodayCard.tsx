@@ -177,7 +177,7 @@ function CardSentence ({
 }
 
 function GlossBlock ({gloss}: {gloss?: string;}) {
-    const [open, setOpen] = useState(true);
+    const [open, setOpen] = useState(false);
     if (!gloss) {
         return null;
     }
@@ -186,14 +186,15 @@ function GlossBlock ({gloss}: {gloss?: string;}) {
             <button
                 type="button"
                 className={cn('gloss-toggle', !open && 'collapsed')}
+                aria-expanded={open}
                 onClick={() => setOpen((value) => !value)}
             >
                 <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
                     <path d="M3 4.5L6 7.5L9 4.5" />
                 </svg>
-                中文释义
+                {open ? '收起释义' : '揭晓中文'}
             </button>
-            <p className={cn('gloss-text', !open && 'collapsed')}>{gloss}</p>
+            <p className={cn('gloss-text', !open && 'collapsed')} hidden={!open}>{gloss}</p>
         </div>
     );
 }
@@ -305,6 +306,11 @@ export function TodayCard ({
                 !painted && 'is-plain'
             )}
         >
+            <div className="hiyori-ticket-top">
+                <span>日々のことば</span>
+                <span>DAILY JAPANESE</span>
+            </div>
+            <span className="hiyori-card-seal" aria-hidden="true">日々</span>
             {painted && imageUrl
                 ? (
                     <PaintedArt url={imageUrl} onFail={() => setImageFailed(true)}>

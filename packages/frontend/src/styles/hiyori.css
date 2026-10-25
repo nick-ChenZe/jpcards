@@ -1,0 +1,186 @@
+/* 日和: the approved paper prototype, adapted to the live app's routes and data. */
+:root {
+    --bg: #f6f1e6;
+    --ink: #34372f;
+    --muted: #858174;
+    --accent: #aa4435;
+    --accent-soft: #aa443510;
+    --accent-mid: #aa443526;
+    --card: #fffcf4;
+    --paper-edge: #d9d1bf;
+    --radius: .25rem;
+    --font-editorial: "Songti SC", "STSong", var(--font-ja), serif;
+}
+:root[data-paper-theme="tea"] { --bg:#eaf0e3; --card:#f9f9ee; --accent:#5b7150; --accent-soft:#5b715014; --accent-mid:#5b715026; --muted:#74816c; --paper-edge:#cbd4c0; --ink:#344232; }
+:root[data-paper-theme="ink"] { --bg:#e8e7e0; --card:#f6f5ef; --accent:#344746; --accent-soft:#34474612; --accent-mid:#34474626; --muted:#768078; --paper-edge:#caccc3; --ink:#283936; }
+body { background:#e9e6df; }
+a, button, input { -webkit-tap-highlight-color:transparent; }
+button, a, input { touch-action:manipulation; }
+button:focus-visible, a:focus-visible, input:focus-visible { outline:2px solid var(--accent); outline-offset:4px; }
+.hiyori-root { min-height:100dvh; width:100%; }
+.app-paper { view-transition-name:hiyori-paper; width:min(100%, 440px); margin:0 auto; background:var(--bg); position:relative; isolation:isolate; }
+.app-paper::before { content:""; position:absolute; inset:0; pointer-events:none; z-index:15; opacity:.08; background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' opacity='.5' filter='url(%23n)'/%3E%3C/svg%3E"); }
+.hiyori-app { min-height:100dvh; padding-bottom:calc(84px + env(safe-area-inset-bottom)); }
+.hiyori-header { display:flex; justify-content:space-between; align-items:center; min-height:87px; padding:24px 26px 16px; gap:12px; }
+.hiyori-brand { font:29px var(--font-editorial); letter-spacing:3px; color:var(--ink); display:flex; align-items:center; gap:13px; min-height:44px; text-decoration:none; }
+.hiyori-brand span { border-left:1px solid var(--paper-edge); padding-left:13px; font:9px var(--font-zh); color:var(--muted); letter-spacing:1px; }
+.hiyori-avatar { width:34px; height:34px; border:1px solid var(--paper-edge); border-radius:50%; display:grid; place-items:center; font:13px Georgia,var(--font-zh); color:var(--muted); }
+.hiyori-edition { font:10px var(--font-ja); color:var(--muted); writing-mode:vertical-rl; letter-spacing:2px; }
+.hiyori-nav { position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:min(100%,440px); z-index:20; background:var(--bg); border-top:1px solid var(--paper-edge); padding-bottom:env(safe-area-inset-bottom); }
+.hiyori-nav-inner { display:flex; justify-content:space-around; padding:7px 12px 10px; }
+.hiyori-nav button { min-height:50px; gap:5px; }
+.hiyori-nav button span { font-size:10px; font-weight:400; letter-spacing:1px; }
+.hiyori-nav button svg { width:19px; height:19px; stroke-width:1.3; }
+.hiyori-nav button[aria-current="page"] svg { stroke-width:1.8; }
+.hiyori-loading { min-height:100dvh; display:grid; place-items:center; background:var(--bg); }
+.hiyori-loading-seal { display:grid; place-items:center; width:44px; height:56px; color:var(--accent); border:1px solid var(--accent); font:24px var(--font-editorial); animation:hiyori-breathe 1.8s ease-in-out infinite; }
+.hiyori-explore { height:auto; min-height:0; max-height:none; overflow:visible; padding:0 26px 16px; display:block; }
+.hiyori-date-row { display:flex; align-items:center; justify-content:space-between; gap:16px; margin:7px 0 25px; }
+.hiyori-date-block { display:flex; align-items:center; gap:12px; flex-shrink:0; }
+.hiyori-day { font:51px/1 Georgia,serif; letter-spacing:-3px; }
+.hiyori-date-meta { display:flex; flex-direction:column; gap:4px; font-size:9px; color:var(--muted); letter-spacing:1px; }
+.hiyori-date-row .streak-chip { font-size:9px; line-height:1.8; margin:0; min-width:0; max-width:133px; text-align:right; }
+.hiyori-date-row .streak-chip.is-pending { width:95px; }
+.hiyori-section-title { display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin:0 0 17px; }
+.hiyori-section-title h1 { font:25px var(--font-editorial); letter-spacing:3px; }
+.hiyori-section-title>span { font:8px Georgia,serif; color:var(--muted); letter-spacing:2px; }
+.hiyori-ticket-stage { position:relative; margin-bottom:27px; isolation:isolate; }
+.hiyori-ticket-stage::before, .hiyori-ticket-stage::after { content:""; position:absolute; inset:4px 5px -3px; background:var(--card); border:1px solid var(--paper-edge); transform:rotate(-1.8deg); z-index:-1; }
+.hiyori-ticket-stage::after { transform:rotate(1.3deg); inset:3px 4px -2px; }
+.hiyori-empty-card { min-height:390px; border:1px solid var(--paper-edge); background:var(--card); padding:22px 23px 26px; display:flex; flex-direction:column; position:relative; }
+.hiyori-ticket-top { display:flex; align-items:center; justify-content:space-between; gap:12px; font-size:9px; color:var(--muted); letter-spacing:2px; line-height:1.8; }
+.hiyori-empty-card h2 { font:21px/1.7 var(--font-editorial); text-align:center; letter-spacing:2px; margin:9px 0 8px; }
+.hiyori-empty-card>p { text-align:center; font-size:11px; line-height:2; color:var(--muted); }
+.paper-motif { position:relative; height:210px; width:100%; flex-shrink:0; }
+.motif-sun { width:111px; height:111px; border:1px solid var(--accent); border-radius:50%; opacity:.45; position:absolute; top:36px; left:calc(50% - 105px); }
+.motif-slip { position:absolute; left:calc(50% - 6px); top:16px; width:49px; height:165px; background:var(--bg); border:1px solid var(--paper-edge); transform:rotate(12deg); box-shadow:5px 7px 10px #403b250a; }
+.motif-verse { writing-mode:vertical-rl; font:19px/1.8 var(--font-editorial); letter-spacing:5px; display:block; margin:13px auto; }
+.is-draw .motif-slip::after { content:""; position:absolute; bottom:14px; left:21px; width:7px; height:7px; background:var(--accent); border-radius:50%; }
+.motif-waves { position:absolute; height:45px; left:0; right:0; bottom:10px; background:repeating-radial-gradient(ellipse at 50% 100%,transparent 0 8px,var(--paper-edge) 9px 10px,transparent 11px 16px); opacity:.6; }
+.motif-aside, .motif-number, .motif-back { display:none; }
+.is-drawing .motif-slip { animation:hiyori-shake 1.5s ease-in-out infinite; }
+.is-drawing .motif-sun { animation:hiyori-breathe 2s ease-in-out infinite; }
+.hiyori-notices:empty { display:none; }
+.hiyori-explore .generate-bar { margin:0; }
+.hiyori-explore .btn-draw { min-height:51px; padding:0 22px; border:0; border-radius:0; background:var(--accent); color:var(--card); font:16px var(--font-editorial); letter-spacing:3px; box-shadow:none; justify-content:space-between; }
+.hiyori-explore .btn-draw::before { display:none; }
+.hiyori-explore .btn-draw:hover:not(:disabled) { background:color-mix(in srgb,var(--accent) 90%,black); }
+.hiyori-explore .btn-draw:disabled { background:var(--exhausted); color:var(--muted); }
+.hiyori-explore[data-state="drawing"] .btn-draw:disabled { background:var(--accent); color:var(--card); opacity:.7; }
+.draw-arrow { font:19px Georgia,serif; }
+.hiyori-explore .quota-hint { font-size:10px; margin-top:12px; color:var(--muted); }
+.hiyori-explore .quota-hint .num { font-weight:400; color:inherit; }
+.hiyori-endnote { display:flex; align-items:center; justify-content:center; gap:12px; text-align:center; margin:22px 0 0; font:11px/1.8 var(--font-editorial); color:var(--muted); letter-spacing:1px; }
+.hiyori-endnote::before,.hiyori-endnote::after { content:""; width:22px; height:1px; background:var(--paper-edge); }
+.hiyori-app .today-card { border-radius:0; box-shadow:0 7px 15px #4d47300a; background:var(--card); }
+.hiyori-ticket-stage .today-card { animation:hiyori-card-reveal 800ms var(--ease-paper) both; }
+.today-card>.hiyori-ticket-top { padding:20px 23px 12px; }
+.hiyori-card-seal { position:absolute; right:22px; top:53px; width:29px; height:39px; display:grid; place-items:center; writing-mode:vertical-rl; border:1px solid var(--accent); color:var(--accent); background:var(--card); font:14px var(--font-editorial); transform:rotate(7deg); z-index:3; }
+.hiyori-ticket-stage .hiyori-card-seal { animation:hiyori-stamp 450ms 500ms both; }
+.hiyori-app .today-card.is-plain { min-height:390px; display:flex; flex-direction:column; }
+.hiyori-app .is-plain .card-body { flex:1; display:flex; flex-direction:column; padding:33px 24px 20px; }
+.hiyori-app .is-plain .card-body>.font-japanese { font-size:28px; line-height:1.95; letter-spacing:2px; margin:12px 0 20px; }
+.hiyori-app .card-body { padding:19px 23px 20px; }
+.hiyori-app .card-body .jp-reading { font-size:11px; line-height:2; color:var(--muted); }
+.hiyori-app .gloss-block { margin:18px 0; border-top:1px solid var(--paper-edge); padding-top:10px; }
+.hiyori-app .gloss-toggle { min-height:44px; margin:0; font-size:12px; color:var(--accent); }
+.hiyori-app .gloss-text { font:17px/1.9 var(--font-editorial); animation:paperFadeIn 400ms ease; }
+.hiyori-app .card-actions { margin-top:auto; padding-top:10px; }
+.hiyori-app .play-btn { width:42px; height:42px; background:none; border:1px solid var(--paper-edge); color:var(--accent); }
+.hiyori-app .card-meta { font-size:10px; }
+.hiyori-app .card-illustration { aspect-ratio:4 / 3; }
+.hiyori-app .jp-on-art { font-size:23px; padding:45px 23px 16px; background:linear-gradient(to top,var(--card) 4%,color-mix(in srgb,var(--card) 92%,transparent) 40%,transparent); }
+:root[data-paper-theme="tea"] .hiyori-empty-card,:root[data-paper-theme="tea"] .hiyori-ticket-stage .today-card { border-left:6px solid var(--accent); border-radius:1px 8px 8px 1px; }
+:root[data-paper-theme="ink"] .hiyori-section-title { border-bottom:2px solid var(--ink); padding-bottom:15px; }
+:root[data-paper-theme="ink"] .hiyori-ticket-stage .is-plain .card-body>.font-japanese { writing-mode:vertical-rl; max-height:230px; min-height:160px; max-width:100%; margin:6px auto 22px; line-height:2.1; }
+.hiyori-page { padding:9px 26px 24px; }
+.hiyori-page-title,.hiyori-app .history-header h1 { font:28px/1.6 var(--font-editorial); letter-spacing:3px; margin:8px 0 5px; }
+.hiyori-page-sub,.hiyori-app .history-header .sub { font-size:12px; color:var(--muted); line-height:1.9; margin:0; }
+.hiyori-app .history-screen { max-width:none; padding:9px 26px 24px; }
+.hiyori-app .history-header { padding:0 0 12px; }
+.hiyori-app .wall-grid { grid-template-columns:1fr; gap:13px; }
+.hiyori-app .wall-tile { border-radius:0; box-shadow:0 3px 8px #4d473007; }
+.hiyori-app .wall-tile .wall-info { padding:24px 63px 23px 20px; }
+.hiyori-app .wall-jp { font-size:20px; line-height:1.9; letter-spacing:1px; }
+.hiyori-app .wall-breath { display:block; margin-top:10px; font-size:10px; }
+.hiyori-app .wall-date-stamp { border-radius:0; transform:rotate(6deg); width:30px; height:39px; top:20px; right:20px; background:var(--card); }
+.hiyori-app .wall-thumb { aspect-ratio:2 / 1; }
+.hiyori-app .wall-day-breath { font-size:10px; margin-top:20px; }
+.hiyori-empty-mark { display:block; color:var(--accent); font:90px var(--font-editorial); margin-bottom:28px; }
+.hiyori-personal-mark { font:100px var(--font-editorial); text-align:center; color:var(--accent); margin:24px 0; }
+.hiyori-theme-options { padding:0; border:0; margin:0; }
+.hiyori-theme-options legend { font-size:11px; color:var(--muted); letter-spacing:1px; margin-bottom:14px; }
+.hiyori-theme-option { display:flex; align-items:center; gap:17px; position:relative; padding:14px 10px; margin-bottom:6px; border:1px solid transparent; cursor:pointer; }
+.hiyori-theme-option:has(input:checked) { border-color:var(--paper-edge); background:var(--card); }
+.hiyori-theme-option:has(input:focus-visible) { outline:2px solid var(--accent); outline-offset:2px; }
+.hiyori-theme-option input { position:absolute; opacity:0; width:1px; height:1px; }
+.hiyori-paper-swatch { width:24px; height:32px; background:#aa4435; box-shadow:3px 3px 0 #988d6b26; flex-shrink:0; }
+[data-tone="tea"] .hiyori-paper-swatch { background:#5b7150; }
+[data-tone="ink"] .hiyori-paper-swatch { background:#344746; }
+.hiyori-theme-option>span:nth-of-type(2) { font-size:12px; }
+.hiyori-theme-option small { display:block; font-size:9px; color:var(--muted); margin-top:5px; }
+.hiyori-theme-check { margin-left:auto; color:var(--accent); }
+.hiyori-setting-actions { display:flex; justify-content:space-between; gap:12px; margin-top:28px; }
+.hiyori-friend-art { width:160px; height:150px; margin:65px auto 35px; position:relative; }
+.hiyori-friend-art span { position:absolute; display:grid; place-items:center; width:78px; height:110px; border:1px solid var(--paper-edge); background:var(--card); font:32px var(--font-editorial); transform:rotate(-12deg); box-shadow:3px 5px 9px #403b2508; }
+.hiyori-friend-art span+span { left:72px; top:20px; color:var(--accent); transform:rotate(12deg); }
+.hiyori-empty-title { font:21px/1.8 var(--font-editorial); text-align:center; letter-spacing:2px; }
+.hiyori-empty-copy { text-align:center; margin-top:15px; font-size:12px; color:var(--muted); line-height:2; }
+/* Public routes share the same paper surface and viewport/keyboard handling. */
+.auth-gate { padding:0; background:transparent; }
+.auth-sheet.hiyori-auth { width:min(100%,440px); max-height:100%; padding:0; gap:0; border:0; border-radius:0; box-shadow:none; background:var(--bg); }
+.auth-content { padding:0 30px; }
+.hiyori-auth .paper-motif.is-login { height:235px; margin-top:0; }
+.is-login .motif-sun { width:135px; height:135px; top:25px; left:calc(50% - 122px); animation:paperFadeIn 1.2s ease both; }
+.is-login .motif-slip,.is-login .motif-back { display:block; width:133px; height:185px; top:28px; left:calc(50% - 45px); background:var(--card); transform:rotate(8deg); animation:hiyori-letter-arrive 1.2s var(--ease-paper) both; }
+.is-login .motif-back { position:absolute; border:1px solid var(--paper-edge); background:var(--bg); transform:rotate(-12deg) translateX(-7px); animation:none; }
+.is-login .motif-caption { position:absolute; top:12px; left:12px; font-size:7px; letter-spacing:2px; color:var(--muted); }
+.is-login .motif-verse { position:absolute; top:33px; right:29px; margin:0; font-size:20px; line-height:1.8; letter-spacing:3px; }
+.is-login .motif-seal { position:absolute; bottom:15px; left:12px; width:22px; height:29px; display:grid; place-items:center; writing-mode:vertical-rl; font:11px var(--font-editorial); border:1px solid var(--accent); color:var(--accent); animation:hiyori-stamp .5s .6s both; }
+.is-login .motif-aside { display:block; position:absolute; left:0; top:42px; writing-mode:vertical-rl; font:10px var(--font-editorial); letter-spacing:4px; color:var(--muted); }
+.is-login .motif-number { display:block; position:absolute; right:7px; top:42px; writing-mode:vertical-rl; font:8px Georgia,var(--font-editorial); letter-spacing:2px; color:var(--muted); }
+.is-login .motif-waves { width:100px; left:auto; right:0; bottom:11px; background:repeating-radial-gradient(ellipse at 100% 100%,transparent 0 9px,var(--paper-edge) 10px 10.5px,transparent 11px 18px); }
+.hiyori-auth-welcome { margin-bottom:25px; animation:paperFadeIn .7s .1s both; }
+.hiyori-kicker { font:8px Georgia,serif; letter-spacing:2.2px; color:var(--accent); }
+.hiyori-auth-welcome h1 { font:25px/1.6 var(--font-editorial); letter-spacing:1px; margin:11px 0 5px; }
+.hiyori-auth-welcome p { font-size:11px; color:var(--muted); line-height:1.8; }
+.hiyori-auth .auth-form { gap:19px; }
+.hiyori-auth .auth-label { display:flex; align-items:center; gap:10px; font-size:12px; font-weight:400; color:var(--ink); letter-spacing:1px; }
+.hiyori-auth .auth-label span { font-size:9px; font-family:var(--font-editorial); color:var(--muted); }
+.hiyori-auth .auth-field { gap:8px; }
+.hiyori-auth .auth-field input { height:44px; padding:0 0 7px; background:none; border:0; border-bottom:1px solid var(--paper-edge); border-radius:0; font-size:16px; }
+.hiyori-auth .auth-field input::placeholder { font-size:12px; letter-spacing:1px; }
+.hiyori-auth .auth-field input:focus { border-color:var(--accent); box-shadow:none; }
+.auth-password { display:flex; border-bottom:1px solid var(--paper-edge); }
+.auth-password:focus-within { border-color:var(--accent); }
+.hiyori-auth .auth-password input { border:0; min-width:0; }
+.auth-password-toggle { min-width:44px; min-height:44px; background:none; border:0; color:var(--muted); font-size:10px; }
+.hiyori-auth .auth-submit { display:flex; align-items:center; justify-content:space-between; border-radius:0; height:51px; padding:0 22px; margin-top:4px; box-shadow:none; font:15px var(--font-editorial); letter-spacing:2px; }
+.hiyori-auth .auth-error { text-align:left; font-size:11px; }
+.hiyori-auth .auth-switch { font-size:11px; margin:0; min-height:32px; line-height:2; }
+.hiyori-auth .auth-switch a { color:var(--accent); border:0; display:inline-flex; align-items:center; min-height:44px; padding:0 5px; }
+.hiyori-auth .hiyori-endnote { margin:14px 0 20px; }
+.hiyori-footer { display:flex; justify-content:space-between; align-items:center; gap:10px; border-top:1px solid var(--paper-edge); margin:0 30px; padding:16px 0 20px; font-size:8px; color:var(--muted); letter-spacing:1px; }
+.hiyori-footer span:first-child { font:9px Georgia,serif; letter-spacing:3px; }
+.hiyori-auth.is-signup .paper-motif { height:125px; overflow:hidden; }
+.hiyori-auth.is-signup .motif-slip,.hiyori-auth.is-signup .motif-back { transform:rotate(8deg) scale(.6); transform-origin:50% 0; top:5px; }
+.hiyori-auth.is-signup .motif-back { transform:rotate(-12deg) scale(.6); }
+.hiyori-auth.is-signup .motif-sun { width:85px; height:85px; top:10px; left:calc(50% - 90px); }
+.hiyori-auth.is-signup .auth-form { gap:13px; }
+.hiyori-auth.is-signup .auth-hint { font-size:10px; }
+/* A successful sign-in is one continuous paper turn, with the destination underneath. */
+::view-transition-old(root),::view-transition-new(root) { animation:none; }
+::view-transition-group(hiyori-paper) { perspective:1600px; animation-duration:1.3s; }
+::view-transition-old(hiyori-paper) { transform-origin:0 50%; backface-visibility:hidden; z-index:2; box-shadow:18px 0 30px #2d281d25; animation:hiyori-page-turn 1.3s cubic-bezier(.32,.05,.18,1) both; }
+::view-transition-new(hiyori-paper) { z-index:1; animation:hiyori-page-unfold 1.15s .15s var(--ease-paper) both; }
+@keyframes hiyori-page-turn { 0% { transform:perspective(1400px) rotateY(0); opacity:1; } 18% { transform:perspective(1400px) rotateY(-8deg); opacity:1; } 70% { transform:perspective(1400px) rotateY(-78deg); opacity:1; } 100% { transform:perspective(1400px) rotateY(-104deg); opacity:0; } }
+@keyframes hiyori-page-unfold { from { transform:translateX(22px); opacity:.25; } to { transform:none; opacity:1; } }
+@keyframes hiyori-card-reveal { 0% { transform:translateY(-15px) rotate(-2deg); opacity:0; } 60% { transform:translateY(3px) rotate(.5deg); opacity:1; } 100% { transform:none; opacity:1; } }
+@keyframes hiyori-stamp { 0% { opacity:0; transform:rotate(12deg) scale(1.8); } 70% { opacity:1; transform:rotate(7deg) scale(.95); } 100% { opacity:1; transform:rotate(7deg) scale(1); } }
+@keyframes hiyori-shake { 0%,100% { transform:rotate(12deg) translateY(0); } 40% { transform:rotate(-5deg) translateY(-10px); } 70% { transform:rotate(16deg) translateY(-3px); } }
+@keyframes hiyori-breathe { 0%,100% { opacity:.4; } 50% { opacity:.8; } }
+@keyframes hiyori-letter-arrive { from { opacity:0; transform:rotate(-3deg) translateY(18px); } to { opacity:1; transform:rotate(8deg) translateY(0); } }
+@media(min-width:700px) { .hiyori-app { margin-top:20px; margin-bottom:20px; min-height:calc(100dvh - 40px); border-radius:6px; box-shadow:0 20px 70px #37382c1c,0 0 0 1px #c9c4b5; overflow:hidden; } .hiyori-nav { bottom:20px; border-radius:0 0 6px 6px; } .auth-gate { padding:20px; } .auth-sheet.hiyori-auth { border:1px solid var(--paper-edge); border-radius:6px; box-shadow:0 20px 70px #37382c1c; } }
+@media(max-width:699px) { body { background:var(--bg); } .hiyori-header { padding-top:calc(17px + env(safe-area-inset-top)); } .hiyori-auth { padding-top:env(safe-area-inset-top); padding-bottom:env(safe-area-inset-bottom); } .hiyori-auth .hiyori-header { padding-top:17px; } }
+@media(max-height:880px) { .hiyori-auth .paper-motif.is-login { height:180px; } .is-login .motif-slip,.is-login .motif-back { top:5px; transform:rotate(8deg) scale(.8); transform-origin:50% 0; animation:none; } .is-login .motif-back { transform:rotate(-12deg) scale(.8); } .is-login .motif-sun { width:110px; height:110px; top:13px; } .hiyori-auth .hiyori-header { min-height:68px; padding-top:13px; padding-bottom:8px; } .hiyori-auth-welcome { margin-bottom:19px; } .hiyori-auth .auth-form { gap:14px; } .hiyori-auth .hiyori-endnote { margin:10px 0 15px; } }
+@media(prefers-reduced-motion:reduce) { .app-paper *, .app-paper *::before, .app-paper *::after { animation:none!important; transition:none!important; } ::view-transition-old(hiyori-paper),::view-transition-new(hiyori-paper) { animation:none; } }

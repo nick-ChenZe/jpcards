@@ -14,7 +14,7 @@ import {Toaster} from './components/ui/sonner';
 function App () {
     return (
         <BrowserRouter>
-            <div className="h-screen w-screen">
+            <div className="hiyori-root">
                 <Routes>
                     {/* 需要认证的路由，带底部导航 */}
                     <Route element={<AuthLayout />}>

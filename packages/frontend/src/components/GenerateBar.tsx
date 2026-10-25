@@ -45,8 +45,8 @@ export function GenerateBar ({
                 onClick={draw}
                 disabled={loading || exhausted}
             >
-                <span className="seal-mark" aria-hidden="true">抽</span>
                 <span>{loading ? '抽签中…' : label}</span>
+                <span className="draw-arrow" aria-hidden="true">{loading ? '· · ·' : '↗'}</span>
             </button>
             <p className="quota-hint" aria-live="polite">
                 {exhausted

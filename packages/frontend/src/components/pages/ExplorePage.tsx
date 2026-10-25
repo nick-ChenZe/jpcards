@@ -6,6 +6,7 @@ import {cn} from '@/lib/utils';
 import {useCallback, useEffect, useRef, useState} from 'react';
 import {FootprintHeat} from '../FootprintHeat';
 import {GenerateBar} from '../GenerateBar';
+import {PaperMotif} from '../PaperMotif';
 import {TodayCard} from '../TodayCard';
 
 interface MediaNotice {
@@ -75,17 +76,24 @@ function StreakChip ({days, pending}: {days: number | null; pending: boolean;}) 
     );
 }
 
-function EmptyRitual () {
+function EmptyRitual ({drawing = false}: {drawing?: boolean;}) {
     return (
-        <div className="empty-ritual">
-            <svg className="empty-icon" viewBox="0 0 72 72" fill="none" aria-hidden="true">
-                <rect x="16" y="12" width="40" height="48" rx="4" stroke="#8A857C" strokeWidth="1.5" />
-                <path d="M24 26h24M24 34h18M24 42h12" stroke="#8A857C" strokeWidth="1.5" strokeLinecap="round" />
-                <circle cx="48" cy="52" r="12" fill="#F7F3EB" stroke="#C45C4A" strokeWidth="1.5" />
-                <text x="48" y="56" textAnchor="middle" fill="#C45C4A" fontSize="11" fontFamily="serif">签</text>
-            </svg>
-            <p>今日还没有日签</p>
-            <p className="hint">轻按上方，抽出一张</p>
+        <div
+            className={cn('hiyori-empty-card', drawing && 'is-drawing')}
+            role={drawing ? 'status' : undefined}
+            aria-busy={drawing}
+        >
+            <div className="hiyori-ticket-top">
+                <span>一期一会</span>
+                <span>DAILY FORTUNE</span>
+            </div>
+            <PaperMotif />
+            <h2>{drawing ? '正为你寻一句好日语。' : '今天，会遇见哪句话？'}</h2>
+            <p>
+                {drawing ? '纸签轻摇，等一句与你相遇的话。' : '把一点期待，留给未知。'}
+                <br />
+                {drawing ? '生成完成后，日签会在这里展开。' : '抽一张日签，开启今天的日语时光。'}
+            </p>
         </div>
     );
 }
@@ -233,71 +241,52 @@ export const ExplorePage = () => {
         </>
     );
 
+    const [year, month, day] = ritual.dayKey.split('-');
     return (
-        <div className="explore-screen" data-state={exploreState}>
-            <header className="ritual-header">
-                <div className="ritual-date">
-                    <span className="weekday">{ritual.weekday}</span>
-                    <span className="fulldate">{ritual.fullDate}</span>
-                </div>
-                <div
-                    key={stampKey}
-                    className={cn('stamp', exploreState === 'hero' && stampKey > 0 && 'settle')}
-                    aria-hidden="true"
-                >
-                    <span>日签</span>
-                </div>
-            </header>
-
-            {exploreState === 'hero' && card
-                ? (
-                    <>
-                        <div className="hero-chrome">
-                            <StreakChip days={streakDays} pending={streakPending} />
-                            <GenerateBar
-                                compact
-                                remaining={quota ? quota.remaining : null}
-                                limit={limit}
-                                loading={loading}
-                                exhausted={exhausted}
-                                onGenerate={generateCard}
-                            />
-                        </div>
-                        <div className="px-4">{notices}</div>
-                        <div className="hero-stage" key={card.id ?? card.sentence}>
-                            <TodayCard
-                                variant="hero"
-                                sentenceHtml={card.sentenceHtml}
-                                reading={card.reading}
-                                readingTokens={card.readingTokens}
-                                gloss={card.gloss}
-                                imageUrl={card.imageDataUrl}
-                                imageMessage={userFacingMedia('image', card.image?.message)}
-                                audioUrl={card.audioDataUrl || null}
-                                note={textNote}
-                                meta="今天"
-                            />
-                        </div>
-                    </>
-                )
-                : (
-                    <div className="screen-scroll">
-                        <p className="section-label">今日日签</p>
-                        <StreakChip days={streakDays} pending={streakPending} />
-                        <GenerateBar
-                            remaining={quota ? quota.remaining : null}
-                            limit={limit}
-                            loading={loading}
-                            exhausted={exhausted}
-                            onGenerate={generateCard}
-                        />
-                        {notices}
-                        {exploreState === 'drawing'
-                            ? <TodayCard loading loadingLabel="抽签中…" />
-                            : <EmptyRitual />}
-                        <FootprintHeat />
+        <div className="explore-screen hiyori-explore" data-state={exploreState}>
+            <header className="hiyori-date-row">
+                <div className="hiyori-date-block">
+                    <span className="hiyori-day">{Number(day)}</span>
+                    <div className="hiyori-date-meta">
+                        <span>{year} / {month}</span>
+                        <span>{ritual.weekday} · {ritual.fullDate}</span>
                     </div>
-                )}
+                </div>
+                <StreakChip days={streakDays} pending={streakPending} />
+            </header>
+            <div className="hiyori-section-title">
+                <h1>今日日签</h1>
+                <span>A LITTLE EVERY DAY</span>
+            </div>
+            <div className="hiyori-ticket-stage" key={`card-${stampKey}`}>
+                {card && !loading
+                    ? (
+                        <TodayCard
+                            variant="hero"
+                            sentenceHtml={card.sentenceHtml}
+                            reading={card.reading}
+                            readingTokens={card.readingTokens}
+                            gloss={card.gloss}
+                            imageUrl={card.imageDataUrl}
+                            imageMessage={userFacingMedia('image', card.image?.message)}
+                            audioUrl={card.audioDataUrl || null}
+                            note={textNote}
+                            meta="今天"
+                        />
+                    )
+                    : <EmptyRitual drawing={loading} />}
+            </div>
+            <div className="hiyori-notices" aria-live="polite">{notices}</div>
+            <GenerateBar
+                compact={Boolean(card)}
+                remaining={quota ? quota.remaining : null}
+                limit={limit}
+                loading={loading}
+                exhausted={exhausted}
+                onGenerate={generateCard}
+            />
+            <p className="hiyori-endnote">每天一点点，日语慢慢来。</p>
+            <FootprintHeat key={`heat-${stampKey}`} />
         </div>
     );
 };

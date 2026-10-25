@@ -116,7 +116,7 @@ export const HistoryPage = () => {
         <div className="history-screen">
             <header className="history-header">
                 <div className="flex items-end justify-between gap-3">
-                    <h1>日签墙</h1>
+                    <h1>把喜欢的，留下。</h1>
                     <div className="flex gap-2">
                         {dayKey
                             ? (
@@ -139,7 +139,7 @@ export const HistoryPage = () => {
                         ? (!loading && !error && items.length === 0
                             ? '这天还没抽'
                             : dayBreath(dayKey))
-                        : (total > 0 ? `已轻记 ${total} 张` : '抽出的日签会出现在这里')}
+                        : (total > 0 ? `已轻记 ${total} 张` : '有些句子，值得再读一遍。')}
                 </p>
             </header>
 
@@ -161,7 +161,15 @@ export const HistoryPage = () => {
                     </div>
                 )
                 : items.length === 0
-                ? <p className="history-empty">{dayKey ? '这天还没抽' : '抽出的日签会出现在这里'}</p>
+                ? (
+                    <div className="history-empty">
+                        <span className="hiyori-empty-mark" aria-hidden="true">栞</span>
+                        <p>{dayKey ? '这天还没抽' : '抽出的日签都会留在这里。'}</p>
+                        <Button variant="outline" className="mt-5" onClick={() => navigate('/explore')}>
+                            去抽一张 ↗
+                        </Button>
+                    </div>
+                )
                 : (
                     <div>
                         {groups.map((group) => (

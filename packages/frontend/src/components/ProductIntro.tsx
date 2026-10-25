@@ -1,4 +1,7 @@
 import {useEffect} from 'react';
+import {useLocation} from 'react-router-dom';
+import {PaperHeader} from './PaperHeader';
+import {PaperMotif} from './PaperMotif';
 
 function scrollFieldIntoSheet (target: EventTarget | null) {
     if (!(target instanceof HTMLElement)) {
@@ -31,6 +34,7 @@ function syncAuthViewport () {
 }
 
 export function ProductIntro ({children}: {children: React.ReactNode;}) {
+    const signingUp = useLocation().pathname === '/sign-up';
     useEffect(() => {
         syncAuthViewport();
         const viewport = window.visualViewport;
@@ -49,18 +53,27 @@ export function ProductIntro ({children}: {children: React.ReactNode;}) {
     return (
         <div className="auth-gate">
             <section
-                className="auth-sheet"
+                className={`auth-sheet app-paper hiyori-auth ${signingUp ? 'is-signup' : ''}`}
                 onFocus={(event) => {
                     const target = event.target;
                     window.requestAnimationFrame(() => scrollFieldIntoSheet(target));
                 }}
             >
-                <header className="auth-brand">
-                    <span className="auth-seal" aria-hidden="true">签</span>
-                    <h1 className="auth-title">日语卡片</h1>
-                    <p className="auth-breath">先看句子，再看意思。</p>
-                </header>
-                {children}
+                <PaperHeader />
+                <div className="auth-content">
+                    <PaperMotif kind="login" />
+                    <div className="hiyori-auth-welcome">
+                        <span className="hiyori-kicker">A LITTLE EVERY DAY</span>
+                        <h1>{signingUp ? '把日语，收进日常。' : '新的一页，从这里开始。'}</h1>
+                        <p>{signingUp ? '从今天起，为自己留下一句日语。' : '登录日和，收下今天的第一句日语。'}</p>
+                    </div>
+                    {children}
+                    <p className="hiyori-endnote">一期一会，一日一句。</p>
+                </div>
+                <footer className="hiyori-footer">
+                    <span>HIYORI</span>
+                    <span>让日语，慢慢成为日常。</span>
+                </footer>
             </section>
         </div>
     );

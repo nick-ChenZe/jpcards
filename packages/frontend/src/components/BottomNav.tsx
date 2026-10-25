@@ -9,10 +9,10 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-    {label: '探索', path: '/explore', icon: Compass},
-    {label: '历史', path: '/history', icon: Clock},
+    {label: '今日', path: '/explore', icon: Compass},
+    {label: '日签墙', path: '/history', icon: Clock},
     {label: '好友', path: '/friend', icon: Users},
-    {label: '设置', path: '/setting', icon: Settings}
+    {label: '我的', path: '/setting', icon: Settings}
 ];
 
 export const BottomNav = () => {
@@ -20,8 +20,8 @@ export const BottomNav = () => {
     const navigate = useNavigate();
 
     return (
-        <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card-surface/95 backdrop-blur-sm">
-            <div className="mx-auto flex h-16 max-w-lg items-center justify-around">
+        <nav className="hiyori-nav">
+            <div className="hiyori-nav-inner">
                 {navItems.map((item) => {
                     const isActive = location.pathname === item.path
                         || (item.path === '/explore' && location.pathname === '/')
@@ -30,6 +30,7 @@ export const BottomNav = () => {
                         <button
                             key={item.path}
                             type="button"
+                            aria-current={isActive ? 'page' : undefined}
                             onClick={() => navigate(item.path)}
                             className={cn(
                                 'flex flex-1 flex-col items-center justify-center gap-1 py-2 transition-colors border-0 bg-transparent',
