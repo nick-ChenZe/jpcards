@@ -12,7 +12,7 @@ async function waitForDestination (): Promise<HTMLElement | null> {
 
 /** WebKit without View Transitions gets the same turn inside a temporary, inert paper layer. */
 async function animatePaperFallback (navigate: () => void) {
-    const source = document.querySelector<HTMLElement>?.('.app-paper');
+    const source = document.querySelector?.('.app-paper') as HTMLElement | null | undefined;
     if (!source || !source.animate) {
         navigate();
         return;
