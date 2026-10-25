@@ -11,6 +11,7 @@ interface CardDetail {
     sentenceHtml: string;
     gloss: string;
     reading?: string;
+    readingTokens?: unknown;
     audioUrl: string | null;
     illustrationUrl: string | null;
     level: string;
@@ -77,6 +78,7 @@ export const HistoryDetailPage = () => {
                         <TodayCard
                             sentenceHtml={card.sentenceHtml}
                             reading={card.reading}
+                            readingTokens={card.readingTokens}
                             gloss={card.gloss}
                             imageUrl={card.illustrationUrl}
                             imageMessage={userFacingMedia('image')}

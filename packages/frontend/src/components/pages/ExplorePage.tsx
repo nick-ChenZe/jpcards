@@ -21,6 +21,7 @@ interface CardDemoResponse {
     sentence: string;
     sentenceHtml: string;
     reading?: string;
+    readingTokens?: unknown;
     gloss?: string;
     imageDataUrl: string;
     audioDataUrl: string;
@@ -171,6 +172,7 @@ export const ExplorePage = () => {
                         <TodayCard
                             sentenceHtml={card.sentenceHtml}
                             reading={card.reading}
+                            readingTokens={card.readingTokens}
                             gloss={card.gloss}
                             imageUrl={card.imageDataUrl}
                             imageMessage={userFacingMedia('image', card.image?.message)}

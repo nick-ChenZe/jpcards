@@ -1,5 +1,6 @@
 import {randomUUID} from 'crypto';
 import {and, count, desc, eq} from 'drizzle-orm';
+import {parseStoredReadingTokens, type ReadingToken, serializeReadingTokens} from '../utils/readingHighlight.js';
 import type {AppDatabase} from './db.js';
 import {cardHistory, user} from './schema.js';
 
@@ -10,6 +11,7 @@ export interface CardHistoryRecord {
     sentenceHtml: string;
     gloss: string;
     reading: string;
+    readingTokens: ReadingToken[] | null;
     audioUrl: string | null;
     illustrationUrl: string | null;
     level: string;
@@ -28,6 +30,7 @@ export interface InsertCardHistoryInput {
     sentenceHtml: string;
     gloss?: string;
     reading?: string;
+    readingTokens?: ReadingToken[] | null;
     audioUrl?: string | null;
     illustrationUrl?: string | null;
     level?: string;
@@ -42,6 +45,7 @@ export async function insertCardHistory (db: AppDatabase, input: InsertCardHisto
         sentenceHtml: input.sentenceHtml,
         gloss: input.gloss ?? '',
         reading: input.reading ?? '',
+        readingTokens: serializeReadingTokens(input.readingTokens),
         audioUrl: input.audioUrl ?? null,
         illustrationUrl: input.illustrationUrl ?? null,
         level: input.level ?? 'N5'
@@ -102,6 +106,7 @@ export async function getCardHistory (
         sentenceHtml: row.sentenceHtml,
         gloss: row.gloss ?? '',
         reading: row.reading ?? '',
+        readingTokens: parseStoredReadingTokens(row.readingTokens),
         audioUrl: row.audioUrl,
         illustrationUrl: row.illustrationUrl,
         level: row.level ?? 'N5',
@@ -121,6 +126,7 @@ export async function listAllCards (
         sentenceHtml: cardHistory.sentenceHtml,
         gloss: cardHistory.gloss,
         reading: cardHistory.reading,
+        readingTokens: cardHistory.readingTokens,
         audioUrl: cardHistory.audioUrl,
         illustrationUrl: cardHistory.illustrationUrl,
         level: cardHistory.level,
@@ -142,6 +148,7 @@ export async function listAllCards (
         sentenceHtml: row.sentenceHtml,
         gloss: row.gloss ?? '',
         reading: row.reading ?? '',
+        readingTokens: parseStoredReadingTokens(row.readingTokens),
         audioUrl: row.audioUrl,
         illustrationUrl: row.illustrationUrl,
         level: row.level ?? 'N5',
@@ -186,6 +193,7 @@ export async function getCardHistoryById (
         sentenceHtml: row.sentenceHtml,
         gloss: row.gloss ?? '',
         reading: row.reading ?? '',
+        readingTokens: parseStoredReadingTokens(row.readingTokens),
         audioUrl: row.audioUrl,
         illustrationUrl: row.illustrationUrl,
         level: row.level ?? 'N5',

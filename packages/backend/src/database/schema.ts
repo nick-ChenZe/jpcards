@@ -80,6 +80,8 @@ export const cardHistory = sqliteTable('card_history', {
     sentenceHtml: text('sentence_html').notNull(),
     gloss: text('gloss').notNull().default(''),
     reading: text('reading').notNull().default(''),
+    /** JSON：[{surface, reading?, moraWeight}]。旧行和分词失败为 null。 */
+    readingTokens: text('reading_tokens'),
     audioUrl: text('audio_url'),
     illustrationUrl: text('illustration_url'),
     level: text('level').default('N5'),

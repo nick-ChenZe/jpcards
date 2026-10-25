@@ -212,6 +212,11 @@ button.card-generate.card-generate-exhausted:disabled {
   letter-spacing: 0.02em;
 }
 
+.mora-token-active {
+  background-color: color-mix(in srgb, var(--accent) 32%, transparent);
+  border-radius: 0.18em;
+}
+
 @keyframes paper-breathe {
   from { opacity: 0.45; }
   to { opacity: 0.88; }

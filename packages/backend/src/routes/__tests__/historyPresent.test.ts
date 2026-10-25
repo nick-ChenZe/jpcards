@@ -9,6 +9,7 @@ const card = (overrides: Partial<CardHistoryRecord>): CardHistoryRecord => ({
     sentenceHtml: 'こんにちは。',
     gloss: '你好。',
     reading: '',
+    readingTokens: null,
     audioUrl: null,
     illustrationUrl: null,
     level: 'N5',
@@ -20,7 +21,14 @@ describe('presentHistoryCard', () => {
     it('shows the practice reading and Shanghai time for rows saved before readings existed', () => {
         const presented = presentHistoryCard(card({}));
         expect(presented.reading).toBe('こんにちは（konnichiwa）');
+        expect(presented.readingTokens).toBeNull();
         expect(presented.createdAtText).toBe('2026/10/25 12:20');
+    });
+
+    it('keeps stored reading tokens so playback can highlight them', () => {
+        const tokens = [{surface: 'こんにちは。', reading: 'こんにちは。', moraWeight: 5}];
+        const presented = presentHistoryCard(card({readingTokens: tokens}));
+        expect(presented.readingTokens).toEqual(tokens);
     });
 
     it('replaces a stored romaji-only practice reading with the deck kana', () => {
