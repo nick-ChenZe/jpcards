@@ -1,88 +1,35 @@
-import path from 'path';
-import {fileURLToPath} from 'url';
 import {toHiragana, toRomaji} from 'wanakana';
-import {installXHRPolyfill} from './xhrPolyfill.js';
+import {type DictLoadOptions, type KanaTokenizer, loadKuromojiTokenizer} from './kuromojiDict.js';
 
 /** 汉字（CJK 统一表意文字）范围 */
 const KANJI_REGEX = /[\u4e00-\u9fff]/;
 
-/** Node 下用本地 dict；Workers 下用 assets baseUrl（从 public/kuromoji/dict 部署） */
-function getDicPath (assetsBaseUrl?: string): string {
-    if (typeof import.meta.url !== 'undefined' && import.meta.url.startsWith('file:')) {
-        const dir = path.dirname(fileURLToPath(import.meta.url));
-        return path.join(dir, '../../node_modules/kuromoji/dict');
+export type ReadingOptions = DictLoadOptions;
+
+function asReadingOptions (arg?: string | ReadingOptions): ReadingOptions {
+    if (typeof arg === 'string' || typeof arg === 'undefined') {
+        return {assetsBaseUrl: arg};
     }
-    const base = (assetsBaseUrl ?? '').replace(/\/+$/, '');
-    return base ? `${base}/kuromoji/dict/` : '';
+    return arg;
 }
 
-interface KuromojiToken {
-    surface_form: string;
-    reading?: string;
-    pronunciation?: string;
-}
+type KuromojiTokenizer = KanaTokenizer;
 
-type KuromojiTokenizer = {tokenize: (text: string) => KuromojiToken[];};
-
-let tokenizerPromise: Promise<KuromojiTokenizer | null> | null = null;
-
-async function getTokenizer (assetsBaseUrl?: string): Promise<KuromojiTokenizer | null> {
-    if (tokenizerPromise) {
-        return tokenizerPromise;
-    }
-
-    tokenizerPromise = (async (): Promise<KuromojiTokenizer | null> => {
-        try {
-            installXHRPolyfill();
-
-            const kuromojiModule = await import('kuromoji');
-            const kuromoji = (kuromojiModule as {
-                builder?: (options: {dicPath: string;}) => {
-                    build: (
-                        callback: (err: Error | null, tok: KuromojiTokenizer) => void
-                    ) => void;
-                };
-            }).builder;
-
-            if (!kuromoji) {
-                return null;
-            }
-
-            const dicPath = getDicPath(assetsBaseUrl);
-            if (!dicPath) {
-                console.warn('Kuromoji: no dicPath (pass assetsBaseUrl in Workers)');
-                return null;
-            }
-
-            return await new Promise<KuromojiTokenizer>((resolve, reject) => {
-                kuromoji({dicPath}).build((err, tok) => {
-                    if (err) {
-                        reject(err);
-                        return;
-                    }
-                    resolve(tok);
-                });
-            });
-        } catch (error) {
-            console.warn('Kuromoji tokenizer unavailable, fallback to plain sentence rendering:', error);
-            return null;
-        }
-    })();
-
-    return tokenizerPromise;
+async function getTokenizer (arg?: string | ReadingOptions): Promise<KuromojiTokenizer | null> {
+    return loadKuromojiTokenizer(asReadingOptions(arg));
 }
 
 /**
  * 将日语句子转为 HTML，仅对汉字（中文）添加罗马音标注，假名等不加。
  * 返回的 HTML 使用 <ruby> 标签，可直接用于前端渲染。
  * @param sentence 日语句子
- * @param assetsBaseUrl Workers 下需传入请求 origin（如 new URL(req.url).origin），用于从 assets 加载 dict
+ * @param options Workers 下传入 assetsBaseUrl 和 ASSETS.fetch。Node 测试不传时读本地词典。
  */
 export async function toSentenceWithKanjiRomaji (
     sentence: string,
-    assetsBaseUrl?: string
+    options?: string | ReadingOptions
 ): Promise<string> {
-    const tokenizer = await getTokenizer(assetsBaseUrl);
+    const tokenizer = await getTokenizer(options);
     if (!tokenizer) {
         return escapeHtml(sentence);
     }
@@ -128,10 +75,11 @@ function tokenKana (surface: string, reading: string): string {
 }
 
 /**
- * 整句读音：假名在前，罗马音放在括号里。分词失败时返回空字符串，调用方显示「读音暂未开通」，不请求语音服务。
+ * 整句读音：假名在前，罗马音放在括号里。
+ * 分词失败时返回空字符串并已在加载处打日志。调用方改用模型假名；仍然没有时，页面显示「读音这次没生成」。
  */
-export async function toDisplayReading (sentence: string, assetsBaseUrl?: string): Promise<string> {
-    const tokenizer = await getTokenizer(assetsBaseUrl);
+export async function toDisplayReading (sentence: string, options?: string | ReadingOptions): Promise<string> {
+    const tokenizer = await getTokenizer(options);
     if (!tokenizer) {
         return '';
     }

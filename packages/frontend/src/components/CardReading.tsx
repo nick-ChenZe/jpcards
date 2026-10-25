@@ -7,5 +7,5 @@ export function CardReading ({reading}: {reading?: string;}) {
             </p>
         );
     }
-    return <p className="text-sm text-muted-foreground">读音暂未开通</p>;
+    return <p className="text-sm text-muted-foreground">读音这次没生成</p>;
 }

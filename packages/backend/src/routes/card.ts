@@ -8,7 +8,14 @@ import {synthesizeSpeech} from '../tts/qwen.js';
 import type {SpeechResult} from '../tts/types.js';
 import type {Env} from '../types.js';
 import {IMAGE_GENERATION_FAILED, LOCAL_PRACTICE_NOTICE} from '../userCopy.js';
-import {toDisplayReading, toSentenceWithKanjiRomaji} from '../utils/romaji.js';
+import {chooseReading} from '../utils/readingChoice.js';
+import {type ReadingOptions, toDisplayReading, toSentenceWithKanjiRomaji} from '../utils/romaji.js';
+import {
+    buildCardUserPrompt,
+    CARD_SYSTEM_PROMPT,
+    type GeneratedCardFields,
+    parseGeneratedCard
+} from './generatedCard.js';
 import {pickPracticeCard} from './practiceDeck.js';
 
 const DEFAULT_LEVEL = 'N5';
@@ -34,11 +41,21 @@ export interface CardDemoResult {
 
 export type CardBuildResult = {ok: true; card: CardDemoResult;};
 
-async function generateJapaneseSentence (
+function readingContext (env: Env, assetsBaseUrl?: string): ReadingOptions {
+    if (!env.ASSETS) {
+        return {assetsBaseUrl};
+    }
+    return {
+        assetsBaseUrl,
+        assetFetch: (request) => env.ASSETS.fetch(request)
+    };
+}
+
+async function generateJapaneseCard (
     text: TextModelConfig,
     seenSentences: string[],
     fetchImpl?: typeof fetch
-): Promise<string> {
+): Promise<GeneratedCardFields> {
     const client = new OpenAI({
         apiKey: text.chatApiKey,
         baseURL: text.chatApiEndpoint,
@@ -49,37 +66,35 @@ async function generateJapaneseSentence (
         model: text.chatModel,
         temperature: 0.9,
         messages: [
-            {
-                role: 'system',
-                content: '你是日语助教。你只输出一句自然的日语句子，不要解释，不要加引号。'
-            },
-            {
-                role: 'user',
-                content: buildMemoryPrompt(seenSentences, DEFAULT_LEVEL)
-            }
+            {role: 'system', content: CARD_SYSTEM_PROMPT},
+            {role: 'user', content: buildCardUserPrompt(seenSentences, DEFAULT_LEVEL)}
         ]
     });
 
-    const sentence = completion.choices[0]?.message?.content?.trim() ?? '';
-    if (!sentence) {
+    const content = completion.choices[0]?.message?.content?.trim() ?? '';
+    if (!content) {
         throw new Error('Text model did not return a sentence');
     }
-    return sentence.replace(/^["']|["']$/g, '');
+    const parsed = parseGeneratedCard(content);
+    if (!parsed.sentence) {
+        throw new Error('Text model did not return a sentence');
+    }
+    return parsed;
 }
 
-function buildMemoryPrompt (seenSentences: string[], level: string): string {
-    let userContent = `请生成一句适合初学者学习的日语短句。\n\n`;
-    userContent += `约束：\n1. 难度：${level} 级别（基础句型、常用助词、简单动词）。\n`;
-    if (seenSentences.length > 0) {
-        userContent += `2. 避免与以下已学过的句子重复或过于相似：\n`;
-        seenSentences.slice(0, 50).forEach((s) => {
-            userContent += `   - ${s}\n`;
-        });
-        userContent += `\n请生成一句新的、不重复的短句。`;
-    } else {
-        userContent += `2. 请生成一句自然的短句。`;
+async function resolveReading (
+    sentence: string,
+    modelReading: string,
+    options: ReadingOptions
+): Promise<string> {
+    const dictReading = await toDisplayReading(sentence, options);
+    const chosen = chooseReading(dictReading, modelReading);
+    if (chosen.source === 'model') {
+        console.error('[reading] kuromoji unavailable; stored model kana');
+    } else if (chosen.source === 'none') {
+        console.error('[reading] no kana stored');
     }
-    return userContent;
+    return chosen.reading;
 }
 
 async function attachMedia (env: Env, sentence: string, fetchImpl?: typeof fetch): Promise<{
@@ -119,15 +134,20 @@ export async function buildCardDemo (
     if (!gate.enabled) {
         throw new Error('CARD_GEN_DISABLED');
     }
-    const sentence = await generateJapaneseSentence(gate.text, [], fetchImpl);
-    const sentenceHtml = await toSentenceWithKanjiRomaji(sentence);
-    const reading = await toDisplayReading(sentence);
+    const generated = await generateJapaneseCard(gate.text, [], fetchImpl);
+    const sentence = generated.sentence;
+    if (!generated.gloss) {
+        console.error('[card] model gloss missing');
+    }
+    const options = readingContext(env);
+    const sentenceHtml = await toSentenceWithKanjiRomaji(sentence, options);
+    const reading = await resolveReading(sentence, generated.reading, options);
     const media = await attachMedia(env, sentence, fetchImpl);
     return {
         sentence,
         sentenceHtml,
         reading,
-        gloss: '',
+        gloss: generated.gloss,
         imageDataUrl: media.image.ok ? media.image.imageDataUrl : '',
         audioDataUrl: media.audio.audioDataUrl,
         text: {configured: true, source: 'model', message: ''},
@@ -148,12 +168,18 @@ export async function buildCardWithMemory (input: {
     let sentence: string;
     let gloss: string;
     let reading: string;
+    let modelReading = '';
     let text: TextNotice;
     if (gate.enabled) {
-        sentence = await generateJapaneseSentence(gate.text, seenSentences, input.fetchImpl);
-        gloss = '';
+        const generated = await generateJapaneseCard(gate.text, seenSentences, input.fetchImpl);
+        sentence = generated.sentence;
+        gloss = generated.gloss;
+        modelReading = generated.reading;
         reading = '';
         text = {configured: true, source: 'model', message: ''};
+        if (!gloss) {
+            console.error('[card] model gloss missing');
+        }
     } else {
         const practice = pickPracticeCard(seenSentences);
         sentence = practice.sentence;
@@ -162,9 +188,10 @@ export async function buildCardWithMemory (input: {
         text = {configured: false, source: 'local', message: LOCAL_PRACTICE_NOTICE};
     }
     await insertSentence(input.db, input.userId, sentence, DEFAULT_LEVEL);
-    const sentenceHtml = await toSentenceWithKanjiRomaji(sentence, input.assetsBaseUrl);
+    const options = readingContext(input.env, input.assetsBaseUrl);
+    const sentenceHtml = await toSentenceWithKanjiRomaji(sentence, options);
     if (!reading) {
-        reading = await toDisplayReading(sentence, input.assetsBaseUrl);
+        reading = await resolveReading(sentence, modelReading, options);
     }
     const cardId = await insertCardHistory(input.db, {
         userId: input.userId,
