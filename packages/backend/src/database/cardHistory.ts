@@ -40,6 +40,17 @@ export async function insertCardHistory (db: AppDatabase, input: InsertCardHisto
     return id;
 }
 
+export async function updateCardAudio (
+    db: AppDatabase,
+    cardId: string,
+    userId: string,
+    audioUrl: string
+): Promise<void> {
+    await db.update(cardHistory)
+        .set({audioUrl})
+        .where(and(eq(cardHistory.id, cardId), eq(cardHistory.userId, userId)));
+}
+
 export async function updateCardAssets (
     db: AppDatabase,
     cardId: string,

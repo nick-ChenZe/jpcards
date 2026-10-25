@@ -1,10 +1,11 @@
 import OpenAI from 'openai';
 import {assessCardGeneration, createChatFetch, type TextModelConfig} from '../config/index.js';
-import {insertCardHistory} from '../database/cardHistory.js';
+import {insertCardHistory, updateCardAudio} from '../database/cardHistory.js';
 import type {AppDatabase} from '../database/db.js';
 import {getRecentSentences, insertSentence} from '../database/sentenceMemory.js';
 import {createImageProvider, type ImageGenerationResult} from '../image/provider.js';
-import {type SpeechPlaceholder, synthesizePlaceholder} from '../tts/placeholder.js';
+import {synthesizeSpeech} from '../tts/qwen.js';
+import type {SpeechResult} from '../tts/types.js';
 import type {Env} from '../types.js';
 import {toSentenceWithKanjiRomaji} from '../utils/romaji.js';
 import {pickPracticeCard} from './practiceDeck.js';
@@ -27,7 +28,7 @@ export interface CardDemoResult {
     audioDataUrl: string;
     text: TextNotice;
     image: ImageGenerationResult;
-    audio: SpeechPlaceholder;
+    audio: SpeechResult;
 }
 
 export type CardBuildResult = {ok: true; card: CardDemoResult;};
@@ -80,11 +81,11 @@ function buildMemoryPrompt (seenSentences: string[], level: string): string {
     return userContent;
 }
 
-async function attachMedia (env: Env, sentence: string): Promise<{
+async function attachMedia (env: Env, sentence: string, fetchImpl?: typeof fetch): Promise<{
     image: ImageGenerationResult;
-    audio: SpeechPlaceholder;
+    audio: SpeechResult;
 }> {
-    const audio = synthesizePlaceholder();
+    const audio = await synthesizeSpeech(env, sentence, fetchImpl);
     try {
         const image = await createImageProvider(env).generate({
             prompt: `A clean illustration that matches this Japanese sentence: ${sentence}`
@@ -115,13 +116,13 @@ export async function buildCardDemo (
     }
     const sentence = await generateJapaneseSentence(gate.text, [], fetchImpl);
     const sentenceHtml = await toSentenceWithKanjiRomaji(sentence);
-    const media = await attachMedia(env, sentence);
+    const media = await attachMedia(env, sentence, fetchImpl);
     return {
         sentence,
         sentenceHtml,
         gloss: '',
         imageDataUrl: media.image.ok ? media.image.imageDataUrl : '',
-        audioDataUrl: '',
+        audioDataUrl: media.audio.audioDataUrl,
         text: {configured: true, source: 'model', message: ''},
         image: media.image,
         audio: media.audio
@@ -159,7 +160,14 @@ export async function buildCardWithMemory (input: {
         gloss,
         level: DEFAULT_LEVEL
     });
-    const media = await attachMedia(input.env, sentence);
+    const media = await attachMedia(input.env, sentence, input.fetchImpl);
+    if (media.audio.ok) {
+        try {
+            await updateCardAudio(input.db, cardId, input.userId, media.audio.audioUrl);
+        } catch (error) {
+            console.error('Failed to save card audio');
+        }
+    }
 
     return {
         ok: true,
@@ -170,7 +178,7 @@ export async function buildCardWithMemory (input: {
             gloss,
             text,
             imageDataUrl: media.image.ok ? media.image.imageDataUrl : '',
-            audioDataUrl: '',
+            audioDataUrl: media.audio.audioDataUrl,
             image: media.image,
             audio: media.audio
         }
