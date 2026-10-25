@@ -13,7 +13,14 @@
   `adminId`、`timestamp`、`resultCount`，不记卡片内容。
 - 每个登录用户每天可以生成 20 张卡片，按北京时间零点重置。只有卡片生成并保存成功才扣 1
   次，配图和语音算在同一次里，不另扣。生成失败不扣当天次数。两次生成至少间隔 5
-  秒。用完后探索页按钮不可点，并显示「今日额度用完了」。`GET /api/me/quota` 返回 `{limit, used, remaining, resetsAt}`。
+  秒。用完后探索页按钮不可点，并显示「今日额度已用完，明天 0 点（北京时间）再来」。还有次数时仍显示「今日还可生成 x/20
+  张」。`GET /api/me/quota` 返回 `{limit, used, remaining, resetsAt}`。
+- 界面字体是 Noto Sans SC 400/500，日文句子是 Noto Serif JP 500。子集放在 `packages/frontend/src/fonts/`，样式写在
+  `packages/frontend/src/fonts/fonts.css`。生产页面不请求 `fonts.googleapis.com` 或 `fonts.gstatic.com`。这三个 woff2
+  来自 Fontsource 5.3.1 打包的 Google Fonts 官方语言子集（简体中文约 7900 字、日文约 6900 字，均含常用拉丁字母），不是
+  Noto CJK 整包。`pnpm dev` / `pnpm deploy` 构建前端时，Vite 把它们打进 `packages/frontend/dist`，Worker 通过 ASSETS
+  同源提供。族名仍是 `--font-zh` 和 `--font-ja`。许可是 SIL Open Font License 1.1，全文在
+  `packages/frontend/src/fonts/OFL.txt`。
 - 没有文本模型密钥时，已登录用户仍可以生成一张本地练习卡片：日语句子、读音和中文释义会写入自己的历史，不会请求
   DeepSeek。练习词表本身带有中文释义。
 - 模型生卡必须拿到非空中文释义才会写入历史。没有释义时不入库，探索页提示「这张没有中文意思，没有保存。请再试一次。」这一次不计入当天的

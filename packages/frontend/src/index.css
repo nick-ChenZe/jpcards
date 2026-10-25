@@ -19,6 +19,7 @@
   --card-surface: #FFFCF7;
   --radius-card: 1rem;
   --shadow-card: 0 1px 2px rgb(44 42 38 / 0.06);
+  /* 自托管子集见 src/fonts。族名与回退不变。 */
   --font-ja: "Noto Serif JP", "Yu Mincho", "Hiragino Mincho ProN", "Hiragino Mincho Pro", serif;
   --font-zh: "Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
   --btn-generate-bg: #2C2A26;

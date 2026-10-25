@@ -1,5 +1,5 @@
 import {useSession} from '@/lib/auth';
-import {userFacingMedia, userFacingTextNotice} from '@/lib/userCopy';
+import {QUOTA_EXCEEDED_MESSAGE, userFacingMedia, userFacingTextNotice} from '@/lib/userCopy';
 import {useCallback, useEffect, useRef, useState} from 'react';
 import {GenerateBar} from '../GenerateBar';
 import {Nav} from '../Nav';
@@ -42,7 +42,6 @@ interface QuotaSnapshot {
 }
 
 const DAILY_CARD_LIMIT = 20;
-const QUOTA_EXHAUSTED_MESSAGE = '今日额度用完了';
 
 function isQuotaSnapshot (value: unknown): value is QuotaSnapshot {
     if (!value || typeof value !== 'object') {
@@ -122,7 +121,7 @@ export const ExplorePage = () => {
             const response = await fetch('/api/card', {credentials: 'include'});
             const body = await response.json().catch(() => null) as (CardDemoResponse & ErrorBody) | null;
             if (response.status === 429) {
-                if (body?.error === 'QUOTA_EXCEEDED' || body?.message === QUOTA_EXHAUSTED_MESSAGE) {
+                if (body?.error === 'QUOTA_EXCEEDED' || body?.message === QUOTA_EXCEEDED_MESSAGE) {
                     noteExhausted();
                     setNotice('');
                 } else {
