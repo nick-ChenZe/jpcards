@@ -366,7 +366,6 @@ html, body { height:100%; min-height:0; overflow:hidden; overscroll-behavior:non
 .history-detail-screen .today-card.is-plain { min-height:0; }
 .history-detail-screen .is-plain .card-body { padding:22px 18px 16px; }
 @media(max-width:360px) { .hiyori-app .is-plain .card-body>.sentence-reading { font-size:22px; line-height:2.35; margin-top:0; margin-bottom:14px; } }
-.today-card>.hiyori-ticket-top { padding-right:42px; }
 .reading-run { display:inline-block; max-width:100%; white-space:nowrap; }
 .reading-run>.reading-word:last-child { margin-right:.13em; }
 
@@ -387,7 +386,7 @@ html, body { height:100%; min-height:0; overflow:hidden; overscroll-behavior:non
 .hiyori-explore .generation-progress { flex:1; min-height:0; width:100%; display:flex; flex-direction:column; justify-content:center; padding:18px 20px; }
 .hiyori-explore .generation-wash { flex:1; min-height:70px; max-height:148px; height:auto; overflow:hidden; }
 .hiyori-explore .generation-kicker,.hiyori-explore .generation-eta,.hiyori-explore .generation-steps,.hiyori-explore .generation-time,.hiyori-explore .generation-note { flex-shrink:0; }
-.hiyori-explore[data-state="hero"]>.hiyori-ticket-stage { min-height:360px; }
+.hiyori-explore[data-state="hero"]>.hiyori-ticket-stage { min-height:0; }
 .hiyori-ticket-stage .today-card { width:100%; min-height:0; display:flex; flex-direction:column; }
 .hiyori-ticket-stage .card-illustration { aspect-ratio:auto; flex:1 0 170px; }
 .hiyori-ticket-stage .today-card>.hiyori-ticket-top { padding:13px 18px 9px; flex-shrink:0; }
@@ -425,26 +424,18 @@ html, body { height:100%; min-height:0; overflow:hidden; overscroll-behavior:non
 }
 @media(max-height:760px) {
     .hiyori-explore>.hiyori-ticket-stage { min-height:250px; }
-    .hiyori-explore[data-state="hero"]>.hiyori-ticket-stage { min-height:360px; }
+    .hiyori-explore[data-state="hero"]>.hiyori-ticket-stage { min-height:0; }
     .hiyori-explore .hiyori-empty-card { padding:14px 18px 16px; }
     .hiyori-empty-card .paper-motif { min-height:110px; }
     .hiyori-empty-card .motif-slip { transform:translateY(-50%) rotate(12deg) scale(.7); }
     .hiyori-empty-card .motif-sun { transform:translateY(-50%) scale(.7); }
     .hiyori-empty-card h2 { font-size:19px; letter-spacing:1.5px; }
 }
-/* Generated cards keep their natural reading height, rather than using a second viewport. */
-.hiyori-explore[data-state="hero"] { height:auto; min-height:100%; display:block; }
-.hiyori-explore[data-state="hero"]>.hiyori-ticket-stage { display:block; }
-.hiyori-explore[data-state="hero"] .card-illustration { flex:none; height:clamp(190px,32dvh,285px); }
-
 /* 朱印狐：角印静置，空态只淡入，印钮轻按不超过 300ms。 */
 .auth-corner-seal { position:absolute; top:16px; right:18px; z-index:4; width:24px; height:24px; pointer-events:none; animation:sealCornerIn 240ms cubic-bezier(0.22, 0.61, 0.36, 1) 40ms both; }
 .hiyori-auth .hiyori-header { padding-right:56px; }
 @keyframes sealCornerIn { from { opacity:0; } to { opacity:1; } }
 .hiyori-card-seal img { width:24px; height:24px; }
-.today-card>.hiyori-ticket-top,
-.hiyori-ticket-stage .today-card>.hiyori-ticket-top,
-.history-detail-screen .today-card>.hiyori-ticket-top { padding-right:42px; }
 .hiyori-explore .btn-draw .seal-fox-mark { background:transparent; padding:0; border-radius:0; box-shadow:none; }
 .wall-brow-seal,.day-card-list .wall-thumb .wall-brow-seal { position:absolute; top:6px; right:6px; left:auto; bottom:auto; width:24px; height:24px; object-fit:contain; z-index:2; pointer-events:none; }
 .day-card-list .wall-tile.is-plain { position:relative; }
@@ -457,3 +448,40 @@ html, body { height:100%; min-height:0; overflow:hidden; overscroll-behavior:non
 .calendar-screen .footprint-empty .seal-empty-silhouette { width:72px; margin-bottom:0; }
 .day-empty-note { margin:0; font-size:11px; color:var(--muted); }
 @media(max-height:700px) { .calendar-screen .footprint-empty .seal-empty-silhouette { width:52px; } }
+
+/* The finished ticket uses the height left between its heading and draw action. */
+.hiyori-explore[data-state="hero"] { height:100%; min-height:0; display:flex; }
+.hiyori-explore[data-state="hero"]>.hiyori-ticket-stage { flex:1; min-height:0; display:flex; }
+.hiyori-explore[data-state="hero"]>.hiyori-endnote { display:none; }
+.hiyori-ticket-stage .today-card.is-hero { flex:1; min-height:0; container-type:size; }
+.hiyori-ticket-stage .is-hero .card-illustration { flex:1; height:auto; min-height:0; }
+.hiyori-ticket-stage .is-hero .card-body { padding:10px 18px 12px; }
+.hiyori-ticket-stage .is-hero .translation-note { margin-bottom:10px; padding-top:10px; }
+.hiyori-ticket-stage .is-hero .translation-note .gloss-text { font-size:14px; line-height:1.7; }
+.hiyori-ticket-stage .is-hero .card-actions { padding-top:0; }
+.hiyori-ticket-stage .is-hero .play-btn { width:44px; height:44px; }
+.hiyori-ticket-stage .is-hero .jp-on-art { padding:32px 18px 8px; }
+.hiyori-ticket-stage .is-hero .sentence-reading { font-size:clamp(18px,5.7cqh,24px); line-height:2.1; letter-spacing:.02em; }
+.hiyori-ticket-stage .is-hero .reading-word { margin-bottom:.08em; margin-right:.08em; }
+.hiyori-ticket-stage .is-hero.is-plain .card-body { justify-content:center; padding:16px 18px 12px; }
+.hiyori-ticket-stage .is-hero.is-plain .card-body>.sentence-reading { font-size:clamp(20px,6cqh,28px); line-height:2.1; margin:0 0 14px; }
+@container (max-height:330px) {
+    .hiyori-ticket-stage .is-hero>.hiyori-ticket-top { padding:8px 14px 5px; font-size:8px; }
+    .hiyori-ticket-stage .is-hero .card-body { padding:6px 14px 9px; }
+    .hiyori-ticket-stage .is-hero .jp-on-art { padding:22px 14px 5px; }
+    .hiyori-ticket-stage .is-hero .translation-note { padding-top:7px; margin-bottom:7px; gap:8px; }
+    .hiyori-ticket-stage .is-hero .translation-note .gloss-text { font-size:13px; line-height:1.6; }
+}
+@media(max-height:700px) {
+    .hiyori-explore[data-state="hero"]>.hiyori-date-row { margin:0 0 8px; }
+    .hiyori-explore[data-state="hero"]>.hiyori-section-title { margin-bottom:8px; }
+    .hiyori-explore[data-state="hero"] .btn-draw { min-height:44px; }
+}
+
+/* Write actual stroke paths, rather than revealing whole printed glyphs. */
+.draw-writing { width:92px; height:26px; overflow:visible; }
+.draw-writing path { stroke:currentColor; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; stroke-dasharray:1; stroke-dashoffset:1; animation:draw-pen-stroke 5s linear infinite both; animation-delay:calc(var(--stroke-order)*65ms); }
+.draw-ink-dot { fill:currentColor; animation:hiyori-breathe 2s ease-in-out infinite; }
+.draw-ink-pulse { width:6px; height:6px; border:1px solid currentColor; border-radius:48% 42% 51% 46%; animation:hiyori-breathe 2s ease-in-out infinite; }
+@keyframes draw-pen-stroke { 0% { stroke-dashoffset:1; } 7%,72% { stroke-dashoffset:0; } 88%,100% { stroke-dashoffset:1; } }
+@media(prefers-reduced-motion:reduce) { .draw-writing path { stroke-dashoffset:0; } }

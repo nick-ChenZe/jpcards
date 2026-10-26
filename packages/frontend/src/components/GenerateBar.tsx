@@ -1,6 +1,7 @@
 import {cn} from '@/lib/utils';
-import {ArrowUpRight, MoreHorizontal} from 'lucide-react';
+import {ArrowUpRight} from 'lucide-react';
 import {useState} from 'react';
+import {DrawWriting} from './DrawWriting';
 import {SealFoxMark} from './SealFox';
 
 interface GenerateBarProps {
@@ -40,13 +41,17 @@ export function GenerateBar ({
                 className={cn('btn-draw', pressing && 'is-seal-press')}
                 onClick={draw}
                 disabled={loading || exhausted}
+                aria-label={loading ? '抽签中' : label}
+                aria-busy={loading}
             >
-                <span className="draw-label">
-                    <SealFoxMark />
-                    <span>{loading ? '抽签中…' : label}</span>
-                </span>
+                {loading ? <DrawWriting /> : (
+                    <span className="draw-label">
+                        <SealFoxMark />
+                        <span>{label}</span>
+                    </span>
+                )}
                 <span className="draw-arrow" aria-hidden="true">
-                    {loading ? <MoreHorizontal size={22} /> : <ArrowUpRight size={24} strokeWidth={1.4} />}
+                    {loading ? <span className="draw-ink-pulse" /> : <ArrowUpRight size={24} strokeWidth={1.4} />}
                 </span>
             </button>
         </div>

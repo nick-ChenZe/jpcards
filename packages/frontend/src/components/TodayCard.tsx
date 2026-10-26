@@ -2,7 +2,6 @@ import {parseReadingTokens, playbackTokenIndex} from '@/lib/readingHighlight';
 import {cn} from '@/lib/utils';
 import {Pause, Play} from 'lucide-react';
 import {type ReactNode, useEffect, useRef, useState} from 'react';
-import {SealFoxMark} from './SealFox';
 import {SentenceReading} from './SentenceReading';
 
 export interface TodayCardProps {
@@ -223,9 +222,6 @@ export function TodayCard ({
                 <span>日々のことば</span>
                 <span>DAILY JAPANESE</span>
             </div>
-            <span className="hiyori-card-seal" aria-hidden="true">
-                <SealFoxMark />
-            </span>
             {painted && imageUrl
                 ? (
                     <PaintedArt url={imageUrl} onFail={() => setImageFailed(true)}>
