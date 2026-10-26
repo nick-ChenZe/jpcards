@@ -27,7 +27,7 @@ export const SettingPage = () => {
         }
     };
     return (
-        <div className="hiyori-page">
+        <div className="hiyori-page hiyori-settings">
             <h1 className="hiyori-page-title">我的日札</h1>
             <p className="hiyori-page-sub">{session?.user.name || '你'}，慢慢来，也是在向前。</p>
             <div className="hiyori-personal-mark" aria-hidden="true">

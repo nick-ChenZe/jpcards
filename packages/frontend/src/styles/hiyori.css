@@ -192,7 +192,7 @@ html, body { height:100%; min-height:0; overflow:hidden; overscroll-behavior:non
 .hiyori-root { height:100dvh; min-height:0; padding:0; overflow:hidden; }
 .hiyori-app { height:100%; min-height:0; display:flex; flex-direction:column; margin:0 auto; padding-bottom:0; }
 .hiyori-header { flex-shrink:0; }
-.hiyori-app>.paper-screen { flex:1; min-height:0; overflow-y:auto; overflow-x:hidden; overscroll-behavior:contain; scrollbar-width:thin; scrollbar-color:color-mix(in srgb,var(--muted) 30%,transparent) transparent; }
+.hiyori-app>.paper-screen { flex:1; min-height:0; overflow-y:auto; overflow-x:hidden; overscroll-behavior:contain; scrollbar-width:none; }
 .hiyori-nav { position:relative; left:auto; bottom:auto; transform:none; width:100%; flex-shrink:0; }
 .hiyori-root:has(.auth-gate) { padding:0; }
 @media(min-width:700px) { .hiyori-root { padding:20px; } .hiyori-app { margin:0 auto; min-height:0; } .hiyori-nav { bottom:auto; } }
@@ -370,3 +370,70 @@ html, body { height:100%; min-height:0; overflow:hidden; overscroll-behavior:non
 .today-card.is-plain .hiyori-card-seal { display:none; }
 .reading-run { display:inline-block; max-width:100%; white-space:nowrap; }
 .reading-run>.reading-word:last-child { margin-right:.13em; }
+
+/* Fit the available paper, while allowing short screens and long text to scroll by touch. */
+.hiyori-app>.paper-screen::-webkit-scrollbar { display:none; width:0; height:0; }
+.hiyori-explore,.hiyori-explore[data-state="hero"] { display:flex; flex-direction:column; height:100%; min-height:0; max-height:none; overflow:visible; padding-bottom:12px; }
+.hiyori-explore>.hiyori-date-row { flex-shrink:0; margin:4px 0 14px; }
+.hiyori-explore>.hiyori-section-title { flex-shrink:0; margin-bottom:12px; }
+.hiyori-explore>.hiyori-ticket-stage { flex:1; min-height:270px; display:flex; margin-bottom:16px; }
+.hiyori-explore>.hiyori-notices,.hiyori-explore>.generate-bar,.hiyori-explore>.hiyori-endnote { flex-shrink:0; }
+.hiyori-explore>.hiyori-endnote { margin-top:12px; }
+.hiyori-explore .hiyori-empty-card { flex:1; min-height:0; width:100%; padding:17px 20px 20px; }
+.hiyori-empty-card .paper-motif { flex:1; height:auto; min-height:135px; max-height:230px; margin:auto 0; }
+.hiyori-empty-card .motif-slip { top:50%; transform:translateY(-50%) rotate(12deg) scale(.86); }
+.hiyori-empty-card .motif-sun { top:50%; transform:translateY(-50%) scale(.86); }
+.hiyori-empty-card .motif-waves { height:32px; bottom:3px; }
+.hiyori-empty-card h2 { margin:6px 0; }
+.hiyori-explore .generation-progress { flex:1; min-height:0; width:100%; display:flex; flex-direction:column; justify-content:center; padding:18px 20px; }
+.hiyori-explore .generation-wash { flex:1; min-height:70px; max-height:148px; height:auto; overflow:hidden; }
+.hiyori-explore .generation-kicker,.hiyori-explore .generation-eta,.hiyori-explore .generation-steps,.hiyori-explore .generation-time,.hiyori-explore .generation-note { flex-shrink:0; }
+.hiyori-explore[data-state="hero"]>.hiyori-ticket-stage { min-height:360px; }
+.hiyori-ticket-stage .today-card { width:100%; min-height:0; display:flex; flex-direction:column; }
+.hiyori-ticket-stage .card-illustration { aspect-ratio:auto; flex:1 0 170px; }
+.hiyori-ticket-stage .today-card>.hiyori-ticket-top { padding:13px 18px 9px; flex-shrink:0; }
+.hiyori-ticket-stage .card-body { padding:14px 18px 16px; flex-shrink:0; }
+.hiyori-ticket-stage .today-card.is-plain { min-height:0; }
+.hiyori-settings { display:flex; flex-direction:column; min-height:100%; padding-bottom:18px; }
+.hiyori-settings>* { flex-shrink:0; }
+.hiyori-settings .hiyori-personal-mark { margin:clamp(12px,2dvh,20px) 0; }
+.hiyori-settings .hiyori-personal-mark img { width:clamp(48px,9dvh,80px); height:auto; }
+.hiyori-settings .hiyori-theme-option { min-height:52px; padding:9px 10px; margin-bottom:4px; }
+.hiyori-settings .hiyori-setting-actions { margin-top:auto; padding-top:18px; }
+.hiyori-settings .hiyori-setting-actions>button { min-height:44px; }
+.hiyori-settings .hiyori-endnote { margin-top:16px; }
+@media(max-height:760px) {
+    .hiyori-explore>.hiyori-date-row { margin-bottom:10px; }
+    .hiyori-explore .hiyori-day { font-size:44px; }
+    .hiyori-explore>.hiyori-section-title h1 { font-size:22px; }
+    .hiyori-explore>.hiyori-ticket-stage { margin-bottom:12px; }
+    .hiyori-explore>.hiyori-endnote { font-size:10px; margin-top:10px; }
+    .hiyori-explore .generation-progress { padding:14px 18px; }
+    .hiyori-explore .generation-wash { min-height:55px; max-height:95px; margin-bottom:5px; }
+    .hiyori-explore .generation-progress h2 { font-size:20px; line-height:1.5; margin:7px 0 5px; flex-shrink:0; }
+    .hiyori-explore .generation-steps { margin:14px 0 8px; }
+    .hiyori-explore .generation-note { margin-top:10px; padding-top:10px; font-size:10px; }
+    .hiyori-settings { padding-top:5px; padding-bottom:14px; }
+    .hiyori-settings .hiyori-page-title { font-size:24px; line-height:1.5; margin:4px 0; }
+    .hiyori-settings .hiyori-page-sub { font-size:11px; line-height:1.7; }
+    .hiyori-settings .hiyori-personal-mark { margin:10px 0 14px; }
+    .hiyori-settings .hiyori-personal-mark img { width:48px; }
+    .hiyori-settings .hiyori-theme-options legend { margin-bottom:9px; }
+    .hiyori-settings .hiyori-theme-option { min-height:48px; padding:7px 10px; }
+    .hiyori-settings .hiyori-theme-option small { margin-top:3px; }
+    .hiyori-settings .hiyori-setting-actions { padding-top:14px; }
+    .hiyori-settings .hiyori-endnote { margin-top:12px; font-size:10px; }
+}
+@media(max-height:760px) {
+    .hiyori-explore>.hiyori-ticket-stage { min-height:250px; }
+    .hiyori-explore[data-state="hero"]>.hiyori-ticket-stage { min-height:360px; }
+    .hiyori-explore .hiyori-empty-card { padding:14px 18px 16px; }
+    .hiyori-empty-card .paper-motif { min-height:110px; }
+    .hiyori-empty-card .motif-slip { transform:translateY(-50%) rotate(12deg) scale(.7); }
+    .hiyori-empty-card .motif-sun { transform:translateY(-50%) scale(.7); }
+    .hiyori-empty-card h2 { font-size:19px; letter-spacing:1.5px; }
+}
+/* Generated cards keep their natural reading height, rather than using a second viewport. */
+.hiyori-explore[data-state="hero"] { height:auto; min-height:100%; display:block; }
+.hiyori-explore[data-state="hero"]>.hiyori-ticket-stage { display:block; }
+.hiyori-explore[data-state="hero"] .card-illustration { flex:none; height:clamp(190px,32dvh,285px); }
