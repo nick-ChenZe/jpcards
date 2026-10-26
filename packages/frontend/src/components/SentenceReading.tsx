@@ -1,4 +1,4 @@
-import {kanaReading, readingWords} from '../lib/readingPresentation';
+import {kanaReading, readingWordGroups, readingWords} from '../lib/readingPresentation';
 
 export function SentenceReading ({sentenceHtml, reading, tokens, activeIndex}: {
     sentenceHtml?: string;
@@ -10,18 +10,25 @@ export function SentenceReading ({sentenceHtml, reading, tokens, activeIndex}: {
     if (words) {
         return (
             <div className="sentence-reading font-japanese" lang="ja" aria-label="日语句子">
-                {words.map((word, index) => (
-                    <span
-                        className="reading-word"
-                        key={`${index}-${word.surface}`}
-                        data-active={index === activeIndex || undefined}
-                    >
-                        <ruby>
-                            {word.surface}
-                            <rp>（</rp>
-                            <rt>{word.annotation || '\u00a0'}</rt>
-                            <rp>）</rp>
-                        </ruby>
+                {readingWordGroups(words).map((group) => (
+                    <span className="reading-run" key={group[0]}>
+                        {group.map((index) => {
+                            const word = words[index];
+                            return (
+                                <span
+                                    className="reading-word"
+                                    key={`${index}-${word.surface}`}
+                                    data-active={index === activeIndex || undefined}
+                                >
+                                    <ruby>
+                                        {word.surface}
+                                        <rp>（</rp>
+                                        <rt>{word.annotation || '\u00a0'}</rt>
+                                        <rp>）</rp>
+                                    </ruby>
+                                </span>
+                            );
+                        })}
                     </span>
                 ))}
             </div>

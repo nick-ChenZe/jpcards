@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {kanaReading, readingWords} from '../../../../frontend/src/lib/readingPresentation';
+import {kanaReading, readingWordGroups, readingWords} from '../../../../frontend/src/lib/readingPresentation';
 
 describe('single annotated sentence', () => {
     const words = [
@@ -25,5 +25,12 @@ describe('single annotated sentence', () => {
         expect(kanaReading('きのうはあめ。（kinou wa ame.）')).toBe('きのうはあめ。');
         expect(kanaReading('こんにちは (konnichiwa)')).toBe('こんにちは');
         expect(kanaReading(undefined)).toBe('');
+    });
+    it('keeps a short verb ending together while retaining all original playback indices', () => {
+        const words = ['靴', 'を', '買い', 'まし', 'た。'].map(surface => ({surface}));
+        const groups = readingWordGroups(words);
+        expect(groups).toEqual([[0], [1], [2, 3, 4]]);
+        expect(groups.flat()).toEqual([0, 1, 2, 3, 4]);
+        expect(readingWordGroups([])).toEqual([]);
     });
 });

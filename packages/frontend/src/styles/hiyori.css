@@ -368,3 +368,5 @@ html, body { height:100%; min-height:0; overflow:hidden; overscroll-behavior:non
 .history-detail-screen .is-plain .card-body { padding:22px 18px 16px; }
 @media(max-width:360px) { .hiyori-app .is-plain .card-body>.sentence-reading { font-size:22px; line-height:2.35; margin-top:0; margin-bottom:14px; } }
 .today-card.is-plain .hiyori-card-seal { display:none; }
+.reading-run { display:inline-block; max-width:100%; white-space:nowrap; }
+.reading-run>.reading-word:last-child { margin-right:.13em; }
