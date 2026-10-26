@@ -2,6 +2,7 @@ import {useEffect} from 'react';
 import {useLocation} from 'react-router-dom';
 import {PaperHeader} from './PaperHeader';
 import {PaperMotif} from './PaperMotif';
+import {SealFoxMark} from './SealFox';
 
 function scrollFieldIntoSheet (target: EventTarget | null) {
     if (!(target instanceof HTMLElement)) {
@@ -59,6 +60,7 @@ export function ProductIntro ({children}: {children: React.ReactNode;}) {
                     window.requestAnimationFrame(() => scrollFieldIntoSheet(target));
                 }}
             >
+                <SealFoxMark className="auth-corner-seal" />
                 <PaperHeader />
                 <div className="auth-content">
                     <PaperMotif kind="login" />

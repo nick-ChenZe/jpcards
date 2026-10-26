@@ -76,8 +76,7 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline:2px solid v
 .hiyori-app .today-card { border-radius:0; box-shadow:0 7px 15px #4d47300a; background:var(--card); }
 .hiyori-ticket-stage .today-card { animation:hiyori-card-reveal 800ms var(--ease-paper) both; }
 .today-card>.hiyori-ticket-top { padding:20px 23px 12px; }
-.hiyori-card-seal { position:absolute; right:22px; top:53px; width:29px; height:39px; display:grid; place-items:center; writing-mode:vertical-rl; border:1px solid var(--accent); color:var(--accent); background:var(--card); font:14px var(--font-editorial); transform:rotate(7deg); z-index:3; }
-.hiyori-ticket-stage .hiyori-card-seal { animation:hiyori-stamp 450ms 500ms both; }
+.hiyori-card-seal { position:absolute; top:10px; right:10px; width:24px; height:24px; margin:0; padding:0; display:block; border:0; background:transparent; transform:none; z-index:4; pointer-events:none; }
 .hiyori-app .today-card.is-plain { min-height:390px; display:flex; flex-direction:column; }
 .hiyori-app .is-plain .card-body { flex:1; display:flex; flex-direction:column; padding:33px 24px 20px; }
 .hiyori-app .is-plain .card-body>.font-japanese { font-size:28px; line-height:1.95; letter-spacing:2px; margin:12px 0 20px; }
@@ -105,7 +104,7 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline:2px solid v
 .hiyori-app .wall-jp { font-size:20px; line-height:1.9; letter-spacing:1px; }
 .hiyori-app .wall-breath { display:block; margin-top:10px; font-size:10px; }
 .hiyori-app .wall-date-stamp { border-radius:0; transform:rotate(6deg); width:30px; height:39px; top:20px; right:20px; background:var(--card); }
-.hiyori-app .wall-thumb { aspect-ratio:2 / 1; }
+.hiyori-app .wall-thumb { aspect-ratio:3 / 4; }
 .hiyori-app .wall-day-breath { font-size:10px; margin-top:20px; }
 .hiyori-empty-mark { display:block; color:var(--accent); font:90px var(--font-editorial); margin-bottom:28px; }
 .hiyori-personal-mark { font:100px var(--font-editorial); text-align:center; color:var(--accent); margin:24px 0; }
@@ -243,7 +242,7 @@ html, body { height:100%; min-height:0; overflow:hidden; overscroll-behavior:non
 .hiyori-loading-seal { width:52px; height:52px; border:0; }
 .hiyori-loading-seal img,.motif-seal img,.hiyori-card-seal img { display:block; }
 .is-login .motif-seal { width:27px; height:27px; border:0; writing-mode:horizontal-tb; }
-.hiyori-card-seal { width:34px; height:34px; border:0; background:none; writing-mode:horizontal-tb; }
+.hiyori-card-seal { width:24px; height:24px; border:0; background:transparent; writing-mode:horizontal-tb; transform:none; }
 .hiyori-personal-mark img { display:block; margin:0 auto; }
 
 /* Waiting feels like pigment settling, with real server stages and an honest estimate. */
@@ -308,8 +307,8 @@ html, body { height:100%; min-height:0; overflow:hidden; overscroll-behavior:non
 .day-card-list .wall-tile { flex:1; min-height:0; max-height:145px; display:flex; align-items:stretch; overflow:hidden; border:0; border-bottom:1px solid var(--paper-edge); box-shadow:none; background:none; text-align:left; }
 .day-card-list .wall-tile .wall-info { flex:1; min-width:0; padding:18px 0 18px 15px; display:flex; flex-direction:column; justify-content:center; }
 .day-card-list .wall-tile.is-plain .wall-info { padding-left:0; }
-.day-card-list .wall-thumb { flex:0 0 72px; width:72px; min-height:0; aspect-ratio:auto; }
-.day-card-list .wall-thumb img { height:100%; width:100%; object-fit:cover; }
+.day-card-list .wall-thumb { flex:0 0 auto; width:72px; height:auto; aspect-ratio:3 / 4; align-self:center; min-height:0; position:relative; }
+.day-card-list .wall-thumb>img { position:absolute; inset:0; height:100%; width:100%; object-fit:cover; }
 .day-card-list .wall-date-stamp { display:none; }
 .day-card-list .wall-jp { font:18px/1.85 var(--font-ja); letter-spacing:0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
 .day-card-list .wall-breath { font-size:9px; margin-top:9px; }
@@ -367,7 +366,7 @@ html, body { height:100%; min-height:0; overflow:hidden; overscroll-behavior:non
 .history-detail-screen .today-card.is-plain { min-height:0; }
 .history-detail-screen .is-plain .card-body { padding:22px 18px 16px; }
 @media(max-width:360px) { .hiyori-app .is-plain .card-body>.sentence-reading { font-size:22px; line-height:2.35; margin-top:0; margin-bottom:14px; } }
-.today-card.is-plain .hiyori-card-seal { display:none; }
+.today-card>.hiyori-ticket-top { padding-right:42px; }
 .reading-run { display:inline-block; max-width:100%; white-space:nowrap; }
 .reading-run>.reading-word:last-child { margin-right:.13em; }
 
@@ -437,3 +436,24 @@ html, body { height:100%; min-height:0; overflow:hidden; overscroll-behavior:non
 .hiyori-explore[data-state="hero"] { height:auto; min-height:100%; display:block; }
 .hiyori-explore[data-state="hero"]>.hiyori-ticket-stage { display:block; }
 .hiyori-explore[data-state="hero"] .card-illustration { flex:none; height:clamp(190px,32dvh,285px); }
+
+/* 朱印狐：角印静置，空态只淡入，印钮轻按不超过 300ms。 */
+.auth-corner-seal { position:absolute; top:16px; right:18px; z-index:4; width:24px; height:24px; pointer-events:none; animation:sealCornerIn 240ms cubic-bezier(0.22, 0.61, 0.36, 1) 40ms both; }
+.hiyori-auth .hiyori-header { padding-right:56px; }
+@keyframes sealCornerIn { from { opacity:0; } to { opacity:1; } }
+.hiyori-card-seal img { width:24px; height:24px; }
+.today-card>.hiyori-ticket-top,
+.hiyori-ticket-stage .today-card>.hiyori-ticket-top,
+.history-detail-screen .today-card>.hiyori-ticket-top { padding-right:42px; }
+.hiyori-explore .btn-draw .seal-fox-mark { background:transparent; padding:0; border-radius:0; box-shadow:none; }
+.wall-brow-seal,.day-card-list .wall-thumb .wall-brow-seal { position:absolute; top:6px; right:6px; left:auto; bottom:auto; width:24px; height:24px; object-fit:contain; z-index:2; pointer-events:none; }
+.day-card-list .wall-tile.is-plain { position:relative; }
+.day-card-list .wall-tile.is-plain .wall-brow-seal { top:8px; right:0; }
+.day-card-list .wall-tile.is-plain .wall-info { padding-right:32px; }
+.seal-empty-silhouette { width:96px; height:auto; display:block; margin:0 auto 8px; animation:sealEmptyIn 280ms cubic-bezier(0.22, 0.61, 0.36, 1) backwards; }
+@keyframes sealEmptyIn { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:translateY(0); } }
+.footprint-empty { display:flex; flex-direction:column; align-items:center; gap:6px; flex-shrink:0; padding:4px 0 2px; }
+.footprint-empty p { margin:0; font-size:11px; letter-spacing:.04em; color:var(--muted); }
+.calendar-screen .footprint-empty .seal-empty-silhouette { width:72px; margin-bottom:0; }
+.day-empty-note { margin:0; font-size:11px; color:var(--muted); }
+@media(max-height:700px) { .calendar-screen .footprint-empty .seal-empty-silhouette { width:52px; } }

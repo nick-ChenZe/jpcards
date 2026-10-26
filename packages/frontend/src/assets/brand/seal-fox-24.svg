@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" role="img" aria-label="朱印狐角印">
+  <defs>
+    <filter id="sealFox24Grain" x="-15%" y="-15%" width="130%" height="130%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.26" numOctaves="2" seed="23" result="n"/>
+      <feComponentTransfer in="n" result="contrast">
+        <feFuncR type="linear" slope="2.8" intercept="-0.85"/>
+        <feFuncG type="linear" slope="2.8" intercept="-0.85"/>
+        <feFuncB type="linear" slope="2.8" intercept="-0.85"/>
+      </feComponentTransfer>
+      <feColorMatrix in="contrast" type="matrix"
+        values="0 0 0 0 0.42
+                0 0 0 0 0.12
+                0 0 0 0 0.09
+                0 0 0 0.9 0" result="tint"/>
+      <feComposite in="tint" in2="SourceGraphic" operator="in" result="grain"/>
+      <feBlend in="SourceGraphic" in2="grain" mode="multiply"/>
+    </filter>
+    <clipPath id="sealFox24Clip">
+      <rect x="1" y="1" width="22" height="22" rx="2.2"/>
+    </clipPath>
+    <!-- Missing ink and the fox are punched out. Mask luminance is not painted. -->
+    <mask id="sealFox24Reserve" maskUnits="userSpaceOnUse" x="0" y="0" width="24" height="24">
+      <rect x="0" y="0" width="24" height="24" fill="#fff"/>
+      <path d="M17.5 1.02 L22.95 1.35 L22.95 6.2 L20.8 3.0 L18.6 1.7 Z" fill="#000"/>
+      <path d="M1.02 16.8 L1.02 22.95 L6.0 22.95 L3.0 20.7 L1.6 18.2 Z" fill="#000"/>
+      <path d="M7.55 16.7 C7.95 12.5 10.45 9.65 12 9.45 C13.55 9.65 16.05 12.5 16.45 16.7 Z" fill="#000"/>
+      <path d="M8.85 9.95 L7.0 4.2 L11.1 9.1 Z" fill="#000"/>
+      <path d="M15.15 9.95 L17.0 4.2 L12.9 9.1 Z" fill="#000"/>
+      <path d="M16.25 18.15 Q19.0 16.35 18.55 14.0" fill="none" stroke="#000" stroke-width="1.05" stroke-linecap="round"/>
+    </mask>
+  </defs>
+
+  <g clip-path="url(#sealFox24Clip)">
+    <g mask="url(#sealFox24Reserve)">
+      <g filter="url(#sealFox24Grain)">
+        <rect x="1" y="1" width="22" height="22" rx="2.2" fill="#C45C4A"/>
+        <ellipse cx="6.5" cy="8.5" rx="7.5" ry="6.5" fill="#6E2C24" opacity="0.55"/>
+        <ellipse cx="18" cy="17.5" rx="6.5" ry="7" fill="#5C241E" opacity="0.52"/>
+        <ellipse cx="16.5" cy="4.5" rx="5" ry="3.8" fill="#E08A7A" opacity="0.42"/>
+        <ellipse cx="4.5" cy="18.5" rx="4.5" ry="4" fill="#8F3C30" opacity="0.45"/>
+      </g>
+      <circle cx="4" cy="6" r="1.1" fill="#5C241E" opacity="0.55"/>
+      <circle cx="19.5" cy="14" r="1.0" fill="#5C241E" opacity="0.5"/>
+      <circle cx="10" cy="20" r="0.9" fill="#6E2C24" opacity="0.48"/>
+      <circle cx="20" cy="7" r="0.75" fill="#8F3C30" opacity="0.4"/>
+      <circle cx="6" cy="15" r="0.7" fill="#5C241E" opacity="0.42"/>
+    </g>
+
+    <path d="M16.9 2.3 L20.2 3.0 L21.2 5.0 L19.2 3.6 Z" fill="#E08A7A" opacity="0.55"/>
+    <path d="M2.4 16.6 L3.2 20.0 L5.2 21.0 L3.7 18.9 Z" fill="#E08A7A" opacity="0.5"/>
+    <rect x="9.0" y="11.35" width="2" height="1.2" fill="#A8483A"/>
+    <rect x="13.0" y="11.35" width="2" height="1.2" fill="#A8483A"/>
+    <path d="M12 13.15 L11.25 14.65 L12.75 14.65 Z" fill="#A8483A"/>
+  </g>
+</svg>

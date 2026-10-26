@@ -1,9 +1,10 @@
 import {DaySignTileButton} from '@/components/DaySignWall';
 import {parseShanghaiDayKey, wallDateFromStored} from '@/lib/datetime';
-import {ArrowLeft, ArrowUpRight, ChevronLeft, ChevronRight} from 'lucide-react';
+import {ArrowLeft, ChevronLeft, ChevronRight} from 'lucide-react';
 import {useEffect, useState} from 'react';
 import {useNavigate, useSearchParams} from 'react-router-dom';
 import {FootprintHeat} from '../FootprintHeat';
+import {SealFoxEmpty} from '../SealFox';
 
 interface HistoryItem {
     id: string;
@@ -113,11 +114,10 @@ export const HistoryPage = () => {
                     })
                     : (
                         <div className="day-empty">
-                            <span className="day-empty-mark">余白</span>
-                            <p>这一天，还没有留下日签。</p>
-                            <button onClick={() => navigate('/explore')}>
-                                去抽一枚 <ArrowUpRight size={17} />
-                            </button>
+                            <SealFoxEmpty />
+                            <p>这一天还空着，也没关系。</p>
+                            <p className="day-empty-note">狐还在，今天也可以留一句。</p>
+                            <button type="button" onClick={() => navigate('/explore')}>抽今日签</button>
                         </div>
                     )}
             </div>
