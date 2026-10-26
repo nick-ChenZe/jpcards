@@ -74,10 +74,12 @@ describe('exhausted quota copy', () => {
         expect(frontendCopy).toContain(`export const QUOTA_EXCEEDED_MESSAGE = '${PRODUCT_EXHAUSTED}'`);
 
         const generateBar = readFileSync(path.join(frontendRoot, 'src/components/GenerateBar.tsx'), 'utf8');
+        const quotaSeal = readFileSync(path.join(frontendRoot, 'src/components/QuotaSeal.tsx'), 'utf8');
         const explore = readFileSync(path.join(frontendRoot, 'src/components/pages/ExplorePage.tsx'), 'utf8');
-        expect(generateBar).toContain('QUOTA_EXCEEDED_MESSAGE');
+        expect(quotaSeal).toContain('QUOTA_EXCEEDED_MESSAGE');
         expect(explore).toContain('QUOTA_EXCEEDED_MESSAGE');
-        expect(generateBar).toContain('今日还可生成');
+        expect(quotaSeal).toContain('今日还可生成');
+        expect(generateBar).not.toContain('quota-hint');
         expect(generateBar).not.toContain('今日额度用完了');
         expect(explore).not.toContain('今日额度用完了');
         expect(frontendCopy).not.toContain('今日额度用完了');

@@ -1,9 +1,9 @@
 import rizhaMark from '@/assets/rizha-mark.svg';
-import {parseReadingTokens, playbackTokenIndex, readingLineParts, splitSentenceHtml} from '@/lib/readingHighlight';
+import {parseReadingTokens, playbackTokenIndex} from '@/lib/readingHighlight';
 import {cn} from '@/lib/utils';
 import {Pause, Play} from 'lucide-react';
 import {type ReactNode, useEffect, useRef, useState} from 'react';
-import {CardReading} from './CardReading';
+import {SentenceReading} from './SentenceReading';
 
 export interface TodayCardProps {
     loading?: boolean;
@@ -122,80 +122,12 @@ function CardPlayButton ({playing, onToggle}: {playing: boolean; onToggle: () =>
     );
 }
 
-function CardSentence ({
-    sentenceHtml,
-    surfaces,
-    segments,
-    activeIndex,
-    onArt
-}: {
-    sentenceHtml?: string;
-    surfaces: string[] | null;
-    segments: string[] | null;
-    activeIndex: number | null;
-    onArt: boolean;
-}) {
-    const className = onArt
-        ? 'font-japanese font-medium text-ink [&_ruby]:font-normal'
-        : 'font-japanese text-[1.35rem] font-medium leading-relaxed text-ink [&_ruby]:font-normal';
-    if (surfaces && segments) {
-        return (
-            <div lang="ja" className={className}>
-                {surfaces.map((surface, index) => (
-                    <span
-                        key={`${index}-${surface}`}
-                        className={index === activeIndex ? 'mora-token-active' : undefined}
-                        dangerouslySetInnerHTML={{__html: segments[index] ?? ''}}
-                    />
-                ))}
-            </div>
-        );
-    }
-    if (!sentenceHtml) {
-        if (!surfaces || surfaces.length === 0) {
-            return null;
-        }
-        return (
-            <div lang="ja" className={className}>
-                {surfaces.map((surface, index) => (
-                    <span
-                        key={`${index}-${surface}`}
-                        className={index === activeIndex ? 'mora-token-active' : undefined}
-                    >
-                        {surface}
-                    </span>
-                ))}
-            </div>
-        );
-    }
-    return (
-        <div
-            lang="ja"
-            className={cn(className, '[&_ruby]:font-normal')}
-            dangerouslySetInnerHTML={{__html: sentenceHtml}}
-        />
-    );
-}
-
 function GlossBlock ({gloss}: {gloss?: string;}) {
-    const [open, setOpen] = useState(false);
-    if (!gloss) {
-        return null;
-    }
+    if (!gloss) return null;
     return (
-        <div className="gloss-block">
-            <button
-                type="button"
-                className={cn('gloss-toggle', !open && 'collapsed')}
-                aria-expanded={open}
-                onClick={() => setOpen((value) => !value)}
-            >
-                <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
-                    <path d="M3 4.5L6 7.5L9 4.5" />
-                </svg>
-                {open ? '收起释义' : '揭晓中文'}
-            </button>
-            <p className={cn('gloss-text', !open && 'collapsed')} hidden={!open}>{gloss}</p>
+        <div className="gloss-block translation-note">
+            <span className="translation-mark" aria-hidden="true">訳</span>
+            <p className="gloss-text">{gloss}</p>
         </div>
     );
 }
@@ -265,9 +197,6 @@ export function TodayCard ({
         playback.playing,
         playback.sample.ended
     );
-    const surfaces = tokens?.map((token) => token.surface) ?? null;
-    const segments = sentenceHtml && surfaces ? splitSentenceHtml(sentenceHtml, surfaces) : null;
-    const readingParts = tokens && reading ? readingLineParts(reading, tokens) : null;
     const painted = Boolean(imageUrl) && !imageFailed;
 
     useEffect(() => {
@@ -279,26 +208,8 @@ export function TodayCard ({
     }
 
     const sentence = (
-        <CardSentence
-            sentenceHtml={sentenceHtml}
-            surfaces={surfaces}
-            segments={segments}
-            activeIndex={segments || !sentenceHtml ? activeIndex : null}
-            onArt={painted}
-        />
+        <SentenceReading sentenceHtml={sentenceHtml} reading={reading} tokens={tokens} activeIndex={activeIndex} />
     );
-    const readingLine = reading
-        ? (
-            <CardReading
-                reading={reading}
-                parts={readingParts}
-                activeIndex={activeIndex}
-                tone={painted ? 'onArt' : 'line'}
-            />
-        )
-        : painted
-        ? null
-        : <CardReading reading={reading} />;
 
     return (
         <article
@@ -319,13 +230,11 @@ export function TodayCard ({
                 ? (
                     <PaintedArt url={imageUrl} onFail={() => setImageFailed(true)}>
                         {sentence}
-                        {readingLine}
                     </PaintedArt>
                 )
                 : null}
             <div className="card-body">
                 {painted ? null : sentence}
-                {painted ? null : readingLine}
                 {!painted && imageMessage
                     ? <p className="mb-3 text-sm leading-6 text-ink-muted">{imageMessage}</p>
                     : null}
@@ -335,7 +244,12 @@ export function TodayCard ({
                     : null}
                 <div className="card-actions">
                     {audioUrl
-                        ? <CardPlayButton playing={playback.playing} onToggle={playback.toggle} />
+                        ? (
+                            <div className="card-listen">
+                                <CardPlayButton playing={playback.playing} onToggle={playback.toggle} />
+                                <span aria-hidden="true">{playback.playing ? '正在朗读' : '听一句'}</span>
+                            </div>
+                        )
                         : <span />}
                     {meta ? <span className="card-meta">{meta}</span> : null}
                 </div>

@@ -8,6 +8,7 @@ import {useCallback, useEffect, useRef, useState} from 'react';
 import {GenerateBar} from '../GenerateBar';
 import {GenerationProgress} from '../GenerationProgress';
 import {PaperMotif} from '../PaperMotif';
+import {QuotaSeal} from '../QuotaSeal';
 import {TodayCard} from '../TodayCard';
 
 interface MediaNotice {
@@ -273,7 +274,10 @@ export const ExplorePage = () => {
                         <span>{ritual.weekday} · {ritual.fullDate}</span>
                     </div>
                 </div>
-                <StreakChip days={streakDays} pending={streakPending} />
+                <div className="hiyori-date-aside">
+                    <StreakChip days={streakDays} pending={streakPending} />
+                    <QuotaSeal remaining={quota ? quota.remaining : null} limit={limit} />
+                </div>
             </header>
             <div className="hiyori-section-title">
                 <h1>今日日签</h1>
@@ -302,8 +306,6 @@ export const ExplorePage = () => {
             <div className="hiyori-notices" aria-live="polite">{notices}</div>
             <GenerateBar
                 compact={Boolean(card)}
-                remaining={quota ? quota.remaining : null}
-                limit={limit}
                 loading={loading}
                 exhausted={exhausted}
                 onGenerate={generateCard}
