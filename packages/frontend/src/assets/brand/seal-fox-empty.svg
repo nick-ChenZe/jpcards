@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 132 148" width="132" height="148" role="img" aria-label="朱印狐空态侧影">
+  <defs>
+    <!-- Hanko ear cuts are masked out so they stay transparent off paper. -->
+    <mask id="sealEmptyPad" maskUnits="userSpaceOnUse" x="0" y="0" width="132" height="148">
+      <rect x="0" y="0" width="132" height="148" fill="#fff"/>
+      <path d="M24 124.2 L23.4 122.4 L25.4 123.8 Z" fill="#000"/>
+      <path d="M29 124.2 L29.6 122.4 L27.6 123.8 Z" fill="#000"/>
+    </mask>
+  </defs>
+  <!-- Quiet side-sit. Foreleg and hind haunch cut the outer contour. -->
+  <g fill="none" stroke="#2C2420" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M58 36
+             C52 34 48 36 46 40
+             L40 50
+             L35 60
+             L31 72
+             L30 78
+             L36 84
+             L33 100
+             L31 120
+             L46 120
+             L48 108
+             L53 94
+             L60 80
+             L67 94
+             L72 108
+             L76 120
+             L92 120
+             L94 108
+             L102 96
+             L108 84
+             L106 72
+             L99 62
+             L92 52
+             L84 44
+             L74 38
+             L66 36
+             Z"/>
+    <path d="M52 36 L44 2 L60 30"/>
+    <path d="M60 34 L74 1 L68 30"/>
+    <path d="M46 40 L38 44 L36 50"/>
+    <path d="M50 44 L54 43.2" stroke-width="1.15"/>
+    <!-- Tail curl extends past x=120; viewBox width is 132 so it is not clipped. -->
+    <path d="M106 80
+             C120 70 128 54 124 36
+             C120 20 106 16 96 22
+             C90 25 88 34 94 40"/>
+  </g>
+  <path d="M46.5 7 L44 2 L52 14 Z" fill="#C45C4A"/>
+  <path d="M72 6 L74 1 L68.5 14 Z" fill="#C45C4A"/>
+  <g mask="url(#sealEmptyPad)">
+    <rect x="22" y="122" width="9" height="9" rx="1.1" fill="#C45C4A" opacity="0.9"/>
+  </g>
+  <circle cx="42" cy="52" r="1.25" fill="#2C2420"/>
+</svg>

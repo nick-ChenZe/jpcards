@@ -2,6 +2,7 @@ import {buildFootprintMonth, type FootprintCell, footprintWindow, shiftFootprint
 import {ChevronLeft, ChevronRight} from 'lucide-react';
 import {useEffect, useMemo, useState} from 'react';
 import {useNavigate, useSearchParams} from 'react-router-dom';
+import {SealFoxEmpty} from './SealFox';
 
 const WEEKDAY_LABELS = ['日', '一', '二', '三', '四', '五', '六'];
 
@@ -23,6 +24,7 @@ export function FootprintHeat ({selectedDay}: {selectedDay?: string;}) {
     const [counts, setCounts] = useState<Map<string, number>>(() => new Map());
     const [pending, setPending] = useState(true);
     const [failed, setFailed] = useState(false);
+    const [settledRange, setSettledRange] = useState('');
     const [retry, setRetry] = useState(0);
     const range = useMemo(() => buildFootprintMonth(month, today, counts), [month, today, counts]);
 
@@ -59,7 +61,10 @@ export function FootprintHeat ({selectedDay}: {selectedDay?: string;}) {
                     setFailed(true);
                 }
             } finally {
-                if (!cancelled) setPending(false);
+                if (!cancelled) {
+                    setPending(false);
+                    setSettledRange(`${range.from}:${range.to}`);
+                }
             }
         };
         void load();
@@ -71,6 +76,7 @@ export function FootprintHeat ({selectedDay}: {selectedDay?: string;}) {
     const days = range.cells.filter((cell): cell is FootprintCell => cell !== null);
     const drawn = days.reduce((sum, cell) => sum + cell.count, 0);
     const marked = days.filter((cell) => cell.count > 0).length;
+    const monthEmpty = settledRange === `${range.from}:${range.to}` && !pending && !failed && marked === 0;
     const openCell = (cell: FootprintCell) => {
         if (pending || failed || cell.future) return;
         navigate(`/history?day=${cell.day}`);
@@ -143,6 +149,14 @@ export function FootprintHeat ({selectedDay}: {selectedDay?: string;}) {
                         : <span key={`space-${index}`} className="footprint-calendar-space" aria-hidden="true" />
                 )}
             </div>
+            {monthEmpty
+                ? (
+                    <div className="footprint-empty">
+                        <SealFoxEmpty />
+                        <p>还没有足迹</p>
+                    </div>
+                )
+                : null}
             <div className="footprint-caption">
                 <span aria-live="polite">
                     {pending ? '正在翻开…' : failed ? '暂时未能读取' : `${marked} 天 · ${drawn} 枚日签`}
