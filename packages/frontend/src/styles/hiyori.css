@@ -67,7 +67,12 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline:2px solid v
 .hiyori-explore .btn-draw::before { display:none; }
 .hiyori-explore .btn-draw:hover:not(:disabled) { background:color-mix(in srgb,var(--accent) 90%,black); }
 .hiyori-explore .btn-draw:disabled { background:var(--exhausted); color:var(--muted); }
-.hiyori-explore[data-state="drawing"] .btn-draw:disabled { background:var(--accent); color:var(--card); opacity:.7; }
+.hiyori-explore .btn-draw.is-exhausted { height:auto; overflow:visible; white-space:normal; align-items:center; justify-content:center; padding:12px 16px; font-size:13px; line-height:1.55; letter-spacing:.04em; }
+.hiyori-explore .btn-draw.is-exhausted .draw-label { flex:1; min-width:0; white-space:normal; justify-content:center; text-align:center; line-height:1.55; }
+.hiyori-explore .btn-draw.is-exhausted .draw-label>span { min-width:0; white-space:normal; }
+.hiyori-explore .btn-draw.is-exhausted .draw-arrow { display:none; }
+.hiyori-explore[data-state="drawing"] .btn-draw:disabled,
+.hiyori-explore .btn-draw:disabled[aria-busy="true"] { background:var(--accent); color:var(--card); opacity:.7; }
 .draw-arrow { font:19px Georgia,serif; }
 .hiyori-explore .quota-hint { font-size:10px; margin-top:12px; color:var(--muted); }
 .hiyori-explore .quota-hint .num { font-weight:400; color:inherit; }
