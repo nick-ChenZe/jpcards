@@ -1,17 +1,18 @@
+import {quotaSealExhaustedAttr} from '@/lib/quotaGate';
 import {QUOTA_EXCEEDED_MESSAGE} from '@/lib/userCopy';
 
 export function QuotaSeal ({remaining, limit}: {remaining: number | null; limit: number;}) {
-    const label = remaining === null
+    const exhausted = quotaSealExhaustedAttr(remaining) === 'true';
+    const count = remaining === null
         ? '正在读取今日余签'
-        : remaining <= 0
-        ? QUOTA_EXCEEDED_MESSAGE
         : `今日还可生成 ${remaining} 张，共 ${limit} 张`;
+    const label = exhausted ? `${count}。${QUOTA_EXCEEDED_MESSAGE}` : count;
     return (
         <div
             className="quota-seal"
             role="status"
             aria-live="polite"
-            data-exhausted={remaining === 0 || undefined}
+            data-exhausted={quotaSealExhaustedAttr(remaining)}
         >
             <span className="sr-only">{label}</span>
             <span className="quota-seal-face" aria-hidden="true">

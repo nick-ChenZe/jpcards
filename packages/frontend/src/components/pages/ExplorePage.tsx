@@ -1,8 +1,9 @@
 import {type CardStage, readCardResponse} from '@/lib/cardProgress';
 import {shanghaiRitualDate} from '@/lib/datetime';
 import {generateCardInit} from '@/lib/generateCard';
+import {gateDrawAttempt, isQuotaExceededDenial, isQuotaSnapshot, type QuotaSnapshot} from '@/lib/quotaGate';
 import {streakChipText} from '@/lib/streakNote';
-import {QUOTA_EXCEEDED_MESSAGE, userFacingMedia, userFacingTextNotice} from '@/lib/userCopy';
+import {userFacingMedia, userFacingTextNotice} from '@/lib/userCopy';
 import {cn} from '@/lib/utils';
 import {useCallback, useEffect, useRef, useState} from 'react';
 import {GenerateBar} from '../GenerateBar';
@@ -41,27 +42,9 @@ interface ErrorBody {
     message?: string;
 }
 
-interface QuotaSnapshot {
-    limit: number;
-    used: number;
-    remaining: number;
-    resetsAt: string;
-}
-
 type ExploreState = 'empty' | 'drawing' | 'hero';
 
 const DAILY_CARD_LIMIT = 20;
-
-function isQuotaSnapshot (value: unknown): value is QuotaSnapshot {
-    if (!value || typeof value !== 'object') {
-        return false;
-    }
-    const quota = value as Partial<QuotaSnapshot>;
-    return typeof quota.limit === 'number'
-        && typeof quota.used === 'number'
-        && typeof quota.remaining === 'number'
-        && typeof quota.resetsAt === 'string';
-}
 
 function StreakChip ({days, pending}: {days: number | null; pending: boolean;}) {
     const text = streakChipText(days, pending);
@@ -119,6 +102,7 @@ export const ExplorePage = () => {
     const [streakDays, setStreakDays] = useState<number | null>(null);
     const [streakPending, setStreakPending] = useState(true);
     const [stampKey, setStampKey] = useState(0);
+    const [arming, setArming] = useState(false);
     const quotaEpoch = useRef(0);
     const streakEpoch = useRef(0);
     const generating = useRef(false);
@@ -196,16 +180,23 @@ export const ExplorePage = () => {
     };
 
     const generateCard = useCallback(async () => {
-        if (generating.current || (quota && quota.remaining <= 0)) {
+        if (gateDrawAttempt({inFlight: generating.current, remaining: quota ? quota.remaining : null}) === 'stop') {
             return;
         }
         generating.current = true;
         const started = Date.now();
-        setStartedAt(started);
-        setStage('sentence');
-        setLoading(true);
         setError('');
         setNotice('');
+        setArming(true);
+        let drawing = false;
+        const enterDrawing = (stage: CardStage) => {
+            if (!drawing) {
+                drawing = true;
+                setStartedAt(started);
+                setLoading(true);
+            }
+            setStage(stage);
+        };
         try {
             const init = generateCardInit();
             const headers = new Headers(init.headers);
@@ -213,15 +204,16 @@ export const ExplorePage = () => {
             const response = await fetch('/api/card', {...init, headers});
             const {status, body} = await readCardResponse<CardDemoResponse & ErrorBody & {quota?: unknown;}>(
                 response,
-                setStage
+                enterDrawing
             );
+            // 额度 429 发生在进度之前。不进入抽签中，眼前的日签留在原处。
+            if (isQuotaExceededDenial(status, body)) {
+                noteExhausted();
+                setNotice('');
+                return;
+            }
             if (status === 429) {
-                if (body?.error === 'QUOTA_EXCEEDED' || body?.message === QUOTA_EXCEEDED_MESSAGE) {
-                    noteExhausted();
-                    setNotice('');
-                } else {
-                    setNotice(body?.message || '生成太频繁，请稍后再试。');
-                }
+                setNotice(body?.message || '生成太频繁，请稍后再试。');
                 return;
             }
             if (status < 200 || status >= 300 || !body) {
@@ -250,6 +242,7 @@ export const ExplorePage = () => {
             setError(/[\u4e00-\u9fff]/.test(message) ? message : '请稍后再试');
         } finally {
             generating.current = false;
+            setArming(false);
             setLoading(false);
             void refreshQuota();
         }
@@ -306,7 +299,7 @@ export const ExplorePage = () => {
             <div className="hiyori-notices" aria-live="polite">{notices}</div>
             <GenerateBar
                 compact={Boolean(card)}
-                loading={loading}
+                loading={loading || arming}
                 exhausted={exhausted}
                 onGenerate={generateCard}
             />

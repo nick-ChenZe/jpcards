@@ -1,3 +1,4 @@
+import {QUOTA_EXCEEDED_MESSAGE} from '@/lib/userCopy';
 import {cn} from '@/lib/utils';
 import {ArrowUpRight} from 'lucide-react';
 import {useState} from 'react';
@@ -20,7 +21,7 @@ export function GenerateBar ({
 }: GenerateBarProps) {
     const [pressing, setPressing] = useState(false);
     const label = exhausted
-        ? '今日次数已用完'
+        ? QUOTA_EXCEEDED_MESSAGE
         : compact
         ? '再抽一张'
         : '抽出今日日签';
@@ -38,7 +39,7 @@ export function GenerateBar ({
         <div className="generate-bar">
             <button
                 type="button"
-                className={cn('btn-draw', pressing && 'is-seal-press')}
+                className={cn('btn-draw', pressing && 'is-seal-press', exhausted && 'is-exhausted')}
                 onClick={draw}
                 disabled={loading || exhausted}
                 aria-label={loading ? '抽签中' : label}
