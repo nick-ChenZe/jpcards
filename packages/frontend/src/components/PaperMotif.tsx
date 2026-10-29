@@ -1,5 +1,3 @@
-import {SealFoxMark} from './SealFox';
-
 export function PaperMotif ({kind = 'draw'}: {kind?: 'draw' | 'login';}) {
     return (
         <div className={`paper-motif is-${kind}`} aria-hidden="true">
@@ -13,9 +11,6 @@ export function PaperMotif ({kind = 'draw'}: {kind?: 'draw' | 'login';}) {
                             <span className="motif-caption">一 日 一 句</span>
                             <span className="motif-verse" lang="ja">
                                 今日も、<br />いい日になる。
-                            </span>
-                            <span className="motif-seal">
-                                <SealFoxMark />
                             </span>
                         </>
                     )

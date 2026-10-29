@@ -3,7 +3,6 @@ import {cn} from '@/lib/utils';
 import {ArrowUpRight} from 'lucide-react';
 import {useState} from 'react';
 import {DrawWriting} from './DrawWriting';
-import {SealFoxMark} from './SealFox';
 
 interface GenerateBarProps {
     loading: boolean;
@@ -47,7 +46,6 @@ export function GenerateBar ({
             >
                 {loading ? <DrawWriting /> : (
                     <span className="draw-label">
-                        {exhausted ? null : <SealFoxMark />}
                         <span>{label}</span>
                     </span>
                 )}

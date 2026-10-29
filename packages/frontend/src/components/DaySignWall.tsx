@@ -1,6 +1,5 @@
 import {cn} from '@/lib/utils';
 import {useEffect, useRef, useState} from 'react';
-import {SealFoxMark} from './SealFox';
 
 export interface DaySignTile {
     id: string;
@@ -70,13 +69,11 @@ export function DaySignTileButton ({tile, onOpen}: {tile: DaySignTile; onOpen: (
                             onError={() => setFailed(true)}
                             className={cn(ready ? 'paper-fade-in' : 'opacity-0')}
                         />
-                        <SealFoxMark className="wall-brow-seal" />
                         <DateStamp month={tile.month} day={tile.day} />
                     </span>
                 )
                 : (
                     <>
-                        <SealFoxMark className="wall-brow-seal" />
                         <DateStamp month={tile.month} day={tile.day} />
                     </>
                 )}

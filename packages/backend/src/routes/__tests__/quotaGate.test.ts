@@ -66,10 +66,6 @@ describe('exhausted draw gate', () => {
         expect(css).toContain('white-space:normal');
         expect(css).toMatch(/\.btn-draw\.is-exhausted[^{]*\{[^}]*width:100%/);
         expect(css).not.toMatch(/\.btn-draw\.is-exhausted[^{]*\{[^}]*line-clamp/);
-        expect(css).toContain('.hero-brow-seal');
-        expect(css).toMatch(/\.calendar-screen \.footprint-empty\s*\{[^}]*margin:[^;]*24px/);
-        expect(css).toMatch(/\.wall-brow-seal[^{]*\{[^}]*right:5px/);
-        expect(css).toMatch(/\.hiyori-app \.wall-date-stamp\s*\{[^}]*right:38px/);
     });
 
     it('shows a bare zero on the quota seal and drops the dead draw-button seal rule', () => {
@@ -82,21 +78,25 @@ describe('exhausted draw gate', () => {
 
         const indexCss = readFileSync(path.join(frontendRoot, 'src/index.css'), 'utf8');
         expect(indexCss).not.toMatch(/\.btn-draw \.seal-mark\b/);
-        expect(indexCss).toContain('.btn-draw .seal-fox-mark');
         expect(indexCss).toContain('.hero-chrome .btn-draw.is-exhausted');
         expect(indexCss).toContain('width: 100%');
+    });
 
-        const generateBar = readFileSync(path.join(frontendRoot, 'src/components/GenerateBar.tsx'), 'utf8');
-        expect(generateBar).toContain('exhausted ? null : <SealFoxMark />');
-
-        const explore = readFileSync(path.join(frontendRoot, 'src/components/pages/ExplorePage.tsx'), 'utf8');
-        expect(explore).toContain('hero-brow-seal');
-
-        const auth = readFileSync(path.join(frontendRoot, 'src/components/AuthLayout.tsx'), 'utf8');
-        const motif = readFileSync(path.join(frontendRoot, 'src/components/PaperMotif.tsx'), 'utf8');
-        expect(auth).not.toContain('rizha-mark');
-        expect(motif).not.toContain('rizha-mark');
-        expect(auth).toContain('SealFoxMark');
-        expect(motif).toContain('SealFoxMark');
+    it('does not display the retired fox decoration in application pages', () => {
+        for (
+            const file of [
+                'AuthLayout.tsx',
+                'DaySignWall.tsx',
+                'FootprintHeat.tsx',
+                'GenerateBar.tsx',
+                'PaperMotif.tsx',
+                'ProductIntro.tsx',
+                'pages/ExplorePage.tsx',
+                'pages/HistoryPage.tsx'
+            ]
+        ) {
+            const source = readFileSync(path.join(frontendRoot, 'src/components', file), 'utf8');
+            expect(source, file).not.toMatch(/SealFox(?:Mark|Empty)/);
+        }
     });
 });

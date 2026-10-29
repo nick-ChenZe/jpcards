@@ -87,7 +87,7 @@ export const HistoryDetailPage = () => {
                     <span className="title">日签详情</span>
                 </div>
                 {loading
-                    ? <TodayCard loading loadingLabel="正在读取这张卡片" />
+                    ? <p className="history-detail-loading" role="status">正在翻开这张日签…</p>
                     : error
                     ? <p className="text-sm text-red-500">{error}</p>
                     : card

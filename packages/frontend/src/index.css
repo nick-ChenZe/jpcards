@@ -266,8 +266,6 @@ a:hover {
   .drawing-state,
   .wall-tile,
   .btn-draw.is-seal-press,
-  .auth-corner-seal,
-  .seal-empty-silhouette,
   .play-btn.playing .play-pulse {
     animation: none;
   }
@@ -276,9 +274,7 @@ a:hover {
   .hero-stage,
   .empty-ritual,
   .drawing-state,
-  .wall-tile,
-  .auth-corner-seal,
-  .seal-empty-silhouette {
+  .wall-tile {
     opacity: 1;
     transform: none;
   }
@@ -494,16 +490,6 @@ a:hover {
   align-items: center;
   gap: 10px;
   min-width: 0;
-}
-.btn-draw .seal-fox-mark {
-  width: 24px;
-  height: 24px;
-  display: block;
-  flex-shrink: 0;
-  background: transparent;
-  padding: 0;
-  border-radius: 0;
-  box-shadow: none;
 }
 .btn-draw.is-seal-press {
   animation: sealButtonPress 280ms cubic-bezier(0.22, 0.61, 0.36, 1) both;

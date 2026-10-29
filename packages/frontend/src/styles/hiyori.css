@@ -33,8 +33,7 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline:2px solid v
 .hiyori-nav-mark { display:grid; place-items:center; height:25px; font:22px/1.1 var(--font-editorial); }
 .hiyori-nav-item.is-settings .hiyori-nav-mark { font-size:28px; line-height:1; }
 .hiyori-nav-label { font-size:9px; font-weight:400; letter-spacing:1px; }
-.hiyori-loading { min-height:100dvh; display:grid; place-items:center; background:var(--bg); }
-.hiyori-loading-seal { display:grid; place-items:center; width:44px; height:56px; color:var(--accent); border:1px solid var(--accent); font:24px var(--font-editorial); animation:hiyori-breathe 1.8s ease-in-out infinite; }
+.hiyori-loading { min-height:100dvh; display:grid; place-items:center; background:var(--bg); color:var(--muted); font-size:14px; letter-spacing:.08em; }
 .hiyori-explore { height:auto; min-height:0; max-height:none; overflow:visible; padding:0 26px 16px; display:block; }
 .hiyori-date-row { display:flex; align-items:center; justify-content:space-between; gap:16px; margin:7px 0 25px; }
 .hiyori-date-block { display:flex; align-items:center; gap:12px; flex-shrink:0; }
@@ -141,7 +140,6 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline:2px solid v
 .is-login .motif-back { position:absolute; border:1px solid var(--paper-edge); background:var(--bg); transform:rotate(-12deg) translateX(-7px); animation:none; }
 .is-login .motif-caption { position:absolute; top:12px; left:12px; font-size:7px; letter-spacing:2px; color:var(--muted); }
 .is-login .motif-verse { position:absolute; top:33px; right:29px; margin:0; font-size:20px; line-height:1.8; letter-spacing:3px; }
-.is-login .motif-seal { position:absolute; bottom:15px; left:12px; width:22px; height:29px; display:grid; place-items:center; writing-mode:vertical-rl; font:11px var(--font-editorial); border:1px solid var(--accent); color:var(--accent); animation:hiyori-stamp .5s .6s both; }
 .is-login .motif-aside { display:block; position:absolute; left:0; top:42px; writing-mode:vertical-rl; font:10px var(--font-editorial); letter-spacing:4px; color:var(--muted); }
 .is-login .motif-number { display:block; position:absolute; right:7px; top:42px; writing-mode:vertical-rl; font:8px Georgia,var(--font-editorial); letter-spacing:2px; color:var(--muted); }
 .is-login .motif-waves { width:100px; left:auto; right:0; bottom:11px; background:repeating-radial-gradient(ellipse at 100% 100%,transparent 0 9px,var(--paper-edge) 10px 10.5px,transparent 11px 18px); }
@@ -244,10 +242,6 @@ html, body { height:100%; min-height:0; overflow:hidden; overscroll-behavior:non
 .hiyori-brand { gap:10px; }
 .hiyori-brand span { padding-left:10px; }
 .rizha-header-logo { display:block; width:100px; height:auto; flex-shrink:0; }
-.hiyori-loading-seal { width:52px; height:52px; border:0; }
-.hiyori-loading-seal img,.motif-seal img,.hiyori-card-seal img { display:block; }
-.hiyori-loading-seal .auth-wait-seal { width:44px; height:44px; }
-.is-login .motif-seal { width:27px; height:27px; border:0; writing-mode:horizontal-tb; }
 .hiyori-card-seal { width:24px; height:24px; border:0; background:transparent; writing-mode:horizontal-tb; transform:none; }
 .hiyori-personal-mark img { display:block; margin:0 auto; }
 
@@ -309,11 +303,11 @@ html, body { height:100%; min-height:0; overflow:hidden; overscroll-behavior:non
 .day-page-heading>span { font:25px var(--font-editorial); letter-spacing:2px; }
 .day-page-heading>small { margin-left:auto; color:var(--muted); font-size:11px; }
 .paper-back { display:grid; place-items:center; width:36px; min-height:44px; background:none; border:0; color:var(--ink); margin-left:-8px; }
-.day-card-list { flex:1; min-height:0; display:flex; flex-direction:column; justify-content:center; gap:12px; padding:18px 0; }
-.day-card-list .wall-tile { flex:1; min-height:0; max-height:145px; display:flex; align-items:stretch; overflow:hidden; border:0; border-bottom:1px solid var(--paper-edge); box-shadow:none; background:none; text-align:left; }
-.day-card-list .wall-tile .wall-info { flex:1; min-width:0; padding:18px 0 18px 15px; display:flex; flex-direction:column; justify-content:center; }
-.day-card-list .wall-tile.is-plain .wall-info { padding-left:0; }
-.day-card-list .wall-thumb { flex:0 0 auto; width:72px; height:auto; aspect-ratio:3 / 4; align-self:center; min-height:0; position:relative; }
+.day-card-list { flex:1; min-height:0; display:flex; flex-direction:column; gap:12px; padding:18px 0; overflow-y:auto; overscroll-behavior:contain; }
+.day-card-list .wall-tile { flex:0 0 auto; min-height:112px; display:flex; flex-direction:row; align-items:stretch; overflow:hidden; border:1px solid var(--paper-edge); border-radius:3px; box-shadow:none; background:var(--card); text-align:left; }
+.day-card-list .wall-tile .wall-info { flex:1; min-width:0; padding:16px; display:flex; flex-direction:column; justify-content:center; }
+.day-card-list .wall-tile.is-plain .wall-info { padding-left:16px; }
+.day-card-list .wall-thumb { flex:0 0 84px; width:84px; min-height:112px; position:relative; }
 .day-card-list .wall-thumb>img { position:absolute; inset:0; height:100%; width:100%; object-fit:cover; }
 .day-card-list .wall-date-stamp { display:none; }
 .day-card-list .wall-jp { font:18px/1.85 var(--font-ja); letter-spacing:0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
@@ -326,6 +320,7 @@ html, body { height:100%; min-height:0; overflow:hidden; overscroll-behavior:non
 .day-empty button { min-height:44px; margin:14px auto 0; display:flex; align-items:center; gap:12px; color:var(--accent); background:none; border:0; }
 .history-detail-screen .detail-layout { display:flex; flex-direction:column; flex:1; min-height:0; overflow-y:auto; scrollbar-width:none; gap:12px; }
 .history-detail-screen .detail-topbar { flex-shrink:0; }
+.history-detail-loading { flex:1; display:grid; place-items:center; margin:0; color:var(--muted); font-size:12px; }
 .history-detail-screen .today-card { flex:1; min-height:0; display:flex; flex-direction:column; overflow:visible; }
 .history-detail-screen .today-card>.hiyori-ticket-top { padding:12px 18px 8px; }
 .history-detail-screen .card-illustration { aspect-ratio:auto; flex:1 0 180px; }
@@ -437,28 +432,13 @@ html, body { height:100%; min-height:0; overflow:hidden; overscroll-behavior:non
     .hiyori-empty-card .motif-sun { transform:translateY(-50%) scale(.7); }
     .hiyori-empty-card h2 { font-size:19px; letter-spacing:1.5px; }
 }
-/* 朱印狐：角印静置，空态只淡入，印钮轻按不超过 300ms。 */
-.auth-corner-seal { position:absolute; top:16px; right:18px; z-index:4; width:24px; height:24px; pointer-events:none; animation:sealCornerIn 240ms cubic-bezier(0.22, 0.61, 0.36, 1) 40ms both; }
-.hiyori-auth .hiyori-header { padding-right:56px; }
-@keyframes sealCornerIn { from { opacity:0; } to { opacity:1; } }
-.hiyori-card-seal img { width:24px; height:24px; }
-.hero-brow-seal { position:absolute; top:5px; right:5px; z-index:2; width:24px; height:24px; pointer-events:none; }
-.hiyori-empty-card>.hiyori-ticket-top { padding-right:36px; }
-.hiyori-explore .btn-draw .seal-fox-mark { background:color-mix(in srgb,var(--card) 92%,transparent); padding:2px; border-radius:2px; box-shadow:none; }
-.hiyori-explore .btn-draw.is-exhausted .seal-fox-mark { display:none; }
-.wall-brow-seal,.day-card-list .wall-thumb .wall-brow-seal,.day-card-list .wall-tile.is-plain .wall-brow-seal { position:absolute; top:5px; right:5px; left:auto; bottom:auto; width:24px; height:24px; object-fit:contain; z-index:3; pointer-events:none; }
 .day-card-list .wall-tile.is-plain { position:relative; }
-.day-card-list .wall-tile.is-plain .wall-info { padding-right:40px; }
 .hiyori-app .wall-date-stamp { right:38px; z-index:1; }
-.hiyori-app .wall-tile.is-plain .wall-info { padding-right:78px; }
-.seal-empty-silhouette { width:96px; height:auto; display:block; margin:0 auto 8px; animation:sealEmptyIn 280ms cubic-bezier(0.22, 0.61, 0.36, 1) backwards; }
-@keyframes sealEmptyIn { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:translateY(0); } }
+.hiyori-app .wall-tile.is-plain .wall-info { padding-right:16px; }
 .footprint-empty { display:flex; flex-direction:column; align-items:center; gap:6px; flex-shrink:0; padding:4px 0 2px; }
 .footprint-empty p { margin:0; font-size:11px; letter-spacing:.04em; color:var(--muted); }
 .calendar-screen .footprint-empty { margin:2px 0 24px; padding:0; }
-.calendar-screen .footprint-empty .seal-empty-silhouette { width:72px; margin-bottom:0; }
 .day-empty-note { margin:0; font-size:11px; color:var(--muted); }
-@media(max-height:700px) { .calendar-screen .footprint-empty .seal-empty-silhouette { width:52px; } }
 
 /* The finished ticket uses the height left between its heading and draw action. */
 .hiyori-explore[data-state="hero"] { height:100%; min-height:0; display:flex; }

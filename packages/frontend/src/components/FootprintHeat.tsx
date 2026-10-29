@@ -2,7 +2,6 @@ import {buildFootprintMonth, type FootprintCell, footprintWindow, shiftFootprint
 import {ChevronLeft, ChevronRight} from 'lucide-react';
 import {useEffect, useMemo, useState} from 'react';
 import {useNavigate, useSearchParams} from 'react-router-dom';
-import {SealFoxEmpty} from './SealFox';
 
 const WEEKDAY_LABELS = ['日', '一', '二', '三', '四', '五', '六'];
 
@@ -152,7 +151,6 @@ export function FootprintHeat ({selectedDay}: {selectedDay?: string;}) {
             {monthEmpty
                 ? (
                     <div className="footprint-empty">
-                        <SealFoxEmpty />
                         <p>还没有足迹</p>
                     </div>
                 )
