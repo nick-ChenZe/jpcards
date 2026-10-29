@@ -67,9 +67,9 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline:2px solid v
 .hiyori-explore .btn-draw::before { display:none; }
 .hiyori-explore .btn-draw:hover:not(:disabled) { background:color-mix(in srgb,var(--accent) 90%,black); }
 .hiyori-explore .btn-draw:disabled { background:var(--exhausted); color:var(--muted); }
-.hiyori-explore .btn-draw.is-exhausted { height:auto; overflow:visible; white-space:normal; align-items:center; justify-content:center; padding:12px 16px; font-size:13px; line-height:1.55; letter-spacing:.04em; }
-.hiyori-explore .btn-draw.is-exhausted .draw-label { flex:1; min-width:0; white-space:normal; justify-content:center; text-align:center; line-height:1.55; }
-.hiyori-explore .btn-draw.is-exhausted .draw-label>span { min-width:0; white-space:normal; }
+.hiyori-explore .btn-draw.is-exhausted { width:100%; max-width:none; height:auto; min-height:51px; margin-left:0; border-radius:0; overflow:visible; white-space:normal; align-items:center; justify-content:center; padding:12px 16px; font-size:13px; line-height:1.55; letter-spacing:.04em; flex:1 0 auto; }
+.hiyori-explore .btn-draw.is-exhausted .draw-label { display:flex; width:100%; flex:1 1 100%; min-width:0; white-space:normal; justify-content:center; text-align:center; line-height:1.55; }
+.hiyori-explore .btn-draw.is-exhausted .draw-label>span { display:block; min-width:0; white-space:normal; overflow-wrap:anywhere; }
 .hiyori-explore .btn-draw.is-exhausted .draw-arrow { display:none; }
 .hiyori-explore[data-state="drawing"] .btn-draw:disabled,
 .hiyori-explore .btn-draw:disabled[aria-busy="true"] { background:var(--accent); color:var(--card); opacity:.7; }
@@ -246,6 +246,7 @@ html, body { height:100%; min-height:0; overflow:hidden; overscroll-behavior:non
 .rizha-header-logo { display:block; width:100px; height:auto; flex-shrink:0; }
 .hiyori-loading-seal { width:52px; height:52px; border:0; }
 .hiyori-loading-seal img,.motif-seal img,.hiyori-card-seal img { display:block; }
+.hiyori-loading-seal .auth-wait-seal { width:44px; height:44px; }
 .is-login .motif-seal { width:27px; height:27px; border:0; writing-mode:horizontal-tb; }
 .hiyori-card-seal { width:24px; height:24px; border:0; background:transparent; writing-mode:horizontal-tb; transform:none; }
 .hiyori-personal-mark img { display:block; margin:0 auto; }
@@ -441,15 +442,20 @@ html, body { height:100%; min-height:0; overflow:hidden; overscroll-behavior:non
 .hiyori-auth .hiyori-header { padding-right:56px; }
 @keyframes sealCornerIn { from { opacity:0; } to { opacity:1; } }
 .hiyori-card-seal img { width:24px; height:24px; }
-.hiyori-explore .btn-draw .seal-fox-mark { background:transparent; padding:0; border-radius:0; box-shadow:none; }
-.wall-brow-seal,.day-card-list .wall-thumb .wall-brow-seal { position:absolute; top:6px; right:6px; left:auto; bottom:auto; width:24px; height:24px; object-fit:contain; z-index:2; pointer-events:none; }
+.hero-brow-seal { position:absolute; top:5px; right:5px; z-index:2; width:24px; height:24px; pointer-events:none; }
+.hiyori-empty-card>.hiyori-ticket-top { padding-right:36px; }
+.hiyori-explore .btn-draw .seal-fox-mark { background:color-mix(in srgb,var(--card) 92%,transparent); padding:2px; border-radius:2px; box-shadow:none; }
+.hiyori-explore .btn-draw.is-exhausted .seal-fox-mark { display:none; }
+.wall-brow-seal,.day-card-list .wall-thumb .wall-brow-seal,.day-card-list .wall-tile.is-plain .wall-brow-seal { position:absolute; top:5px; right:5px; left:auto; bottom:auto; width:24px; height:24px; object-fit:contain; z-index:3; pointer-events:none; }
 .day-card-list .wall-tile.is-plain { position:relative; }
-.day-card-list .wall-tile.is-plain .wall-brow-seal { top:8px; right:0; }
-.day-card-list .wall-tile.is-plain .wall-info { padding-right:32px; }
+.day-card-list .wall-tile.is-plain .wall-info { padding-right:40px; }
+.hiyori-app .wall-date-stamp { right:38px; z-index:1; }
+.hiyori-app .wall-tile.is-plain .wall-info { padding-right:78px; }
 .seal-empty-silhouette { width:96px; height:auto; display:block; margin:0 auto 8px; animation:sealEmptyIn 280ms cubic-bezier(0.22, 0.61, 0.36, 1) backwards; }
 @keyframes sealEmptyIn { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:translateY(0); } }
 .footprint-empty { display:flex; flex-direction:column; align-items:center; gap:6px; flex-shrink:0; padding:4px 0 2px; }
 .footprint-empty p { margin:0; font-size:11px; letter-spacing:.04em; color:var(--muted); }
+.calendar-screen .footprint-empty { margin:2px 0 24px; padding:0; }
 .calendar-screen .footprint-empty .seal-empty-silhouette { width:72px; margin-bottom:0; }
 .day-empty-note { margin:0; font-size:11px; color:var(--muted); }
 @media(max-height:700px) { .calendar-screen .footprint-empty .seal-empty-silhouette { width:52px; } }

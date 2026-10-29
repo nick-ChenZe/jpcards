@@ -1,8 +1,8 @@
-import rizhaMark from '@/assets/rizha-mark.svg';
 import {useSession} from '@/lib/auth';
 import {Navigate, Outlet, useLocation} from 'react-router-dom';
 import {BottomNav} from './BottomNav';
 import {PaperHeader} from './PaperHeader';
+import {SealFoxMark} from './SealFox';
 
 /**
  * 认证布局：包含底部导航栏，未登录时重定向到 /login
@@ -15,7 +15,7 @@ export const AuthLayout = () => {
         return (
             <div className="hiyori-loading">
                 <span className="hiyori-loading-seal" role="status" aria-label="正在翻开日札">
-                    <img src={rizhaMark} alt="" width={44} height={44} />
+                    <SealFoxMark className="auth-wait-seal" />
                 </span>
             </div>
         );
