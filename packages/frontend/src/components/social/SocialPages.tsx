@@ -40,7 +40,7 @@ import {
     Settings2,
     X
 } from 'lucide-react';
-import {type ReactNode, useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
+import {type ReactNode, useCallback, useEffect, useId, useLayoutEffect, useRef, useState} from 'react';
 import {Link, useLocation, useNavigate, useSearchParams} from 'react-router-dom';
 import {toast} from 'sonner';
 
@@ -125,6 +125,7 @@ function Pagination ({page, hasNext, onPage}: {page: number; hasNext: boolean; o
 }
 function Modal ({title, children, onClose}: {title: string; children: ReactNode; onClose: () => void;}) {
     const ref = useRef<HTMLDialogElement>(null);
+    const headingId = useId();
     useEffect(() => {
         const dialog = ref.current;
         dialog?.showModal();
@@ -133,6 +134,7 @@ function Modal ({title, children, onClose}: {title: string; children: ReactNode;
     return (
         <dialog
             className="rz-dialog"
+            aria-labelledby={headingId}
             ref={ref}
             onCancel={event => {
                 event.preventDefault();
@@ -140,7 +142,7 @@ function Modal ({title, children, onClose}: {title: string; children: ReactNode;
             }}
         >
             <div className="rz-dialog-heading">
-                <h2>{title}</h2>
+                <h2 id={headingId}>{title}</h2>
                 <button type="button" className="rz-icon" onClick={onClose} aria-label="关闭">
                     <X size={20} />
                 </button>

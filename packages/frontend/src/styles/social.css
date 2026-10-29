@@ -3,3 +3,15 @@
 @media(max-width:360px){.rz-social{padding-left:19px;padding-right:19px}.rz-heading h1{font-size:25px}.rz-invite-paper{padding:13px;gap:12px}.rz-invite-paper h2{font-size:15px}.rz-seal{width:45px;height:59px}.rz-person-link{gap:9px}.rz-letter{margin-right:17px}.rz-letter.mine{margin-left:17px}.rz-header-actions{gap:4px}.hiyori-header:has(.rz-header-mail){padding-left:19px;padding-right:19px;gap:6px}.hiyori-header:has(.rz-header-mail) .hiyori-brand span{display:none}.rz-dialog{padding:17px}.rz-id-card strong{font-size:23px}.rz-social .rz-backbar h1{font-size:17px}}
 :root[data-paper-theme="ink"] .rz-social,:root[data-paper-theme="ink"] .rz-dialog{--rz-muted:#62695f}
 @media(prefers-reduced-motion:reduce){.rz-toggle i:after{transition:none}.rizha-letter-banner{animation:none}}
+
+/* Preflight resets the native dialog margin; restore centering within the safe viewport. */
+.rz-dialog {
+    position: fixed;
+    inset: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px)
+        env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+    margin: auto;
+    box-sizing: border-box;
+    max-width: calc(100vw - 30px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px));
+    max-height: min(85dvh, calc(100dvh - 30px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)));
+}
+.rz-dialog-heading h2, .rz-recipient-list>button>span:nth-child(2) { min-width:0; overflow-wrap:anywhere; }
