@@ -3,6 +3,8 @@ import {Navigate, Outlet, useLocation} from 'react-router-dom';
 import {BottomNav} from './BottomNav';
 import {PaperHeader} from './PaperHeader';
 import {SealFoxMark} from './SealFox';
+import {SocialProvider} from './social/SocialProvider';
+import '@/styles/social.css';
 
 /**
  * 认证布局：包含底部导航栏，未登录时重定向到 /login
@@ -26,15 +28,15 @@ export const AuthLayout = () => {
     }
 
     return (
-        <div className="app-paper hiyori-app">
+        <SocialProvider key={session.user.id} userId={session.user.id}><div className="app-paper hiyori-app">
             <PaperHeader initial={(session.user.name || session.user.email || '札').slice(0, 1).toUpperCase()} />
             <div
-                key={location.pathname}
-                className={`paper-screen${location.pathname.startsWith('/history') ? ' is-calendar-route' : ''}`}
+                key={location.pathname.startsWith('/friend') ? 'social' : location.pathname}
+                className={`paper-screen${location.pathname.startsWith('/history') ? ' is-calendar-route' : ''}${location.pathname.startsWith('/friend') ? ' is-social-route' : ''}`}
             >
                 <Outlet />
             </div>
             <BottomNav />
-        </div>
+        </div></SocialProvider>
     );
 };

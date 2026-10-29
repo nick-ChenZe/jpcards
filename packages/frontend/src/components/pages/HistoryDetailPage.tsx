@@ -104,6 +104,15 @@ export const HistoryDetailPage = () => {
                         />
                     )
                     : null}
+                {card && !error && !loading && (
+                    <button
+                        type="button"
+                        className="rz-history-share"
+                        onClick={() => navigate(`/friend?share=${encodeURIComponent(card.id)}`)}
+                    >
+                        把这张日签寄给好友 ↗
+                    </button>
+                )}
             </div>
         </div>
     );

@@ -1,4 +1,5 @@
 import {useLocation, useNavigate} from 'react-router-dom';
+import {useSocial} from './social/SocialProvider';
 
 const navItems = [
     {label: '今日', path: '/explore', mark: '◈'},
@@ -10,13 +11,16 @@ const navItems = [
 export const BottomNav = () => {
     const location = useLocation();
     const navigate = useNavigate();
+    const {overview} = useSocial();
+    const unread = overview?.summary.total || 0;
     return (
         <nav className="hiyori-nav" aria-label="底部导航">
             <div className="hiyori-nav-inner">
                 {navItems.map((item) => {
                     const active = location.pathname === item.path
                         || (item.path === '/explore' && location.pathname === '/')
-                        || (item.path === '/history' && location.pathname.startsWith('/history/'));
+                        || (item.path === '/history' && location.pathname.startsWith('/history/'))
+                        || (item.path === '/friend' && location.pathname.startsWith('/friend/'));
                     return (
                         <button
                             key={item.path}
@@ -25,7 +29,10 @@ export const BottomNav = () => {
                             aria-current={active ? 'page' : undefined}
                             onClick={() => navigate(item.path)}
                         >
-                            <span className="hiyori-nav-mark" aria-hidden="true">{item.mark}</span>
+                            <span className="hiyori-nav-mark rz-nav-mark" aria-hidden="true">
+                                {item.mark}
+                                {item.path === '/friend' && unread > 0 && <b>{unread > 99 ? '99+' : unread}</b>}
+                            </span>
                             <span className="hiyori-nav-label">{item.label}</span>
                         </button>
                     );

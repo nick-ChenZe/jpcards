@@ -22,7 +22,7 @@ function App () {
                         <Route path="/history" element={<HistoryPage />} />
                         <Route path="/admin/cards" element={<AdminCardsPage />} />
                         <Route path="/history/:id" element={<HistoryDetailPage />} />
-                        <Route path="/friend" element={<FriendPage />} />
+                        <Route path="/friend/*" element={<FriendPage />} />
                         <Route path="/setting" element={<SettingPage />} />
                     </Route>
 

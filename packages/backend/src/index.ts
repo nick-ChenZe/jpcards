@@ -15,6 +15,7 @@ import {cardProgressStream} from './routes/cardProgress.js';
 import {generateCard} from './routes/generateCard.js';
 import {getHeatmapResponse} from './routes/heatmap.js';
 import {getHistoryCardResponse, getHistoryResponse} from './routes/history.js';
+import {socialRoutes} from './social/routes.js';
 import type {Env} from './types.js';
 import {ADMIN_FORBIDDEN_MESSAGE, CARD_METHOD_NOT_ALLOWED_MESSAGE, REGISTER_UNAVAILABLE_MESSAGE} from './userCopy.js';
 import {countStreakDays} from './utils/streak.js';
@@ -234,6 +235,8 @@ app.get('/api/history', async (c) => {
         return c.json({error: 'HISTORY_FAILED', message: '暂时无法读取学习历史。'}, 500);
     }
 });
+
+app.route('/api/social', socialRoutes);
 
 app.get('*', async (c) => {
     return c.env.ASSETS.fetch(c.req.raw);
