@@ -1,4 +1,4 @@
-import rizhaMark from '@/assets/rizha-mark.svg';
+import {SealFoxMark} from './SealFox';
 
 export function PaperMotif ({kind = 'draw'}: {kind?: 'draw' | 'login';}) {
     return (
@@ -15,7 +15,7 @@ export function PaperMotif ({kind = 'draw'}: {kind?: 'draw' | 'login';}) {
                                 今日も、<br />いい日になる。
                             </span>
                             <span className="motif-seal">
-                                <img src={rizhaMark} alt="" width={27} height={27} />
+                                <SealFoxMark />
                             </span>
                         </>
                     )

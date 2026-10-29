@@ -10,6 +10,7 @@ import {GenerateBar} from '../GenerateBar';
 import {GenerationProgress} from '../GenerationProgress';
 import {PaperMotif} from '../PaperMotif';
 import {QuotaSeal} from '../QuotaSeal';
+import {SealFoxMark} from '../SealFox';
 import {TodayCard} from '../TodayCard';
 
 interface MediaNotice {
@@ -68,6 +69,7 @@ function EmptyRitual ({drawing = false}: {drawing?: boolean;}) {
             role={drawing ? 'status' : undefined}
             aria-busy={drawing}
         >
+            <SealFoxMark className="hero-brow-seal" />
             <div className="hiyori-ticket-top">
                 <span>一期一会</span>
                 <span>DAILY FORTUNE</span>

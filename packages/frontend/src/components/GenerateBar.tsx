@@ -8,7 +8,7 @@ import {SealFoxMark} from './SealFox';
 interface GenerateBarProps {
     loading: boolean;
     exhausted: boolean;
-    /** hero 顶上的再抽一枚，收成小圆钮。 */
+    /** 已有日签时缩短按钮文案。用尽时忽略，停止钮保持通栏。 */
     compact?: boolean;
     onGenerate: () => void;
 }
@@ -47,7 +47,7 @@ export function GenerateBar ({
             >
                 {loading ? <DrawWriting /> : (
                     <span className="draw-label">
-                        <SealFoxMark />
+                        {exhausted ? null : <SealFoxMark />}
                         <span>{label}</span>
                     </span>
                 )}

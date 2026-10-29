@@ -473,19 +473,6 @@ a:hover {
   border-radius: calc(var(--radius) - 4px);
   pointer-events: none;
 }
-.btn-draw .seal-mark {
-  width: 22px;
-  height: 22px;
-  border: 1.5px solid currentColor;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--font-ja), serif;
-  font-size: 10px;
-  font-weight: 500;
-  flex-shrink: 0;
-}
 .btn-draw:hover:not(:disabled) {
   background: rgba(196, 92, 74, 0.16);
 }
@@ -633,10 +620,25 @@ a:hover {
   gap: 6px;
 }
 .hero-chrome .btn-draw::before { display: none; }
-.hero-chrome .btn-draw .seal-mark {
-  width: 14px;
-  height: 14px;
-  font-size: 8px;
+.hero-chrome .btn-draw.is-exhausted,
+.hero-chrome .generate-bar:has(.btn-draw.is-exhausted) {
+  order: 3;
+  margin-left: 0;
+  width: 100%;
+  max-width: none;
+  flex: 1 0 100%;
+  min-height: 48px;
+  height: auto;
+  padding: 12px 16px;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  border-radius: 0;
+  white-space: normal;
+}
+.hero-chrome .generate-bar:has(.btn-draw.is-exhausted) {
+  display: block;
+  min-height: 0;
+  padding: 0;
 }
 .hero-chrome .quota-hint {
   order: 3;
