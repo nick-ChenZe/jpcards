@@ -2,6 +2,7 @@ import {type CardStage, readCardResponse} from '@/lib/cardProgress';
 import {shanghaiRitualDate} from '@/lib/datetime';
 import {generateCardInit} from '@/lib/generateCard';
 import {gateDrawAttempt, isQuotaExceededDenial, isQuotaSnapshot, type QuotaSnapshot} from '@/lib/quotaGate';
+import {loadReturnVisitSentence, visibleReturnVisit} from '@/lib/returnVisit';
 import {streakChipText} from '@/lib/streakNote';
 import {userFacingMedia, userFacingTextNotice} from '@/lib/userCopy';
 import {cn} from '@/lib/utils';
@@ -10,6 +11,7 @@ import {GenerateBar} from '../GenerateBar';
 import {GenerationProgress} from '../GenerationProgress';
 import {PaperMotif} from '../PaperMotif';
 import {QuotaSeal} from '../QuotaSeal';
+import {ReturnVisit} from '../ReturnVisit';
 import {TodayCard} from '../TodayCard';
 
 interface MediaNotice {
@@ -103,6 +105,7 @@ export const ExplorePage = () => {
     const [streakPending, setStreakPending] = useState(true);
     const [stampKey, setStampKey] = useState(0);
     const [arming, setArming] = useState(false);
+    const [visitSentence, setVisitSentence] = useState<string | null>(null);
     const quotaEpoch = useRef(0);
     const streakEpoch = useRef(0);
     const generating = useRef(false);
@@ -157,6 +160,17 @@ export const ExplorePage = () => {
         void refreshQuota();
         void refreshStreak();
     }, [refreshQuota, refreshStreak]);
+
+    useEffect(() => {
+        const controller = new AbortController();
+        setVisitSentence(null);
+        void loadReturnVisitSentence(ritual.dayKey, {signal: controller.signal}).then((sentence) => {
+            if (!controller.signal.aborted) {
+                setVisitSentence(sentence);
+            }
+        });
+        return () => controller.abort();
+    }, [ritual.dayKey]);
 
     const noteSuccessfulUse = () => {
         quotaEpoch.current += 1;
@@ -257,6 +271,7 @@ export const ExplorePage = () => {
     );
 
     const [year, month, day] = ritual.dayKey.split('-');
+    const visitLine = visibleReturnVisit(visitSentence, exploreState);
     return (
         <div className="explore-screen hiyori-explore" data-state={exploreState}>
             <header className="hiyori-date-row">
@@ -276,6 +291,7 @@ export const ExplorePage = () => {
                 <h1>今日日签</h1>
                 <span>A LITTLE EVERY DAY</span>
             </div>
+            {visitLine ? <ReturnVisit sentence={visitLine} /> : null}
             <div className="hiyori-ticket-stage" key={`card-${stampKey}`}>
                 {card && !loading
                     ? (
