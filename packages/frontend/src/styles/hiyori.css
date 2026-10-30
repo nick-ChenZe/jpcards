@@ -432,6 +432,49 @@ html, body { height:100%; min-height:0; overflow:hidden; overscroll-behavior:non
     .hiyori-empty-card .motif-sun { transform:translateY(-50%) scale(.7); }
     .hiyori-empty-card h2 { font-size:19px; letter-spacing:1.5px; }
 }
+
+/* 回访轻对照。日签墙砖 min-height 112px，这里取一半。不进朱印，不换未抽壳。 */
+.return-visit {
+    box-sizing: border-box;
+    flex: 0 0 auto;
+    height: 56px;
+    margin: 0 0 8px;
+    padding: 4px 12px 3px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 1px;
+    background: var(--card);
+    border: 1px solid var(--paper-edge);
+    box-shadow: none;
+    overflow: hidden;
+    animation: return-visit-fade 240ms ease both;
+}
+.return-visit-kicker {
+    margin: 0;
+    font: 9px/1 var(--font-zh);
+    letter-spacing: 2px;
+    color: var(--muted);
+}
+.return-visit-sentence {
+    margin: 0;
+    font: 13px/1.3 var(--font-ja);
+    color: var(--ink);
+    opacity: .72;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+}
+@keyframes return-visit-fade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+.hiyori-explore:has(.return-visit) > .hiyori-ticket-stage { min-height: 0; }
+.hiyori-explore:has(.return-visit) .hiyori-empty-card .paper-motif { min-height: 88px; }
+/* /return-visit */
 .day-card-list .wall-tile.is-plain { position:relative; }
 .hiyori-app .wall-date-stamp { right:38px; z-index:1; }
 .hiyori-app .wall-tile.is-plain .wall-info { padding-right:16px; }
